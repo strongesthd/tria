@@ -15,14 +15,41 @@ import {
 
 type SearchParams = Promise<{ category?: string; target?: string; q?: string }>;
 
+/** Build a unique, length-optimised title for every filter combination. */
+function seoTitle(category: string, target: string): string {
+  const cat = PRODUCT_CATEGORIES.find((c) => c.id === category);
+  const targetLabel = target === "b2c" ? "Cá nhân" : target === "b2b" ? "Quán & Doanh nghiệp" : null;
+  const suffix = " | TRIA CAFE";
+
+  if (cat && targetLabel) return `${cat.title} cho ${targetLabel}${suffix}`;
+  if (cat) return `${cat.subtitle} - ${cat.title}${suffix}`;
+  if (targetLabel) return `Sản phẩm cà phê cho ${targetLabel}${suffix}`;
+  return `Sản phẩm cà phê & máy pha${suffix}`;
+}
+
+/** Build a unique meta description for each filter combination. */
+function seoDescription(category: string, target: string): string {
+  const cat = PRODUCT_CATEGORIES.find((c) => c.id === category);
+  const targetPhrase =
+    target === "b2c" ? "dành cho cá nhân yêu cà phê"
+    : target === "b2b" ? "dành cho quán và doanh nghiệp F&B"
+    : "";
+  if (cat) return `${cat.description} Khám phá ${cat.title.toLowerCase()} ${targetPhrase} tại TRIA CAFE.`.trim();
+  if (targetPhrase) return `Khám phá hạt cà phê rang tươi, máy pha espresso và phụ kiện barista ${targetPhrase} tại TRIA CAFE.`;
+  return "Khám phá hạt cà phê rang tươi, máy pha espresso và phụ kiện barista chính hãng tại TRIA CAFE.";
+}
+
 export async function generateMetadata({ searchParams }: { searchParams: SearchParams }): Promise<Metadata> {
   const params = await searchParams;
-  const category = PRODUCT_CATEGORIES.find((c) => c.id === params.category);
-  const title = category ? category.title : "Sản phẩm cà phê & máy pha";
-  const description = category
-    ? `${category.description} Xem ngay các sản phẩm ${category.title} của TRIA CAFE.`
-    : "Khám phá hạt cà phê rang tươi, máy pha espresso và phụ kiện barista chính hãng tại TRIA CAFE.";
-  return { title, description, alternates: { canonical: "/san-pham" } };
+  const category = params.category || "all";
+  const target = params.target || "all";
+  const hasSearchQuery = Boolean(params.q?.trim());
+  return {
+    title: seoTitle(category, target),
+    description: seoDescription(category, target),
+    alternates: { canonical: `/san-pham${category !== "all" ? `?category=${category}` : ""}${target !== "all" ? `${category !== "all" ? "&" : "?"}target=${target}` : ""}` },
+    ...(hasSearchQuery ? { robots: { index: false, follow: true } } : {}),
+  };
 }
 
 const TARGETS: { id: Target | "all"; label: string }[] = [
@@ -31,10 +58,17 @@ const TARGETS: { id: Target | "all"; label: string }[] = [
   { id: "b2b", label: "Quán / Cty (B2B)" },
 ];
 
+/** Unique H1 for every filter variant. */
+function h1Text(category: string, target: string): string {
+  const cat = PRODUCT_CATEGORIES.find((c) => c.id === category);
+  const targetLabel = target === "b2c" ? "Cá nhân" : target === "b2b" ? "Quán & Doanh nghiệp" : "";
+  if (cat) return `${cat.title}${targetLabel ? ` cho ${targetLabel}` : ""}`;
+  if (targetLabel) return `Sản phẩm cho ${targetLabel}`;
+  return "Danh mục sản phẩm TRIA";
+}
+
 export default async function ProductsPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
-  // Kept as plain strings so "all" stays a valid comparison; validated against
-  // the allowed unions below instead of asserting the param type directly.
   const category = params.category || "all";
   const target = params.target || "all";
   const query = (params.q || "").trim().toLowerCase();
@@ -60,13 +94,13 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
 
       <header className="mb-8">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#D97706]">Shop by category</p>
-        <h1 className="mt-2 text-3xl font-extrabold text-white">Danh mục sản phẩm TRIA</h1>
+        <h1 className="mt-2 text-3xl font-extrabold text-white">{h1Text(category, target)}</h1>
         <p className="mt-2 max-w-2xl text-sm text-[#A69B93]">
           Cà phê hạt rang tươi nguyên chất &amp; máy pha nhập khẩu chính hãng. Lọc theo đối tượng để tìm đúng giải pháp.
         </p>
       </header>
 
-      {/* Category cards (anchor links so each is crawlable / deep-linkable) */}
+      {/* Category cards */}
       <div className="mb-8 grid gap-4 sm:grid-cols-3">
         <Link
           href={targetSlug ? `/san-pham?target=${targetSlug}` : "/san-pham"}
@@ -95,12 +129,12 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
         ))}
       </div>
 
-      {/* Filters as real links so state lives in the URL */}
+      {/* Filters */}
       <div className="mb-8 flex flex-col gap-4 rounded-2xl border border-[#2A2421] bg-[#171412] p-6 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-2">
           <Coffee className="h-6 w-6 text-[#C87D55]" aria-hidden />
           <div>
-            <h2 className="text-xl font-bold text-white">Danh Mục Sản Phẩm</h2>
+            <h2 className="text-xl font-bold text-white">Bộ lọc sản phẩm</h2>
             <p className="text-xs text-[#A69B93]">{filtered.length} sản phẩm khớp bộ lọc</p>
           </div>
         </div>
@@ -164,7 +198,6 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
         </div>
       )}
 
-      {/* Structured data per product */}
       <JsonLdScript data={filtered.map(buildProductJsonLd)} />
     </div>
   );
