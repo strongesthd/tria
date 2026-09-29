@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+.github
+.env*
+npm-debug.log*
+next-dev-*.log
+docker-compose*.yml
+deploy_dist
+public/images/tria_logo_original.png

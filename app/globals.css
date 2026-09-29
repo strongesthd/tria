@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+@theme {
+  --color-espresso: #1c1613;
+  --color-roast-gold: #d97706;
+  --color-kraft-cream: #fdfbf7;
+
+  /* Brand type pairing: a serif for editorial headings, a clean sans for UI. */
+  --font-serif: Georgia, "Times New Roman", serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    "Noto Sans", sans-serif;
+
+  --animate-fade-in: fade-in 0.35s ease-out both;
+}
+
+/* Previously referenced as `animate-fadeIn` but never defined, so the
+   animation silently did nothing. Defined once here. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+:root {
+  --espresso: #1c1613;
+  --roast-gold: #d97706;
+  --kraft-cream: #fdfbf7;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  max-width: 100%;
+  scroll-padding-top: 6.5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--espresso);
+  color: var(--kraft-cream);
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+/* Respect users who ask for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus visibility for keyboard users, which button-only navigation broke. */
+:focus-visible {
+  outline: 2px solid var(--roast-gold);
+  outline-offset: 2px;
+}
+
+/* Visually hidden but still exposed to screen readers. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

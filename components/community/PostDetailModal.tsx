@@ -1,0 +1,130 @@
+"use client";
+
+import React from "react";
+import Image from "next/image";
+import { CheckCircle2, MessageCircle, X } from "lucide-react";
+import { CommunityPost, badgeFor } from "./types";
+
+type PostDetailModalProps = { post: CommunityPost | null; onClose: () => void; onAddComment: (postId: string, body: string) => void };
+
+export function PostDetailModal({ post, onClose, onAddComment }: PostDetailModalProps) {
+  if (!post) return null;
+
+  const badge = badgeFor(post.author.badge);
+  const authorName = post.author.name || "Thành viên TRIA";
+  const avatar = post.author.image || "";
+
+  return (
+    <div className="fixed inset-0 z-[70] overflow-y-auto bg-black/75 p-4 backdrop-blur-sm" onClick={onClose} role="dialog" aria-modal="true" aria-label={post.title}>
+      <div className="mx-auto my-6 max-w-3xl overflow-hidden rounded-2xl border border-[#4A3B31] bg-[#171412] shadow-2xl" onClick={(event) => event.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-[#2A2421] px-5 py-4">
+          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#D97706]">TRIA Knowledge Hub</span>
+          <button type="button" aria-label="Đóng" onClick={onClose} className="rounded-full p-2 text-[#A69B93] hover:bg-[#2A2421] hover:text-white">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="p-5 md:p-8">
+          <div className="flex flex-wrap gap-2">
+            <span className="rounded-full bg-[#D97706]/15 px-3 py-1 text-xs font-bold text-[#F0B429]">{post.categoryLabel}</span>
+            {post.tags.map((tag) => (
+              <span key={tag} className="text-xs text-[#D97706]">{tag}</span>
+            ))}
+          </div>
+          <h2 className="mt-4 text-2xl font-bold leading-tight text-white md:text-3xl">{post.title}</h2>
+          <div className="mt-4 flex items-center gap-3">
+            {avatar ? (
+              <Image src={avatar} alt={authorName} width={36} height={36} loading="lazy" className="h-9 w-9 rounded-full object-cover" />
+            ) : (
+              <span aria-hidden className="flex h-9 w-9 items-center justify-center rounded-full bg-[#221D1A] text-xs font-bold text-[#E2A168]">{authorName.charAt(0)}</span>
+            )}
+            <div>
+              <p className="text-sm font-bold text-white">
+                {authorName} <span className={`ml-2 text-xs font-normal ${badge.tone}`}>{badge.icon} {badge.label}</span>
+              </p>
+              <p className="text-xs text-[#A69B93]">{post.time} · {post.views.toLocaleString("vi-VN")} lượt xem</p>
+            </div>
+          </div>
+          {post.image && (
+            <Image
+              src={post.image}
+              alt={`Hình minh họa: ${post.title}`}
+              width={900}
+              height={360}
+              loading="lazy"
+              className="mt-6 max-h-[360px] w-full rounded-xl object-cover"
+            />
+          )}
+          <div className="prose prose-invert mt-6 max-w-none text-sm leading-7 text-[#D8CDC2]">
+            <p>{post.content}</p>
+          </div>
+
+          <div className="mt-8 border-t border-[#2A2421] pt-6">
+            <h3 className="flex items-center gap-2 text-sm font-bold text-white">
+              <MessageCircle className="h-4 w-4 text-[#D97706]" aria-hidden />
+              Bình luận &amp; giải pháp ({post.comments + post.commentsData.length})
+            </h3>
+            <div className="mt-4 space-y-4">
+              {post.commentsData.map((comment) => {
+                const commentBadge = badgeFor(comment.badge.label);
+                return (
+                  <div key={comment.id} className="flex gap-3 rounded-xl bg-[#221D1A] p-4">
+                    {comment.avatar ? (
+                      <Image src={comment.avatar} alt={comment.author} width={32} height={32} loading="lazy" className="h-8 w-8 rounded-full object-cover" />
+                    ) : (
+                      <span aria-hidden className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#171412] text-xs font-bold text-[#E2A168]">{comment.author.charAt(0)}</span>
+                    )}
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-bold text-white">{comment.author}</span>
+                        <span className={`text-xs ${commentBadge.tone}`}>{commentBadge.icon} {commentBadge.label}</span>
+                        {comment.accepted && (
+                          <span className="flex items-center gap-1 text-xs font-bold text-emerald-400">
+                            <CheckCircle2 className="h-3.5 w-3.5" aria-hidden /> Giải pháp chuẩn
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-1 text-sm leading-relaxed text-[#CDBBAA]">{comment.body}</p>
+                      <p className="mt-2 text-[11px] text-[#81746B]">{comment.time}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <CommentForm onSubmit={(body) => onAddComment(post.id, body)} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CommentForm({ onSubmit }: { onSubmit: (body: string) => void }) {
+  const [body, setBody] = React.useState("");
+  return (
+    <form
+      className="mt-5"
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!body.trim()) return;
+        onSubmit(body.trim());
+        setBody("");
+      }}
+    >
+      <label className="sr-only" htmlFor="community-comment-input">
+        Viết bình luận
+      </label>
+      <div className="flex gap-2">
+        <input
+          id="community-comment-input"
+          value={body}
+          onChange={(event) => setBody(event.target.value)}
+          placeholder="Chia sẻ kinh nghiệm hoặc câu hỏi..."
+          className="min-w-0 flex-1 rounded-xl border border-[#3A302B] bg-[#221D1A] px-4 py-3 text-sm text-white outline-none focus:border-[#D97706]"
+        />
+        <button type="submit" className="rounded-xl bg-[#D97706] px-4 text-sm font-bold text-[#1C1613] transition hover:bg-[#E08A1E]">
+          Gửi
+        </button>
+      </div>
+    </form>
+  );
+}

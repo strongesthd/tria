@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tria-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tria
+      # Sourced from .env (TRIA_DB_PASSWORD). Required so a weak default cannot
+      # be used by accident.
+      POSTGRES_PASSWORD: ${TRIA_DB_PASSWORD:?Set TRIA_DB_PASSWORD in .env}
+      POSTGRES_DB: tria_coffee
+    ports:
+      # Bound to loopback only: the database must not be reachable from the LAN.
+      - "127.0.0.1:5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tria -d tria_coffee"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - tria_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  tria_postgres_data:
