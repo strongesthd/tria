@@ -27,6 +27,8 @@ ssh-keygen -t ed25519 -f ~/.ssh/tria_deploy -N ""
 ssh-copy-id -i ~/.ssh/tria_deploy.pub -p 2223 root@27.72.104.154
 
 # 3. Paste the PRIVATE key into GitHub Secrets → VPS_SSH_KEY
+#    On Windows PowerShell:
+#      Get-Content "$env:USERPROFILE\.ssh\tria_deploy" -Raw
 
 # 4. SSH into VPS and create the app directory + production env
 ssh -p 2223 root@27.72.104.154
