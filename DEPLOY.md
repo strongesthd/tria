@@ -82,7 +82,7 @@ server {
 2. First the `validate` job runs `tsc --noEmit` + `eslint .` (must pass).
 3. Then `deploy` uploads the source tarball to VPS via SCP.
 4. VPS extracts into `/home/app/triacafe.vn`, keeps `.env.production` untouched.
-5. On first deploy, `npx prisma db push` initialises the database schema.
+5. On first deploy, the `migrator` service runs `prisma db push` to initialise the schema.
 6. `docker compose up -d --build` rebuilds the container with the new code.
 7. Health check polls `http://127.0.0.1:8082/` until the app is ready.
 
@@ -101,8 +101,7 @@ For schema changes on subsequent deploys, SSH in and run:
 
 ```bash
 cd /home/app/triacafe.vn
-docker compose -f deploy/docker-compose.prod.yml run --rm --no-deps \
-  -w /app web npx prisma db push --skip-generate
+docker compose -f deploy/docker-compose.prod.yml run --rm migrator
 ```
 
 ## View logs

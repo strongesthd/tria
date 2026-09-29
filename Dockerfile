@@ -13,6 +13,7 @@ COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate
 RUN npm run build
+CMD ["npx", "prisma", "db", "push", "--skip-generate"]
 
 FROM node:22-alpine AS runner
 WORKDIR /app
@@ -26,13 +27,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Prisma's generated runtime is needed by the standalone server. The schema is
-# copied for `prisma db push` during first-time VPS setup, not at every deploy.
+# The generated Prisma client is required by the standalone server. The Prisma
+# CLI itself is NOT copied: schema changes run through the `migrator` compose
+# service, which is built from the full `builder` stage.
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
-COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 
 USER nextjs
 EXPOSE 3000
