@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useActionState, useEffect, useState } from "react";
+import React, { useActionState, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { signIn } from "next-auth/react";
 import { useFormStatus } from "react-dom";
@@ -23,12 +23,44 @@ export default function AuthModal({ open, onClose, oauthEnabled }: AuthModalProp
   const [mounted, setMounted] = useState(false);
   const [loginState, loginFormAction] = useActionState(loginAction, {});
   const [registerState, registerFormAction] = useActionState(registerAction, {});
+  const [prefilledEmail, setPrefilledEmail] = useState("");
+  const hasHandledRegisterRedirect = useRef(false);
 
   useEffect(() => setMounted(true), []);
+
+  // When registration succeeds, either we are already signed in (session will
+  // hydrate) or we should move the user directly to the login tab so they
+  // don't have to discover it. The modal pre-fills the email they just used.
+  useEffect(() => {
+    if (!registerState.success || hasHandledRegisterRedirect.current) return;
+    const email = registerState.createdEmail;
+    if (email) setPrefilledEmail(email);
+    if (registerState.autoLoggedIn) {
+      onClose();
+      window.location.reload();
+    } else {
+      hasHandledRegisterRedirect.current = true;
+      setMode("login");
+    }
+  }, [registerState.success, registerState.createdEmail, registerState.autoLoggedIn, onClose]);
+
+  // Successful credentials login should close the modal and return the user to
+  // the page they initiated sign-in from. `signIn(..., { redirect: false })`
+  // in the server action creates the session; a router.refresh lets layouts
+  // pick up the new badge/points immediately.
+  useEffect(() => {
+    if (!loginState.success) return;
+    const timer = window.setTimeout(() => {
+      onClose();
+      window.location.reload();
+    }, 450);
+    return () => window.clearTimeout(timer);
+  }, [loginState.success, onClose]);
 
   // Close on Escape and lock body scroll while open.
   useEffect(() => {
     if (!open) return;
+    hasHandledRegisterRedirect.current = false;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
@@ -93,7 +125,7 @@ export default function AuthModal({ open, onClose, oauthEnabled }: AuthModalProp
           <form action={loginFormAction} className="space-y-3">
             <label className="block text-xs font-bold">
               Email
-              <input name="email" type="email" required autoComplete="email" className="mt-1 w-full rounded-xl border border-[#D8CDC2] px-4 py-3 font-normal outline-none focus:border-[#D97706]" placeholder="you@example.com" />
+              <input name="email" type="email" required autoComplete="email" value={prefilledEmail} onChange={(event) => setPrefilledEmail(event.target.value)} className="mt-1 w-full rounded-xl border border-[#D8CDC2] px-4 py-3 font-normal outline-none focus:border-[#D97706]" placeholder="you@example.com" />
             </label>
             <label className="block text-xs font-bold">
               Mật khẩu

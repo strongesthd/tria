@@ -8,7 +8,12 @@ import { prisma } from "../../lib/prisma";
 import { rateLimit } from "../../lib/rate-limit";
 import { loginSchema, profileSchema, registerSchema } from "../../lib/validation";
 
-export type AuthActionState = { error?: string; success?: string };
+export type AuthActionState = {
+  error?: string;
+  success?: string;
+  createdEmail?: string;
+  autoLoggedIn?: boolean;
+};
 
 /** Real client IP from the incoming request headers. */
 async function callerIp() {
@@ -65,7 +70,24 @@ export async function registerAction(
     },
   });
 
-  return { success: "Tạo tài khoản thành công. Bạn có thể đăng nhập ngay." };
+  try {
+    await signIn("credentials", {
+      email: parsed.data.email,
+      password: parsed.data.password,
+      redirect: false,
+    });
+    return {
+      success: "Tài khoản đã được tạo và bạn đã đăng nhập.",
+      createdEmail: parsed.data.email,
+      autoLoggedIn: true,
+    };
+  } catch {
+    return {
+      success: "Tạo tài khoản thành công. Vui lòng đăng nhập với email vừa đăng ký.",
+      createdEmail: parsed.data.email,
+      autoLoggedIn: false,
+    };
+  }
 }
 
 export async function loginAction(
@@ -92,7 +114,7 @@ export async function loginAction(
       password: parsed.data.password,
       redirect: false,
     });
-    return { success: "Đăng nhập thành công." };
+    return { success: "Đăng nhập thành công. Đang chuyển hướng...", createdEmail: parsed.data.email };
   } catch {
     return { error: "Email hoặc mật khẩu không đúng." };
   }
