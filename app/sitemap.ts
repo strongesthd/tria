@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "../lib/prisma";
-import { BRANCHES, SITE_URL } from "../lib/site-data";
+import { BRANCHES, PRODUCTS, SITE_URL } from "../lib/site-data";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -19,6 +19,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
     })
   );
+
+  const productRoutes: MetadataRoute.Sitemap = PRODUCTS.map((product) => ({
+    url: `${SITE_URL}/san-pham/${product.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly",
+    priority: 0.8,
+  }));
 
   const branchRoutes: MetadataRoute.Sitemap = BRANCHES.map((branch) => ({
     url: `${SITE_URL}/he-thong-quan#${branch.slug}`,
@@ -47,6 +54,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...staticRoutes,
     ...categoryRoutes,
+    ...productRoutes,
     ...branchRoutes,
     ...communityRoutes,
   ];

@@ -82,7 +82,7 @@ export const profileSchema = z.object({
 });
 
 export const bookingSchema = z.object({
-  locationId: z.enum(["loc1", "loc2"]),
+  locationId: z.enum(["loc1", "loc2", "loc3"]),
   bookingType: z.enum(["b2b_demo", "b2c_demo", "cupping"]),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ngày không hợp lệ."),
   name: nameSchema,

@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import { Check, Star } from "lucide-react";
 import { JsonLdScript } from "../../../components/seo/JsonLdScript";
 import AddToCartButton from "../../../components/shop/AddToCartButton";
-import { PRODUCTS, buildProductJsonLd, buildBreadcrumbJsonLd } from "../../../lib/site-data";
+import { HOTLINE, PRODUCTS, buildProductJsonLd, buildBreadcrumbJsonLd } from "../../../lib/site-data";
 
 type Params = Promise<{ slug: string }>;
 
@@ -113,7 +113,7 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
 
           <p className="text-xs text-[#81746B]">
             Hỗ trợ đặt hàng:{" "}
-            <a href={`tel:${"19006868"}`} className="font-bold text-[#E2A168] hover:underline">1900 6868</a> · Miễn phí tư vấn setup máy tại quán B2B.
+            <a href={`tel:${HOTLINE.replace(/\s/g, "")}`} className="font-bold text-[#E2A168] hover:underline">{HOTLINE}</a> · Miễn phí tư vấn setup máy tại quán B2B.
           </p>
         </div>
       </div>

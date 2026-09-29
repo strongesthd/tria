@@ -150,7 +150,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
                 <span className="text-lg font-extrabold text-[#E2A168]">{p.price.toLocaleString("vi-VN")} VNĐ</span>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <Link href="/he-thong-quan#booking" className="rounded-xl border border-[#3A302B] bg-[#221D1A] px-2 py-2 text-center text-xs font-semibold text-[#E2A168] transition-all hover:bg-[#2A2421]">Thử Tại Quán</Link>
+                <Link href={`/san-pham/${p.slug}`} className="rounded-xl border border-[#3A302B] bg-[#221D1A] px-2 py-2 text-center text-xs font-semibold text-[#E2A168] transition-all hover:bg-[#2A2421]">Xem chi tiết</Link>
                 <AddToCartButton product={p} />
               </div>
             </div>

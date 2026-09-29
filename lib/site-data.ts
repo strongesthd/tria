@@ -159,11 +159,11 @@ export type Branch = {
 export const BRANCHES: Branch[] = [
   {
     id: "loc1",
-    name: "Chi nhánh Quận 1 - Flagship Experience Hub",
-    slug: "flagship-quan-1",
-    address: "142 Nguyễn Thị Minh Khai, Phường 6, Quận 3, TP. Hồ Chí Minh",
-    hours: "07:00 - 22:30 hàng ngày",
-    phone: "028 3822 9900",
+    name: "CS1 - Phú Hữu, TP. Thủ Đức",
+    slug: "co-so-phu-huu",
+    address: "Số 741 Nguyễn Duy Trinh, Phường Phú Hữu, TP. Thủ Đức, TP. Hồ Chí Minh",
+    hours: "08:00 - 21:30 hàng ngày",
+    phone: "0989 668 113",
     features: [
       "Thử máy pha B2C & B2B",
       "Cupping Lab hạt Robusta",
@@ -174,23 +174,38 @@ export const BRANCHES: Branch[] = [
   },
   {
     id: "loc2",
-    name: "Chi nhánh Thủ Đức - Roastery & Tech Lab",
-    slug: "roastery-thu-duc",
-    address: "68 Đường Khổng Tử, Phường Bình Thọ, TP. Thủ Đức, TP. Hồ Chí Minh",
-    hours: "07:30 - 21:30 hàng ngày",
-    phone: "028 3720 1100",
+    name: "CS2 - Thảo Điền, TP. Thủ Đức",
+    slug: "co-so-thao-dien",
+    address: "Số 32A Nguyễn Bá Huân, Phường Thảo Điền, TP. Thủ Đức, TP. Hồ Chí Minh",
+    hours: "08:00 - 21:30 hàng ngày",
+    phone: "0983 020 629",
+    features: [
+      "Thử máy pha B2C & B2B",
+      "Cupping Lab hạt Robusta",
+      "Workshop Cuối tuần",
+      "Khu Demo B2B",
+    ],
+    image: img("photo-1501339847302-ac426a4a7cbb", 1200),
+  },
+  {
+    id: "loc3",
+    name: "CS3 - Bình Trưng Tây, TP. Thủ Đức",
+    slug: "co-so-binh-trung-tay",
+    address: "Số 342 Nguyễn Duy Trinh, Phường Bình Trưng Tây, TP. Thủ Đức, TP. Hồ Chí Minh",
+    hours: "08:00 - 21:30 hàng ngày",
+    phone: "0989 668 113",
     features: [
       "Trưng bày Xưởng Rang",
       "Trung tâm Bảo hành & Kỹ thuật Máy",
       "Workshop Cuối tuần",
       "Khu Demo B2B",
     ],
-    image: img("photo-1501339847302-ac426a4a7cbb", 1200),
+    image: img("photo-1554118811-1e0d58224f24", 1200),
   },
 ];
 
-export const HOTLINE = "1900 6868";
-export const HOTLINE_MOBILE = "0901 234 567";
+export const HOTLINE = "0989 668 113";
+export const HOTLINE_MOBILE = "0983 020 629";
 
 export type NavItem = {
   href: string;
