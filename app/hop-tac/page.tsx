@@ -6,7 +6,7 @@ import PartnershipForm from "../../components/partnership/PartnershipForm";
 import { BRANCHES, SITE_URL, buildBreadcrumbJsonLd } from "../../lib/site-data";
 
 export const metadata: Metadata = {
-  title: "Hợp tác Kiosk & Xe Cà phê Lưu động | TRIA CAFE",
+  title: "Hợp tác Kiosk & Xe Cà phê Lưu động",
   description: "Hợp tác điểm bán Kiosk cà phê tự động và nhượng quyền xe bán cà phê lưu động cùng TRIA Coffee. Vốn nhỏ, quay vòng nhanh, hạt rang tươi chất lượng.",
   keywords: ["hợp tác điểm bán", "kiosk cà phê", "nhượng quyền xe cà phê", "TRIA On-The-Go", "franchise cà phê"],
   alternates: { canonical: "/hop-tac" },
