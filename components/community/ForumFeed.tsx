@@ -18,15 +18,18 @@ type ForumFeedProps = {
   category: CommunityCategory;
   search: string;
   saved: string[];
+  sort: string;
   onCategory: (category: CommunityCategory) => void;
   onSearch: (search: string) => void;
   onOpen: (post: CommunityPost) => void;
   onVote: (id: string, direction: "up" | "down") => void;
   onSave: (id: string) => void;
   onCreate: () => void;
+  onSort: (sort: string) => void;
 };
 
-export function ForumFeed({ posts, category, search, saved, onCategory, onSearch, onOpen, onVote, onSave, onCreate }: ForumFeedProps) {
+export function ForumFeed({ posts, category, search, saved, sort, onCategory, onSearch, onOpen, onVote, onSave, onCreate, onSort }: ForumFeedProps) {
+  const sortLabels: [string, string][] = [["latest", "Mới nhất"], ["views", "Nhiều lượt xem"], ["comments", "Nhiều bình luận"], ["engagement", "Nhiều upvote"]];
   return (
     <section className="min-w-0">
       <div className="rounded-2xl border border-[#3A302B] bg-[#171412] p-5">
@@ -73,7 +76,7 @@ export function ForumFeed({ posts, category, search, saved, onCategory, onSearch
 
       <div className="mt-5 flex items-center justify-between text-xs text-[#81746B]">
         <span>{posts.length} bài viết trong cộng đồng</span>
-        <span className="flex items-center gap-1"><SlidersHorizontal className="h-3.5 w-3.5" aria-hidden /> Mới nhất</span>
+        <div className="flex items-center gap-1 text-[11px]"><SlidersHorizontal className="h-3.5 w-3.5" aria-hidden /> {sortLabels.map(([key, label]) => <button key={key} type="button" onClick={() => onSort(key)} className={`rounded-md px-1.5 py-0.5 transition-colors ${sort === key ? "bg-[#D97706]/20 text-[#F0B429] font-bold" : "text-[#81746B] hover:text-white"}`}>{label}</button>)}</div>
       </div>
 
       <div className="mt-3 space-y-4">

@@ -2,21 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { CalendarDays, ChevronRight, Crown, MapPin, Sparkles, Wrench } from "lucide-react";
+import { CalendarDays, ChevronRight, Eye, MapPin, MessageCircle, Sparkles } from "lucide-react";
+import type { CommunityPost } from "./types";
 
-const LEADERBOARD: [string, string, string][] = [
-  ["Hoàng Barista", "1,280", "🥇"],
-  ["Minh Đức", "980", "💼"],
-  ["Kỹ thuật viên Tuấn", "860", "🛠️"],
-];
-
-const HOT_TOPICS: [string, string][] = [
-  ["Máy tụt áp giữa shot", "31"],
-  ["Vệ sinh group head", "22"],
-  ["Cost ly Latte", "18"],
-];
-
-export function SidebarWidgets({ onOpenEvents }: { onOpenEvents: () => void }) {
+export function SidebarWidgets({ onOpenEvents, posts }: { onOpenEvents: () => void; posts: CommunityPost[] }) {
+  const popularPosts = [...posts].sort((a, b) => (b.views + b.comments * 10) - (a.views + a.comments * 10)).slice(0, 3);
   return (
     <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
       <section className="rounded-2xl border border-[#D97706]/40 bg-[#221D1A] p-5">
@@ -54,32 +44,14 @@ export function SidebarWidgets({ onOpenEvents }: { onOpenEvents: () => void }) {
 
       <section className="rounded-2xl border border-[#3A302B] bg-[#171412] p-5">
         <div className="flex items-center gap-2">
-          <Crown className="h-5 w-5 text-[#F0B429]" aria-hidden />
-          <h2 className="font-bold text-white">Bảng vàng tháng 9</h2>
+          <Eye className="h-5 w-5 text-[#D97706]" aria-hidden />
+          <h2 className="font-bold text-white">Đang được quan tâm</h2>
         </div>
         <ol className="mt-4 space-y-3">
-          {LEADERBOARD.map(([name, points, badge], index) => (
-            <li key={name} className="flex items-center gap-3">
-              <span className="w-4 text-xs text-[#81746B]">0{index + 1}</span>
-              <span aria-hidden className="text-lg">{badge}</span>
-              <span className="flex-1 text-sm font-semibold text-[#E8E2D9]">{name}</span>
-              <span className="text-xs font-bold text-[#D97706]">{points} pts</span>
-            </li>
-          ))}
-        </ol>
-        <p className="mt-4 border-t border-[#2A2421] pt-3 text-xs text-[#A69B93]">Điểm dùng đổi hạt và phụ kiện tại TRIA.</p>
-      </section>
-
-      <section className="rounded-2xl border border-[#3A302B] bg-[#171412] p-5">
-        <div className="flex items-center gap-2">
-          <Wrench className="h-5 w-5 text-[#D97706]" aria-hidden />
-          <h2 className="font-bold text-white">Hot topics</h2>
-        </div>
-        <ol className="mt-4 space-y-3 text-sm">
-          {HOT_TOPICS.map(([topic, count], index) => (
-            <li key={topic} className="flex items-start gap-2 text-[#CDBBAA]">
-              <span className="text-[#D97706]">0{index + 1}</span> {topic}
-              <span className="ml-auto text-xs text-[#81746B]">{count}</span>
+          {popularPosts.map((post, index) => (
+            <li key={post.id} className="flex items-start gap-2 text-xs text-[#CDBBAA]">
+              <span className="text-[#D97706]">0{index + 1}</span>
+              <span className="min-w-0 flex-1">{post.title}<span className="mt-1 flex gap-3 text-[10px] text-[#81746B]"><span className="flex items-center gap-1"><Eye className="h-3 w-3" />{post.views}</span><span className="flex items-center gap-1"><MessageCircle className="h-3 w-3" />{post.comments}</span></span></span>
             </li>
           ))}
         </ol>

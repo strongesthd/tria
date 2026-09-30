@@ -18,12 +18,13 @@ export default function CommunityHub() {
   const [saved, setSaved] = useState<string[]>([]);
   const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [sort, setSort] = useState("latest");
   const deferredSearch = useDeferredValue(search);
 
   // Load posts from the API, falling back to sample data on error.
   const loadPosts = useCallback(async () => {
     try {
-      const res = await fetch("/api/community/posts?pageSize=20");
+      const res = await fetch(`/api/community/posts?pageSize=20&sort=${sort}`);
       if (!res.ok) throw new Error("fetch failed");
       const data = await res.json();
       if (Array.isArray(data?.items) && data.items.length) {
@@ -34,7 +35,7 @@ export default function CommunityHub() {
     } catch {
       setPosts(COMMUNITY_POSTS);
     }
-  }, []);
+  }, [sort]);
 
   useEffect(() => {
     void loadPosts();
@@ -51,35 +52,59 @@ export default function CommunityHub() {
     [category, deferredSearch, posts]
   );
 
-  const vote = (id: string, direction: "up" | "down") =>
-    setPosts((current) =>
-      current.map((post) =>
-        post.id === id
-          ? { ...post, upvotes: direction === "up" ? post.upvotes + 1 : post.upvotes, downvotes: direction === "down" ? post.downvotes + 1 : post.downvotes }
-          : post
-      )
-    );
+  const vote = async (id: string, direction: "up" | "down") => {
+    try {
+      const res = await fetch(`/api/community/posts/${id}/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ direction }),
+      });
+      if (!res.ok) throw new Error("vote failed");
+      const data = await res.json();
+      if (data.voted) {
+        setPosts((current) =>
+          current.map((post) => (post.id === id ? { ...post, upvotes: direction === "up" ? post.upvotes + 1 : post.upvotes, downvotes: direction === "down" ? post.downvotes + 1 : post.downvotes } : post))
+        );
+      }
+    } catch {
+      // silent fail, user can retry
+    }
+  };
+
+  const openPost = (post: CommunityPost) => {
+    setSelectedPost(post);
+    void fetch(`/api/community/posts/${post.id}/view`, { method: "POST" });
+    setPosts((current) => current.map((item) => item.id === post.id ? { ...item, views: item.views + 1 } : item));
+  };
 
   const save = (id: string) =>
     setSaved((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
 
-  const addComment = (postId: string, body: string) => {
-    const comment = {
-      id: `comment-${Date.now()}`,
-      author: "Bạn",
-      avatar: "",
-      badge: badgeFor("Newbie Brewer"),
-      body,
-      time: "Vừa xong",
-    };
-    setPosts((current) =>
-      current.map((post) =>
-        post.id === postId ? { ...post, comments: post.comments + 1, commentsData: [...post.commentsData, comment] } : post
-      )
-    );
-    setSelectedPost((current) =>
-      current ? { ...current, comments: current.comments + 1, commentsData: [...current.commentsData, comment] } : current
-    );
+  const addComment = async (postId: string, body: string) => {
+    try {
+      const res = await fetch(`/api/community/posts/${postId}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: body }),
+      });
+      if (!res.ok) throw new Error("comment failed");
+      const comment = await res.json();
+      const uiComment = {
+        id: comment.id,
+        author: comment.author.name || "Thành viên TRIA",
+        avatar: comment.author.image || "",
+        badge: badgeFor(comment.author.badge),
+        body: comment.content,
+        time: "Vừa xong",
+        accepted: comment.accepted ?? false,
+      };
+      setPosts((current) =>
+        current.map((post) => (post.id === postId ? { ...post, comments: post.comments + 1, commentsData: [...post.commentsData, uiComment] } : post))
+      );
+      setSelectedPost((current) => (current ? { ...current, comments: current.comments + 1, commentsData: [...current.commentsData, uiComment] } : current));
+    } catch {
+      // silent fail
+    }
   };
 
   const createPost = (post: CommunityPost) => {
@@ -97,12 +122,14 @@ export default function CommunityHub() {
           saved={saved}
           onCategory={(nextCategory) => startTransition(() => setCategory(nextCategory))}
           onSearch={(value) => startTransition(() => setSearch(value))}
-          onOpen={setSelectedPost}
+          onOpen={openPost}
           onVote={vote}
           onSave={save}
           onCreate={() => setCreateOpen(true)}
+          sort={sort}
+          onSort={setSort}
         />
-        <SidebarWidgets onOpenEvents={() => setCategory("events")} />
+        <SidebarWidgets onOpenEvents={() => setCategory("events")} posts={posts} />
       </div>
       <PostDetailModal post={selectedPost} onClose={() => setSelectedPost(null)} onAddComment={addComment} />
       <CreatePostModal open={createOpen} onClose={() => setCreateOpen(false)} onCreate={createPost} />

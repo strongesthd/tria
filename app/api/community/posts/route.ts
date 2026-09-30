@@ -34,6 +34,14 @@ export async function GET(request: Request) {
   );
   const category = url.searchParams.get("category");
   const search = url.searchParams.get("q")?.trim();
+  const sort = url.searchParams.get("sort") || "latest";
+  const orderBy = sort === "views"
+    ? { views: "desc" as const }
+    : sort === "comments"
+      ? { comments: { _count: "desc" as const } }
+      : sort === "engagement"
+        ? { upvotes: "desc" as const }
+        : { createdAt: "desc" as const };
 
   const where = {
     ...(category && category !== "all" ? { category } : {}),
@@ -51,7 +59,7 @@ export async function GET(request: Request) {
     prisma.communityPost.count({ where }),
     prisma.communityPost.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy,
       skip: (page - 1) * pageSize,
       take: pageSize,
       select: {
