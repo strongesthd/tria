@@ -5,9 +5,9 @@ import { buildBreadcrumbJsonLd } from "../../lib/site-data";
 import CostCalculator from "../../components/sections/CostCalculator";
 
 export const metadata: Metadata = {
-  title: "Giải pháp B2B: Tính cost & Vận hành | TRIA CAFE",
+  title: "Giải pháp B2B: Cost & Vận hành",
   description:
-    "Công cụ tính cost per cup espresso và dự phóng lợi nhuận cho quán cà phê. Kèm cẩm nang vệ sinh quầy bar, chỉnh cỡ xay và kiểm soát nhiệt độ máy pha cho đối tác B2B.",
+    "Tính cost mỗi ly, dự phóng lợi nhuận và học cách vận hành máy pha hiệu quả cho quán cà phê B2B.",
   keywords: ["cost ly cà phê", "tính lợi nhuận quán cà phê", "máy pha B2B", "vệ sinh máy pha", "grind size"],
   alternates: { canonical: "/giai-phap-b2b" },
 };

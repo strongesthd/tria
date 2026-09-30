@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const product = PRODUCTS.find((p) => p.slug === slug);
   if (!product) return {};
   return {
-    title: `${product.name} - ${product.price.toLocaleString("vi-VN")} VNĐ`,
+    title: product.name,
     description: product.description,
     alternates: { canonical: `/san-pham/${product.slug}` },
     openGraph: {

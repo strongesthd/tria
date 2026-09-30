@@ -8,7 +8,7 @@ import { BRANCHES, SITE_URL, buildBreadcrumbJsonLd } from "../../lib/site-data";
 export const metadata: Metadata = {
   title: "Hệ thống quán & Trải nghiệm tại TP.HCM",
   description:
-    "Hai flagship store của TRIA CAFE tại TP.HCM: Quận 3 (Flagship Experience Hub) và Thủ Đức (Roastery & Tech Lab). Đặt lịch thử máy pha và cupping cà phê miễn phí.",
+    "Ba cơ sở TRIA CAFE tại TP. Thủ Đức. Đặt lịch thử máy pha và cupping cà phê miễn phí.",
   alternates: { canonical: "/he-thong-quan" },
   openGraph: {
     title: "Hệ thống quán TRIA CAFE tại TP.HCM",

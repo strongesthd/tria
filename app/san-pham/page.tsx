@@ -23,7 +23,8 @@ function seoTitle(category: string, target: string): string {
 
   if (cat && targetLabel) return `${cat.title} cho ${targetLabel}${suffix}`;
   if (cat) return `${cat.subtitle} - ${cat.title}${suffix}`;
-  if (targetLabel) return `Sản phẩm cà phê cho ${targetLabel}${suffix}`;
+  if (target === "b2b") return `Máy pha & cà phê B2B${suffix}`;
+  if (targetLabel) return `Sản phẩm cà phê B2C${suffix}`;
   return `Sản phẩm cà phê & máy pha${suffix}`;
 }
 
