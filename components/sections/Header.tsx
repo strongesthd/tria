@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Calendar, Coffee, MapPin, MessageSquare, Calculator, Search, ShoppingBag, X } from "lucide-react";
+import { Calendar, Coffee, MapPin, MessageSquare, Calculator, Search, ShoppingBag, X, Handshake } from "lucide-react";
 import { Menu } from "lucide-react";
 import AuthHeaderActions from "../auth/AuthHeaderActions";
 import { useCart } from "../cart/CartProvider";
@@ -15,6 +15,7 @@ const ICONS = {
   "/cong-dong": MessageSquare,
   "/he-thong-quan": MapPin,
   "/giai-phap-b2b": Calculator,
+  "/hop-tac": Handshake,
 } as const;
 
 export default function Header({
@@ -42,16 +43,38 @@ export default function Header({
             width={210}
             height={47}
             priority
-            className="h-auto w-[160px] object-contain sm:w-[190px] lg:w-[210px]"
+            className="h-auto w-[118px] object-contain sm:w-[190px] lg:w-[210px]"
           />
-          <span className="mt-1 text-center text-[8px] font-medium uppercase tracking-[0.12em] text-[#B9A99B]">
+          <span className="mt-1 hidden text-center text-[8px] font-medium uppercase tracking-[0.12em] text-[#B9A99B] sm:block">
             Cà Phê Việt &amp; Giải Pháp Pha Chế
           </span>
         </Link>
 
-        <nav aria-label="Điều hướng chính" className="flex min-w-0 flex-1 items-center justify-center gap-1 rounded-full border border-[#332A25] bg-[#221D1A]/95 p-1.5 shadow-inner shadow-[#000000]/20">
+        <nav aria-label="Điều hướng chính" className="hidden min-w-0 flex-1 items-center justify-center gap-1 rounded-full border border-[#332A25] bg-[#221D1A]/95 p-1.5 shadow-inner shadow-[#000000]/20 md:flex">
           {NAV_ITEMS.map((item) => {
             const Icon = ICONS[item.href as keyof typeof ICONS] ?? Coffee;
+            if (item.href === "/hop-tac") {
+              return (
+                <div key={item.href} className="group relative">
+                  <Link
+                    href={item.href}
+                    aria-current={isActive(item.href) ? "page" : undefined}
+                    className={`flex items-center gap-2 whitespace-nowrap rounded-full px-2.5 py-2 text-sm font-medium transition-all xl:px-5 ${
+                      isActive(item.href) ? "bg-[#C87D55] text-white shadow-md shadow-[#C87D55]/20" : "text-[#A69B93] hover:bg-[#2A2421] hover:text-white"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" aria-hidden />
+                    <span className="hidden sm:inline">{item.label}</span>
+                    <span className="sm:hidden">{item.shortLabel}</span>
+                  </Link>
+                  <div className="invisible absolute right-0 top-full z-50 w-64 translate-y-2 rounded-xl border border-[#3A302B] bg-[#171412] p-2 opacity-0 shadow-2xl transition-all group-hover:visible group-hover:translate-y-1 group-hover:opacity-100">
+                    <Link href="/hop-tac#mo-hinh" className="block rounded-lg px-3 py-2 text-xs text-[#B9A99B] hover:bg-[#2A2421] hover:text-white">Mô hình TRIA On-The-Go</Link>
+                    <Link href="/hop-tac#ban-do" className="block rounded-lg px-3 py-2 text-xs text-[#B9A99B] hover:bg-[#2A2421] hover:text-white">Bản đồ điểm bán</Link>
+                    <Link href="/hop-tac#dang-ky" className="block rounded-lg px-3 py-2 text-xs text-[#B9A99B] hover:bg-[#2A2421] hover:text-white">Đăng ký hợp tác</Link>
+                  </div>
+                </div>
+              );
+            }
             return (
               <Link
                 key={item.href}
@@ -71,7 +94,7 @@ export default function Header({
           })}
         </nav>
 
-        <div className="ml-auto flex shrink-0 items-center space-x-3">
+        <div className="ml-auto flex shrink-0 items-center space-x-2 sm:space-x-3">
           <Link
             href="/san-pham"
             aria-label="Tìm kiếm sản phẩm"
@@ -92,7 +115,9 @@ export default function Header({
               </span>
             )}
           </button>
-          <AuthHeaderActions oauthEnabled={oauthEnabled} />
+          <div className="hidden sm:block">
+            <AuthHeaderActions oauthEnabled={oauthEnabled} />
+          </div>
           <Link
             href="/he-thong-quan#booking"
             className="hidden items-center space-x-2 rounded-xl border border-[#C87D55]/30 bg-[#2A2421] px-4 py-2 text-sm font-medium text-[#E2A168] transition-all hover:bg-[#38302C] sm:flex"
@@ -126,6 +151,12 @@ export default function Header({
                 </Link>
               </li>
             ))}
+            <li className="border-t border-[#2A2421] pt-2">
+              <p className="px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-[#D97706]">Hợp tác điểm bán</p>
+              <Link href="/hop-tac#mo-hinh" onClick={() => setMobileNavOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-[#A69B93] hover:bg-[#2A2421] hover:text-white">Mô hình TRIA On-The-Go</Link>
+              <Link href="/hop-tac#ban-do" onClick={() => setMobileNavOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-[#A69B93] hover:bg-[#2A2421] hover:text-white">Bản đồ điểm bán</Link>
+              <Link href="/hop-tac#dang-ky" onClick={() => setMobileNavOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-[#A69B93] hover:bg-[#2A2421] hover:text-white">Đăng ký hợp tác</Link>
+            </li>
             <li>
               <button
                 type="button"

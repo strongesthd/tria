@@ -135,12 +135,11 @@ jobs:
             . "$APP_DIR/.env.production"
             set +a
 
-            # First release: initialise the schema and demo data exactly once.
-            if [ ! -f "$APP_DIR/runtime/.db-initialized" ]; then
-              docker compose -f deploy/docker-compose.prod.yml run --rm migrator
-              mkdir -p "$APP_DIR/runtime"
-              touch "$APP_DIR/runtime/.db-initialized"
-            fi
+            # Apply additive Prisma schema changes on every deploy before the
+            # web container starts. `db push` is idempotent for unchanged code.
+            docker compose -f deploy/docker-compose.prod.yml run --rm migrator
+            mkdir -p "$APP_DIR/runtime"
+            touch "$APP_DIR/runtime/.db-initialized"
 
             if ! docker compose -f deploy/docker-compose.prod.yml up -d --build --remove-orphans; then
               echo 'Docker Compose failed. Container logs follow:'

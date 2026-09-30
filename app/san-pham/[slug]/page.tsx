@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { Check, Star } from "lucide-react";
 import { JsonLdScript } from "../../../components/seo/JsonLdScript";
 import AddToCartButton from "../../../components/shop/AddToCartButton";
+import BeanPurchaseOptions from "../../../components/shop/BeanPurchaseOptions";
 import { HOTLINE, PRODUCTS, buildProductJsonLd, buildBreadcrumbJsonLd } from "../../../lib/site-data";
 
 type Params = Promise<{ slug: string }>;
@@ -93,23 +94,20 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
             <p className="pt-1 text-xs text-[#A69B93]">Mức rang: {product.roastLevel}</p>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-r from-[#221D1A] to-[#171412] p-5">
-            <div>
-              <p className="text-xs text-[#A69B93]">Giá tham khảo</p>
-              <p className="text-3xl font-extrabold text-[#E2A168]">{product.price.toLocaleString("vi-VN")} VNĐ</p>
-            </div>
-            <div className="flex w-full gap-2 sm:w-auto">
-              <Link
-                href="/he-thong-quan#booking"
-                className="rounded-xl border border-[#C87D55]/30 bg-[#221D1A] px-5 py-3 text-sm font-semibold text-[#E2A168] transition-all hover:bg-[#2A2421]"
-              >
-                Thử Tại Quán
-              </Link>
-              <div className="w-40">
-                <AddToCartButton product={product} />
+          {product.category === "beans" ? (
+            <BeanPurchaseOptions product={product} />
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-r from-[#221D1A] to-[#171412] p-5">
+              <div>
+                <p className="text-xs text-[#A69B93]">Giá tham khảo</p>
+                <p className="text-3xl font-extrabold text-[#E2A168]">{product.price.toLocaleString("vi-VN")} VNĐ</p>
+              </div>
+              <div className="flex w-full gap-2 sm:w-auto">
+                <Link href="/he-thong-quan#booking" className="rounded-xl border border-[#C87D55]/30 bg-[#221D1A] px-5 py-3 text-sm font-semibold text-[#E2A168] transition-all hover:bg-[#2A2421]">Thử Tại Quán</Link>
+                <div className="w-40"><AddToCartButton product={product} /></div>
               </div>
             </div>
-          </div>
+          )}
 
           <p className="text-xs text-[#81746B]">
             Hỗ trợ đặt hàng:{" "}

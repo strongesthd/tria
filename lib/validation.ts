@@ -96,6 +96,14 @@ export const checkoutSchema = z.object({
   address: z.string().trim().min(5, "Địa chỉ quá ngắn.").max(500),
 });
 
+export const partnershipLeadSchema = z.object({
+  fullName: nameSchema,
+  phone: phoneSchema,
+  partnershipType: z.enum(["location", "franchise"]),
+  location: z.string().trim().min(3, "Vui lòng nhập địa chỉ hoặc thành phố.").max(300),
+  notes: z.string().trim().max(2000).optional(),
+});
+
 /** Turns a ZodError into a flat `field -> message` map for form rendering. */
 export function fieldErrors(error: z.ZodError): Record<string, string> {
   const result: Record<string, string> = {};

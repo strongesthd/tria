@@ -218,6 +218,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/cong-dong", label: "TRIA Community", shortLabel: "Community" },
   { href: "/he-thong-quan", label: "Hệ Thống Quán", shortLabel: "Hệ Thống Quán" },
   { href: "/giai-phap-b2b", label: "Giải Pháp B2B", shortLabel: "Giải Pháp B2B" },
+  { href: "/hop-tac", label: "Hợp tác điểm bán", shortLabel: "Hợp tác" },
 ];
 
 /** JSON-LD for the Organization + both physical locations. */
