@@ -134,6 +134,7 @@ model CommunityPost {
   id        String    @id @default(cuid())
   title     String
   content   String    @db.Text
+  image     String?   @db.Text
   category  String
   tags      String[]
   solved    Boolean   @default(false)
@@ -151,6 +152,7 @@ model CommunityPost {
 model Comment {
   id         String        @id @default(cuid())
   content    String        @db.Text
+  image      String?       @db.Text
   accepted   Boolean       @default(false)
   authorId   String
   postId     String

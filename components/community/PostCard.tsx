@@ -73,6 +73,7 @@ export function PostCard({ post, onOpen, onVote, saved, onSave }: PostCardProps)
           <h3 className="text-lg font-bold leading-snug text-white transition-colors hover:text-[#F0B429]">{post.title}</h3>
           <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-[#B9A99B]">{post.content}</p>
         </button>
+        {post.image && <Image src={post.image} alt="Ảnh đính kèm bài viết" width={900} height={500} loading="lazy" className="mt-4 max-h-72 w-full rounded-xl object-cover" />}
 
         <div className="mt-5 flex items-center justify-between border-t border-[#2A2421] pt-4 text-xs text-[#A69B93]">
           <div className="flex items-center gap-3">

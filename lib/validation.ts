@@ -42,6 +42,7 @@ export const createPostSchema = z.object({
   content: z.string().trim().min(1, "Nội dung không được để trống.").max(20000),
   category: z.enum(POST_CATEGORIES).default("home-barista"),
   tags: tagsSchema.default([]),
+  image: z.string().max(7_000_000, "Ảnh không được vượt quá 5MB.").optional().nullable(),
 });
 
 export const createCommentSchema = z.object({
@@ -53,6 +54,7 @@ export const createCommentSchema = z.object({
     .max(64)
     .optional()
     .transform((value) => (value ? value : null)),
+  image: z.string().max(7_000_000, "Ảnh không được vượt quá 5MB.").optional().nullable(),
 });
 
 export const voteSchema = z.object({

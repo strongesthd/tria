@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, X } from "lucide-react";
+import Image from "next/image";
+import { ImagePlus, Loader2, X } from "lucide-react";
 import { CommunityCategory, CommunityPost } from "./types";
 
 type CreatePostModalProps = { open: boolean; onClose: () => void; onCreate: (post: CommunityPost) => void };
@@ -17,6 +18,8 @@ const categories: { id: Exclude<CommunityCategory, "all">; label: string }[] = [
 export function CreatePostModal({ open, onClose, onCreate }: CreatePostModalProps) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [image, setImage] = useState<string | null>(null);
+  const [imageName, setImageName] = useState("");
 
   if (!open) return null;
 
@@ -40,6 +43,7 @@ export function CreatePostModal({ open, onClose, onCreate }: CreatePostModalProp
           content,
           category,
           tags: form.get("urgent") ? ["#GiaiCuuBarista"] : [],
+          image,
         }),
       });
 
@@ -74,6 +78,8 @@ export function CreatePostModal({ open, onClose, onCreate }: CreatePostModalProp
         commentsData: [],
       });
       event.currentTarget.reset();
+      setImage(null);
+      setImageName("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Đã xảy ra lỗi.");
     } finally {
@@ -99,6 +105,19 @@ export function CreatePostModal({ open, onClose, onCreate }: CreatePostModalProp
             <span className="sr-only">Tiêu đề</span>
             <input name="title" required maxLength={180} placeholder="Tiêu đề: Bạn đang muốn chia sẻ điều gì?" className="w-full rounded-xl border border-[#3A302B] bg-[#221D1A] px-4 py-3 text-sm text-white outline-none focus:border-[#D97706]" />
           </label>
+          <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-[#4A3B31] bg-[#221D1A] p-3 text-xs text-[#CDBBAA] hover:border-[#D97706]">
+            <ImagePlus className="h-4 w-4 text-[#D97706]" />
+            <span>{imageName || "Đính kèm ảnh (tối đa 5MB)"}</span>
+            <input type="file" accept="image/*" className="sr-only" onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (!file) return;
+              if (file.size > 5 * 1024 * 1024) { setError("Ảnh không được vượt quá 5MB."); return; }
+              const reader = new FileReader();
+              reader.onload = () => { setImage(String(reader.result)); setImageName(file.name); setError(null); };
+              reader.readAsDataURL(file);
+            }} />
+          </label>
+          {image && <Image src={image} alt="Xem trước ảnh đính kèm" width={900} height={480} unoptimized className="max-h-48 w-full rounded-xl object-cover" />}
           <label className="block">
             <span className="sr-only">Danh mục</span>
             <select name="category" defaultValue="home-barista" className="w-full rounded-xl border border-[#3A302B] bg-[#221D1A] px-4 py-3 text-sm text-white outline-none focus:border-[#D97706]">

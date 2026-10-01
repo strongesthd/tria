@@ -79,7 +79,7 @@ export default function CommunityHub() {
       const response = await fetch(`/api/community/posts/${post.id}/comments`, { cache: "no-store" });
       if (!response.ok) return;
       const rows = await response.json();
-      const commentsData = rows.map((comment: { id: string; content: string; accepted: boolean; createdAt: string; parentId: string | null; author: { name: string | null; image: string | null; badge: string } }) => ({
+      const commentsData = rows.map((comment: { id: string; content: string; image?: string | null; accepted: boolean; createdAt: string; parentId: string | null; author: { name: string | null; image: string | null; badge: string } }) => ({
         id: comment.id,
         author: comment.author.name || "Thành viên TRIA",
         avatar: comment.author.image || "",
@@ -88,6 +88,7 @@ export default function CommunityHub() {
         time: relativeTimeFromIso(comment.createdAt),
         accepted: comment.accepted,
         parentId: comment.parentId,
+        image: comment.image ?? null,
       }));
       setSelectedPost((current) => current ? { ...current, commentsData } : current);
     } catch {
@@ -98,12 +99,12 @@ export default function CommunityHub() {
   const save = (id: string) =>
     setSaved((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
 
-  const addComment = async (postId: string, body: string, parentId?: string) => {
+  const addComment = async (postId: string, body: string, parentId?: string, image?: string) => {
     try {
       const res = await fetch(`/api/community/posts/${postId}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: body, ...(parentId ? { parentId } : {}) }),
+        body: JSON.stringify({ content: body, ...(parentId ? { parentId } : {}), ...(image ? { image } : {}) }),
       });
       if (!res.ok) throw new Error("comment failed");
       const comment = await res.json();

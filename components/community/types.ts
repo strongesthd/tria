@@ -26,6 +26,7 @@ export type Comment = {
   avatar: string;
   badge: Badge;
   body: string;
+  image?: string | null;
   time: string;
   accepted?: boolean;
   parentId?: string | null;

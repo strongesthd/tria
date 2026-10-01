@@ -5,7 +5,7 @@ import Image from "next/image";
 import { CheckCircle2, ImagePlus, MessageCircle, Smile, X, ArrowLeft } from "lucide-react";
 import { CommunityPost, badgeFor } from "./types";
 
-type PostDetailModalProps = { post: CommunityPost | null; onClose: () => void; onAddComment: (postId: string, body: string, parentId?: string) => void };
+type PostDetailModalProps = { post: CommunityPost | null; onClose: () => void; onAddComment: (postId: string, body: string, parentId?: string, image?: string) => void };
 
 export function PostDetailModal({ post, onClose, onAddComment }: PostDetailModalProps) {
   if (!post) return null;
@@ -88,7 +88,7 @@ export function PostDetailModal({ post, onClose, onAddComment }: PostDetailModal
                           </span>
                         )}
                       </div>
-                      <p className="mt-1 text-sm leading-relaxed text-[#CDBBAA]">{comment.body}</p>
+                      <p className="mt-1 text-sm leading-relaxed text-[#CDBBAA]">{comment.body}</p>{comment.image && <Image src={comment.image} alt="Ảnh đính kèm bình luận" width={600} height={340} unoptimized className="mt-2 max-h-40 rounded-lg object-cover" />}
                       <div className="mt-2 flex items-center gap-3"><p className="text-[11px] text-[#81746B]">{comment.time}</p><ReplyForm postId={post.id} parentId={comment.id} onSubmit={onAddComment} /></div>
                     </div>
                   </div>

@@ -12,6 +12,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ pos
     select: {
       id: true,
       content: true,
+      image: true,
       accepted: true,
       createdAt: true,
       parentId: true,
@@ -41,8 +42,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ pos
   }
 
   const comment = await prisma.comment.create({
-    data: { content: parsed.data.content, postId, parentId: parsed.data.parentId, authorId: session.user.id },
-    select: { id: true, content: true, accepted: true, parentId: true, createdAt: true, author: { select: { id: true, name: true, image: true, badge: true, role: true } } },
+    data: { content: parsed.data.content, image: parsed.data.image, postId, parentId: parsed.data.parentId, authorId: session.user.id },
+    select: { id: true, content: true, image: true, accepted: true, parentId: true, createdAt: true, author: { select: { id: true, name: true, image: true, badge: true, role: true } } },
   });
   return NextResponse.json(comment, { status: 201 });
 }
