@@ -7,13 +7,14 @@ import { createCommentSchema, fieldErrors } from "../../../../../../lib/validati
 export async function GET(_request: Request, { params }: { params: Promise<{ postId: string }> }) {
   const { postId } = await params;
   const comments = await prisma.comment.findMany({
-    where: { postId, parentId: null },
-    orderBy: { createdAt: "asc" },
+    where: { postId },
+    orderBy: [{ parentId: "asc" }, { createdAt: "asc" }],
     select: {
       id: true,
       content: true,
       accepted: true,
       createdAt: true,
+      parentId: true,
       author: { select: { id: true, name: true, image: true, badge: true, role: true } },
     },
   });
@@ -41,7 +42,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ pos
 
   const comment = await prisma.comment.create({
     data: { content: parsed.data.content, postId, parentId: parsed.data.parentId, authorId: session.user.id },
-    select: { id: true, content: true, accepted: true, createdAt: true, author: { select: { id: true, name: true, image: true, badge: true, role: true } } },
+    select: { id: true, content: true, accepted: true, parentId: true, createdAt: true, author: { select: { id: true, name: true, image: true, badge: true, role: true } } },
   });
   return NextResponse.json(comment, { status: 201 });
 }

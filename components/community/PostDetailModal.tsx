@@ -5,7 +5,7 @@ import Image from "next/image";
 import { CheckCircle2, MessageCircle, X } from "lucide-react";
 import { CommunityPost, badgeFor } from "./types";
 
-type PostDetailModalProps = { post: CommunityPost | null; onClose: () => void; onAddComment: (postId: string, body: string) => void };
+type PostDetailModalProps = { post: CommunityPost | null; onClose: () => void; onAddComment: (postId: string, body: string, parentId?: string) => void };
 
 export function PostDetailModal({ post, onClose, onAddComment }: PostDetailModalProps) {
   if (!post) return null;
@@ -64,10 +64,12 @@ export function PostDetailModal({ post, onClose, onAddComment }: PostDetailModal
               Bình luận &amp; giải pháp ({post.comments})
             </h3>
             <div className="mt-4 space-y-4">
-              {post.commentsData.map((comment) => {
+              {post.commentsData.filter((comment) => !comment.parentId).map((comment) => {
                 const commentBadge = badgeFor(comment.badge.label);
+                const replies = post.commentsData.filter((reply) => reply.parentId === comment.id);
                 return (
-                  <div key={comment.id} className="flex gap-3 rounded-xl bg-[#221D1A] p-4">
+                  <div key={comment.id}>
+                  <div className="flex gap-3 rounded-xl bg-[#221D1A] p-4">
                     {comment.avatar ? (
                       <Image src={comment.avatar} alt={comment.author} width={32} height={32} loading="lazy" className="h-8 w-8 rounded-full object-cover" />
                     ) : (
@@ -84,8 +86,10 @@ export function PostDetailModal({ post, onClose, onAddComment }: PostDetailModal
                         )}
                       </div>
                       <p className="mt-1 text-sm leading-relaxed text-[#CDBBAA]">{comment.body}</p>
-                      <p className="mt-2 text-[11px] text-[#81746B]">{comment.time}</p>
+                      <div className="mt-2 flex items-center gap-3"><p className="text-[11px] text-[#81746B]">{comment.time}</p><ReplyForm postId={post.id} parentId={comment.id} onSubmit={onAddComment} /></div>
                     </div>
+                  </div>
+                  {replies.map((reply) => <div key={reply.id} className="ml-10 mt-2 flex gap-3 rounded-xl border-l-2 border-[#D97706]/50 bg-[#211D1A] p-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#171412] text-xs font-bold text-[#E2A168]">{reply.author.charAt(0)}</span><div><p className="text-xs font-bold text-white">{reply.author} <span className={`ml-1 font-normal ${reply.badge.tone}`}>{reply.badge.icon} {reply.badge.label}</span></p><p className="mt-1 text-sm text-[#CDBBAA]">{reply.body}</p><p className="mt-1 text-[10px] text-[#81746B]">{reply.time}</p></div></div>)}
                   </div>
                 );
               })}
@@ -96,6 +100,13 @@ export function PostDetailModal({ post, onClose, onAddComment }: PostDetailModal
       </div>
     </div>
   );
+}
+
+function ReplyForm({ postId, parentId, onSubmit }: { postId: string; parentId: string; onSubmit: (postId: string, body: string, parentId: string) => void }) {
+  const [open, setOpen] = React.useState(false);
+  const [body, setBody] = React.useState("");
+  if (!open) return <button type="button" onClick={() => setOpen(true)} className="text-[11px] font-bold text-[#D97706] hover:underline">Trả lời</button>;
+  return <form onSubmit={(event) => { event.preventDefault(); if (!body.trim()) return; onSubmit(postId, body.trim(), parentId); setBody(""); setOpen(false); }} className="flex gap-1"><input value={body} onChange={(event) => setBody(event.target.value)} placeholder="Trả lời..." className="w-32 rounded-lg border border-[#3A302B] bg-[#171412] px-2 py-1 text-[11px] text-white outline-none focus:border-[#D97706]" /><button type="submit" className="text-[11px] font-bold text-[#D97706]">Gửi</button></form>;
 }
 
 function CommentForm({ onSubmit }: { onSubmit: (body: string) => void }) {

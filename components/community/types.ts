@@ -28,6 +28,7 @@ export type Comment = {
   body: string;
   time: string;
   accepted?: boolean;
+  parentId?: string | null;
 };
 
 /** Public author shape returned by the API (never includes email or passwordHash). */
