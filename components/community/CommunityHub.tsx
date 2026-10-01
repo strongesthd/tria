@@ -71,10 +71,27 @@ export default function CommunityHub() {
     }
   };
 
-  const openPost = (post: CommunityPost) => {
+  const openPost = async (post: CommunityPost) => {
     setSelectedPost(post);
     void fetch(`/api/community/posts/${post.id}/view`, { method: "POST" });
     setPosts((current) => current.map((item) => item.id === post.id ? { ...item, views: item.views + 1 } : item));
+    try {
+      const response = await fetch(`/api/community/posts/${post.id}/comments`, { cache: "no-store" });
+      if (!response.ok) return;
+      const rows = await response.json();
+      const commentsData = rows.map((comment: { id: string; content: string; accepted: boolean; createdAt: string; author: { name: string | null; image: string | null; badge: string } }) => ({
+        id: comment.id,
+        author: comment.author.name || "Thành viên TRIA",
+        avatar: comment.author.image || "",
+        badge: badgeFor(comment.author.badge),
+        body: comment.content,
+        time: relativeTimeFromIso(comment.createdAt),
+        accepted: comment.accepted,
+      }));
+      setSelectedPost((current) => current ? { ...current, commentsData } : current);
+    } catch {
+      // Keep the post visible even if comments are temporarily unavailable.
+    }
   };
 
   const save = (id: string) =>

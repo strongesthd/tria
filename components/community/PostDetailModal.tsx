@@ -61,7 +61,7 @@ export function PostDetailModal({ post, onClose, onAddComment }: PostDetailModal
           <div className="mt-8 border-t border-[#2A2421] pt-6">
             <h3 className="flex items-center gap-2 text-sm font-bold text-white">
               <MessageCircle className="h-4 w-4 text-[#D97706]" aria-hidden />
-              Bình luận &amp; giải pháp ({post.comments + post.commentsData.length})
+              Bình luận &amp; giải pháp ({post.comments})
             </h3>
             <div className="mt-4 space-y-4">
               {post.commentsData.map((comment) => {

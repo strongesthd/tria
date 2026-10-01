@@ -4,6 +4,22 @@ import { prisma } from "../../../../../../lib/prisma";
 import { clientIp, rateLimit } from "../../../../../../lib/rate-limit";
 import { createCommentSchema, fieldErrors } from "../../../../../../lib/validation";
 
+export async function GET(_request: Request, { params }: { params: Promise<{ postId: string }> }) {
+  const { postId } = await params;
+  const comments = await prisma.comment.findMany({
+    where: { postId, parentId: null },
+    orderBy: { createdAt: "asc" },
+    select: {
+      id: true,
+      content: true,
+      accepted: true,
+      createdAt: true,
+      author: { select: { id: true, name: true, image: true, badge: true, role: true } },
+    },
+  });
+  return NextResponse.json(comments, { headers: { "Cache-Control": "private, max-age=15, stale-while-revalidate=60" } });
+}
+
 export async function POST(request: Request, { params }: { params: Promise<{ postId: string }> }) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Bạn cần đăng nhập để bình luận." }, { status: 401 });
