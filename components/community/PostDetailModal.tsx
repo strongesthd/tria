@@ -108,12 +108,16 @@ export function PostDetailModal({ post, onClose, onAddComment }: PostDetailModal
 function ReplyForm({ postId, parentId, onSubmit }: { postId: string; parentId: string; onSubmit: (postId: string, body: string, parentId: string) => void }) {
   const [open, setOpen] = React.useState(false);
   const [body, setBody] = React.useState("");
+  const [showEmoji, setShowEmoji] = React.useState(false);
+  const [fileName, setFileName] = React.useState("");
   if (!open) return <button type="button" onClick={() => setOpen(true)} className="text-[11px] font-bold text-[#D97706] hover:underline">Trả lời</button>;
-  return <form onSubmit={(event) => { event.preventDefault(); if (!body.trim()) return; onSubmit(postId, body.trim(), parentId); setBody(""); setOpen(false); }} className="mt-2 flex w-full gap-2"><div className="flex min-w-0 flex-1 items-center gap-1 rounded-lg border border-[#3A302B] bg-[#171412] px-2"><button type="button" aria-label="Thêm emoji" className="text-[#D97706]"><Smile className="h-3.5 w-3.5" /></button><input value={body} onChange={(event) => setBody(event.target.value)} placeholder="Trả lời bình luận..." className="min-w-0 flex-1 bg-transparent px-1 py-2 text-xs text-white outline-none" /><button type="button" aria-label="Đính kèm ảnh" className="text-[#A69B93] hover:text-[#D97706]"><ImagePlus className="h-3.5 w-3.5" /></button></div><button type="submit" className="rounded-lg bg-[#D97706] px-3 text-xs font-bold text-[#1C1613]">Gửi</button></form>;
+  return <form onSubmit={(event) => { event.preventDefault(); if (!body.trim()) return; onSubmit(postId, body.trim(), parentId); setBody(""); setFileName(""); setOpen(false); }} className="relative mt-2 flex w-full gap-2"><div className="flex min-w-0 flex-1 items-center gap-1 rounded-lg border border-[#D97706] bg-[#171412] px-2"><button type="button" aria-label="Thêm emoji" onClick={() => setShowEmoji((value) => !value)} className="text-[#D97706]"><Smile className="h-4 w-4" /></button><input value={body} onChange={(event) => setBody(event.target.value)} placeholder="Trả lời bình luận..." className="min-w-0 flex-1 bg-transparent px-1 py-2.5 text-sm text-white outline-none" /><label aria-label="Đính kèm ảnh" className="cursor-pointer text-[#A69B93] hover:text-[#D97706]"><ImagePlus className="h-4 w-4" /><input type="file" accept="image/*" className="sr-only" onChange={(event) => setFileName(event.target.files?.[0]?.name || "")} /></label></div><button type="submit" className="rounded-lg bg-[#D97706] px-4 text-xs font-bold text-[#1C1613]">Gửi</button>{showEmoji && <EmojiPicker onSelect={(emoji) => { setBody((value) => `${value}${emoji}`); setShowEmoji(false); }} />}{fileName && <span className="absolute -bottom-5 left-1 text-[10px] text-[#A69B93]">{fileName}</span>}</form>;
 }
 
 function CommentForm({ onSubmit }: { onSubmit: (body: string) => void }) {
   const [body, setBody] = React.useState("");
+  const [showEmoji, setShowEmoji] = React.useState(false);
+  const [fileName, setFileName] = React.useState("");
   return (
     <form
       className="mt-5"
@@ -135,14 +139,20 @@ function CommentForm({ onSubmit }: { onSubmit: (body: string) => void }) {
           placeholder="Chia sẻ kinh nghiệm hoặc câu hỏi..."
           className="min-w-0 flex-1 rounded-xl border border-[#3A302B] bg-[#221D1A] px-4 py-3 text-sm text-white outline-none focus:border-[#D97706]"
         />
-        <div className="flex gap-2">
-          <button type="button" aria-label="Thêm emoji" className="rounded-xl border border-[#3A302B] p-3 text-[#D97706] hover:bg-[#2A2421]"><Smile className="h-4 w-4" /></button>
-          <button type="button" aria-label="Đính kèm ảnh" className="rounded-xl border border-[#3A302B] p-3 text-[#A69B93] hover:bg-[#2A2421] hover:text-[#D97706]"><ImagePlus className="h-4 w-4" /></button>
+        <div className="relative flex gap-2">
+          <button type="button" aria-label="Thêm emoji" onClick={() => setShowEmoji((value) => !value)} className="rounded-xl border border-[#3A302B] p-3 text-[#D97706] hover:bg-[#2A2421]"><Smile className="h-4 w-4" /></button>
+          <label aria-label="Đính kèm ảnh" className="cursor-pointer rounded-xl border border-[#3A302B] p-3 text-[#A69B93] hover:bg-[#2A2421] hover:text-[#D97706]"><ImagePlus className="h-4 w-4" /><input type="file" accept="image/*" className="sr-only" onChange={(event) => setFileName(event.target.files?.[0]?.name || "")} /></label>
           <button type="submit" className="rounded-xl bg-[#D97706] px-4 text-sm font-bold text-[#1C1613] transition hover:bg-[#E08A1E]">
           Gửi
         </button>
+          {showEmoji && <EmojiPicker onSelect={(emoji) => { setBody((value) => `${value}${emoji}`); setShowEmoji(false); }} />}
         </div>
       </div>
+      {fileName && <p className="mt-1 text-[10px] text-[#A69B93]">Đã chọn: {fileName}</p>}
     </form>
   );
+}
+
+function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void }) {
+  return <div className="absolute bottom-full left-0 z-10 mb-2 flex gap-1 rounded-xl border border-[#4A3B31] bg-[#221D1A] p-2 shadow-xl">{["👍", "❤️", "☕", "😂", "🔥", "👏", "🙏", "✨"].map((emoji) => <button key={emoji} type="button" onClick={() => onSelect(emoji)} className="rounded-lg p-1.5 text-lg hover:bg-[#3A302B]">{emoji}</button>)}</div>;
 }
