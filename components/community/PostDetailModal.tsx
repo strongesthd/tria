@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import { CheckCircle2, MessageCircle, X } from "lucide-react";
+import { CheckCircle2, ImagePlus, MessageCircle, Smile, X, ArrowLeft } from "lucide-react";
 import { CommunityPost, badgeFor } from "./types";
 
 type PostDetailModalProps = { post: CommunityPost | null; onClose: () => void; onAddComment: (postId: string, body: string, parentId?: string) => void };
@@ -19,9 +19,12 @@ export function PostDetailModal({ post, onClose, onAddComment }: PostDetailModal
       <div className="mx-auto my-6 max-w-3xl overflow-hidden rounded-2xl border border-[#4A3B31] bg-[#171412] shadow-2xl" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-[#2A2421] px-5 py-4">
           <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#D97706]">TRIA Knowledge Hub</span>
+          <div className="flex items-center gap-2">
+          <button type="button" onClick={onClose} className="hidden items-center gap-1 rounded-lg px-2 py-1 text-xs text-[#A69B93] hover:bg-[#2A2421] hover:text-white sm:flex"><ArrowLeft className="h-3.5 w-3.5" /> Quay lại</button>
           <button type="button" aria-label="Đóng" onClick={onClose} className="rounded-full p-2 text-[#A69B93] hover:bg-[#2A2421] hover:text-white">
             <X className="h-5 w-5" />
           </button>
+          </div>
         </div>
         <div className="p-5 md:p-8">
           <div className="flex flex-wrap gap-2">
@@ -106,7 +109,7 @@ function ReplyForm({ postId, parentId, onSubmit }: { postId: string; parentId: s
   const [open, setOpen] = React.useState(false);
   const [body, setBody] = React.useState("");
   if (!open) return <button type="button" onClick={() => setOpen(true)} className="text-[11px] font-bold text-[#D97706] hover:underline">Trả lời</button>;
-  return <form onSubmit={(event) => { event.preventDefault(); if (!body.trim()) return; onSubmit(postId, body.trim(), parentId); setBody(""); setOpen(false); }} className="flex gap-1"><input value={body} onChange={(event) => setBody(event.target.value)} placeholder="Trả lời..." className="w-32 rounded-lg border border-[#3A302B] bg-[#171412] px-2 py-1 text-[11px] text-white outline-none focus:border-[#D97706]" /><button type="submit" className="text-[11px] font-bold text-[#D97706]">Gửi</button></form>;
+  return <form onSubmit={(event) => { event.preventDefault(); if (!body.trim()) return; onSubmit(postId, body.trim(), parentId); setBody(""); setOpen(false); }} className="mt-2 flex w-full gap-2"><div className="flex min-w-0 flex-1 items-center gap-1 rounded-lg border border-[#3A302B] bg-[#171412] px-2"><button type="button" aria-label="Thêm emoji" className="text-[#D97706]"><Smile className="h-3.5 w-3.5" /></button><input value={body} onChange={(event) => setBody(event.target.value)} placeholder="Trả lời bình luận..." className="min-w-0 flex-1 bg-transparent px-1 py-2 text-xs text-white outline-none" /><button type="button" aria-label="Đính kèm ảnh" className="text-[#A69B93] hover:text-[#D97706]"><ImagePlus className="h-3.5 w-3.5" /></button></div><button type="submit" className="rounded-lg bg-[#D97706] px-3 text-xs font-bold text-[#1C1613]">Gửi</button></form>;
 }
 
 function CommentForm({ onSubmit }: { onSubmit: (body: string) => void }) {
@@ -132,9 +135,13 @@ function CommentForm({ onSubmit }: { onSubmit: (body: string) => void }) {
           placeholder="Chia sẻ kinh nghiệm hoặc câu hỏi..."
           className="min-w-0 flex-1 rounded-xl border border-[#3A302B] bg-[#221D1A] px-4 py-3 text-sm text-white outline-none focus:border-[#D97706]"
         />
-        <button type="submit" className="rounded-xl bg-[#D97706] px-4 text-sm font-bold text-[#1C1613] transition hover:bg-[#E08A1E]">
+        <div className="flex gap-2">
+          <button type="button" aria-label="Thêm emoji" className="rounded-xl border border-[#3A302B] p-3 text-[#D97706] hover:bg-[#2A2421]"><Smile className="h-4 w-4" /></button>
+          <button type="button" aria-label="Đính kèm ảnh" className="rounded-xl border border-[#3A302B] p-3 text-[#A69B93] hover:bg-[#2A2421] hover:text-[#D97706]"><ImagePlus className="h-4 w-4" /></button>
+          <button type="submit" className="rounded-xl bg-[#D97706] px-4 text-sm font-bold text-[#1C1613] transition hover:bg-[#E08A1E]">
           Gửi
         </button>
+        </div>
       </div>
     </form>
   );

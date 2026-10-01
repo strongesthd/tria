@@ -144,6 +144,13 @@ async function main() {
           accepted: true,
         },
       });
+    } else {
+      // Keep demo metrics believable and deterministic when reseeding a dev or
+      // staging database. Production traffic can grow these counters afterward.
+      await prisma.communityPost.update({
+        where: { id: existing.id },
+        data: { upvotes: Math.min(post.upvotes, 24), views: Math.min(post.views, 240) },
+      });
     }
   }
 
