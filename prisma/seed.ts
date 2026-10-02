@@ -1,5 +1,6 @@
 import { PrismaClient, Role } from "@prisma/client";
 import { hash } from "bcryptjs";
+import { BRANCHES, PRODUCTS } from "../lib/site-data";
 
 const prisma = new PrismaClient();
 
@@ -7,6 +8,13 @@ const DEMO_PASSWORD = "TriaDemo#2026";
 
 async function main() {
   console.log("Seeding TRIA CAFE demo data...");
+
+  for (const product of PRODUCTS) {
+    await prisma.product.upsert({ where: { slug: product.slug }, update: { ...product, active: true }, create: { ...product, active: true } });
+  }
+  for (const branch of BRANCHES) {
+    await prisma.branch.upsert({ where: { slug: branch.slug }, update: { ...branch, active: true }, create: { ...branch, active: true } });
+  }
 
   const passwordHash = await hash(DEMO_PASSWORD, 12);
 

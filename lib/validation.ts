@@ -96,6 +96,7 @@ export const checkoutSchema = z.object({
   name: nameSchema,
   phone: phoneSchema,
   address: z.string().trim().min(5, "Địa chỉ quá ngắn.").max(500),
+  items: z.array(z.object({ id: z.string().min(1).max(180), quantity: z.number().int().min(1).max(99) })).min(1),
 });
 
 export const partnershipLeadSchema = z.object({
