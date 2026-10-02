@@ -9,3 +9,5 @@ out/
 .DS_Store
 deploy_dist/
 *.tgz
+build*.log
+.kilo/
