@@ -46,7 +46,7 @@ model Product {
   target      String
   price       Int
   unit        String
-  roastLevel  String
+  roastLevel  String?
   notes       String
   description String   @db.Text
   image       String
