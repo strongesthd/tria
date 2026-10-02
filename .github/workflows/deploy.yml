@@ -141,6 +141,10 @@ jobs:
             mkdir -p "$APP_DIR/runtime"
             touch "$APP_DIR/runtime/.db-initialized"
 
+            # Keep the admin catalog and homepage content in sync with the
+            # versioned source data. Seed uses idempotent upserts.
+            docker compose -f deploy/docker-compose.prod.yml run --rm migrator npx tsx prisma/seed.ts
+
             if ! docker compose -f deploy/docker-compose.prod.yml up -d --build --remove-orphans; then
               echo 'Docker Compose failed. Container logs follow:'
               docker compose -f deploy/docker-compose.prod.yml logs --tail 200 || true
