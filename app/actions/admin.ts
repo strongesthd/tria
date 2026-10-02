@@ -27,10 +27,50 @@ export async function updateProductStatus(productId: string, active: boolean) {
   revalidatePath("/admin");
 }
 
+export async function createProduct(data: { slug: string; name: string; category: string; target: string; price: number; unit: string; roastLevel: string; notes: string; description: string; image: string }) {
+  await requireAdmin();
+  const product = await prisma.product.create({ data });
+  revalidatePath("/admin"); revalidatePath("/"); revalidatePath("/san-pham");
+  return product;
+}
+
+export async function updateProduct(productId: string, data: { slug: string; name: string; category: string; target: string; price: number; unit: string; roastLevel: string; notes: string; description: string; image: string }) {
+  await requireAdmin();
+  const product = await prisma.product.update({ where: { id: productId }, data });
+  revalidatePath("/admin"); revalidatePath("/"); revalidatePath("/san-pham");
+  return product;
+}
+
+export async function deleteProduct(productId: string) {
+  await requireAdmin();
+  await prisma.product.delete({ where: { id: productId } });
+  revalidatePath("/admin"); revalidatePath("/"); revalidatePath("/san-pham");
+}
+
 export async function updateBranchStatus(branchId: string, active: boolean) {
   await requireAdmin();
   await prisma.branch.update({ where: { id: branchId }, data: { active } });
   revalidatePath("/admin");
+}
+
+export async function createBranch(data: { slug: string; name: string; address: string; hours: string; phone: string; features: string[]; image: string }) {
+  await requireAdmin();
+  const branch = await prisma.branch.create({ data });
+  revalidatePath("/admin"); revalidatePath("/"); revalidatePath("/he-thong-quan");
+  return branch;
+}
+
+export async function updateBranch(branchId: string, data: { slug: string; name: string; address: string; hours: string; phone: string; features: string[]; image: string }) {
+  await requireAdmin();
+  const branch = await prisma.branch.update({ where: { id: branchId }, data });
+  revalidatePath("/admin"); revalidatePath("/"); revalidatePath("/he-thong-quan");
+  return branch;
+}
+
+export async function deleteBranch(branchId: string) {
+  await requireAdmin();
+  await prisma.branch.delete({ where: { id: branchId } });
+  revalidatePath("/admin"); revalidatePath("/"); revalidatePath("/he-thong-quan");
 }
 
 export async function updateOrderStatus(orderId: string, status: string) {

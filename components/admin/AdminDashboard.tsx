@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { BarChart3, CalendarDays, CheckCircle2, Inbox, MapPin, MessageSquare, RefreshCw, Shield, ShoppingBag, Store, Trash2, Users } from "lucide-react";
 import { deleteMessage, deleteOrder, updateMessageStatus, updateOrderStatus } from "../../app/actions/admin";
+import { BranchManager, ProductManager } from "./CatalogManager";
 
 type Dashboard = {
   stats: Record<string, number>;
@@ -88,8 +89,8 @@ export default function AdminDashboard() {
         {!data ? <div className="rounded-2xl border border-[#3A302B] bg-[#171412] p-8 text-sm text-[#81746B]">Không có dữ liệu.</div> : (
           <>
             {tab === "overview" && <Overview stats={data.stats} orders={data.recentOrders} bookings={data.recentBookings} messages={data.recentMessages} />}
-            {tab === "products" && <InfoPanel title="Quản lý sản phẩm" body="Catalog sản phẩm công khai đang dùng source dữ liệu site để luôn có thể render được khi DB/CDN lỗi. Admin có thể bật/tắt trạng thái active của bản ghi sản phẩm trong database." stats={`${data.stats.products || 0} sản phẩm đang hoạt động`} icon="coffee" />}
-            {tab === "branches" && <InfoPanel title="Hệ thống quán" body="Quản lý địa chỉ, hotline, giờ hoạt động, tính năng và trạng thái các cơ sở trải nghiệm." stats={`${data.stats.branches || 0} cơ sở đang hoạt động`} icon="store" />}
+            {tab === "products" && <ProductManager />}
+            {tab === "branches" && <BranchManager />}
             {tab === "points" && <InfoPanel title="Điểm bán On-The-Go" body="Quản lý các lead hợp tác vị trí/nhượng quyền từ module Hợp tác điểm bán." stats={`${data.stats.leads || 0} lead mới đang chờ xử lý`} icon="map" />}
             {tab === "users" && <InfoPanel title="Người dùng" body="Quản lý thành viên, role, badge, TRIA Points. Các thay đổi quyền được thực hiện qua server action requireAdmin." stats={`${data.stats.users || 0} người dùng`} icon="users" />}
             {tab === "bookings" && <DataTable title="Lịch demo / booking gần đây" rows={data.recentBookings} empty="Chưa có booking." />}
