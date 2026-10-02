@@ -3,10 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Coffee, Settings, ShieldCheck, Sparkles, Star, Users } from "lucide-react";
-import { PRODUCT_CATEGORIES, PRODUCTS } from "../../lib/site-data";
+import { PRODUCT_CATEGORIES, PRODUCTS, type Category, type Product } from "../../lib/site-data";
 import { useCart } from "../cart/CartProvider";
 
-export function Hero() {
+export function Hero({ branchCount = 3 }: { branchCount?: number }) {
   return (
     <section className="relative overflow-hidden border-b border-[#2A2421] bg-gradient-to-b from-[#171412] via-[#0F0D0C] to-[#0F0D0C] py-16 md:py-24">
       <div aria-hidden className="pointer-events-none absolute right-1/4 top-0 h-96 w-96 rounded-full bg-[#C87D55]/10 blur-3xl" />
@@ -25,7 +25,7 @@ export function Hero() {
               </span>
             </h1>
             <p className="max-w-2xl text-base leading-relaxed text-[#A69B93] sm:text-lg">
-              Hệ sinh thái từ hạt cà phê Việt, máy pha chuyên nghiệp đến cộng đồng tri thức. Chọn đúng gu, đúng máy và trải nghiệm thực tế tại 2 flagship store của TRIA ở TP. Hồ Chí Minh.
+              Hệ sinh thái từ hạt cà phê Việt, máy pha chuyên nghiệp đến cộng đồng tri thức. Chọn đúng gu, đúng máy và trải nghiệm thực tế tại {branchCount} flagship store của TRIA ở TP. Hồ Chí Minh.
             </p>
             <div className="flex flex-col items-center justify-center gap-4 pt-2 sm:flex-row md:justify-start">
               <Link href="/san-pham" className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#C87D55] to-[#A85C38] px-7 py-3.5 font-semibold text-white shadow-lg shadow-[#C87D55]/25 transition-all hover:opacity-95 sm:w-auto">
@@ -39,7 +39,7 @@ export function Hero() {
             </div>
             <div className="grid grid-cols-3 gap-4 border-t border-[#2A2421] pt-6">
               <div>
-                <span className="block text-2xl font-bold text-white">2+</span>
+                <span className="block text-2xl font-bold text-white">{branchCount}+</span>
                 <span className="text-xs text-[#A69B93]">Chi nhánh Demo TP.HCM</span>
               </div>
               <div>
@@ -138,7 +138,7 @@ export function Pillars() {
   );
 }
 
-export function ProductCategoryCards() {
+export function ProductCategoryCards({ categories = PRODUCT_CATEGORIES }: { categories?: Category[] }) {
   return (
     <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="mb-4">
@@ -147,7 +147,7 @@ export function ProductCategoryCards() {
         <p className="mt-1 text-sm text-[#A69B93]">Chọn nhóm sản phẩm phù hợp với hành trình cà phê của bạn.</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
-        {PRODUCT_CATEGORIES.map((category) => (
+        {categories.map((category) => (
           <Link
             key={category.id}
             href={`/san-pham?category=${category.id}`}
@@ -175,7 +175,7 @@ export function ProductCategoryCards() {
   );
 }
 
-export function FeaturedProducts() {
+export function FeaturedProducts({ products = PRODUCTS }: { products?: Product[] }) {
   return (
     <section className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
       <div className="mb-6 flex items-center justify-between">
@@ -186,16 +186,16 @@ export function FeaturedProducts() {
           Xem tất cả →
         </Link>
       </div>
-      <FeaturedGrid />
+      <FeaturedGrid products={products} />
     </section>
   );
 }
 
-function FeaturedGrid() {
+function FeaturedGrid({ products }: { products: Product[] }) {
   const { add } = useCart();
   return (
     <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-      {PRODUCTS.slice(0, 4).map((p) => (
+      {products.slice(0, 4).map((p) => (
         <li key={p.id} className="group overflow-hidden rounded-2xl border border-[#2A2421] bg-[#171412] transition-all hover:border-[#C87D55]/50">
           <div className="relative h-48 overflow-hidden bg-[#221D1A]">
             <Image src={p.image} alt={p.name} width={400} height={300} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" sizes="(max-width: 1024px) 50vw, 25vw" />
@@ -222,14 +222,14 @@ function FeaturedGrid() {
   );
 }
 
-export function TrustBanner() {
+export function TrustBanner({ branchCount = 3 }: { branchCount?: number }) {
   return (
     <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
       <div className="flex flex-col items-center justify-between gap-6 rounded-2xl border border-[#3A302B] bg-gradient-to-r from-[#221D1A] via-[#2A2421] to-[#221D1A] p-8 md:flex-row">
         <div className="space-y-2 text-center md:text-left">
           <h2 className="text-xl font-bold text-white">Bạn cần mua máy pha B2B cho quán hoặc văn phòng?</h2>
           <p className="text-sm text-[#A69B93]">
-            Đến ngay 2 chi nhánh TP.HCM để thử máy trực tiếp, thử espresso từ hạt của bạn và nhận báo giá sỉ tốt nhất.
+            Đến ngay {branchCount} chi nhánh TP.HCM để thử máy trực tiếp, thử espresso từ hạt của bạn và nhận báo giá sỉ tốt nhất.
           </p>
         </div>
         <Link href="/he-thong-quan#booking" className="shrink-0 rounded-xl bg-[#C87D55] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#A85C38]">

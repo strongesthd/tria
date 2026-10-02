@@ -1,189 +1,176 @@
-import { PrismaClient, Role } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { hash } from "bcryptjs";
-import { BRANCHES, PRODUCTS } from "../lib/site-data";
 
 const prisma = new PrismaClient();
 
-const DEMO_PASSWORD = "TriaDemo#2026";
-
 async function main() {
-  console.log("Seeding TRIA CAFE demo data...");
+  console.log("🌱 Seeding database...");
 
-  for (const product of PRODUCTS) {
-    await prisma.product.upsert({ where: { slug: product.slug }, update: { ...product, active: true }, create: { ...product, active: true } });
+  // 1. Create admin user
+  const adminEmail = "admin@triacafe.vn";
+  const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail } });
+  
+  if (!existingAdmin) {
+    const adminPassword = await hash("TriaDemo#2026", 12);
+    await prisma.user.create({
+      data: {
+        email: adminEmail,
+        name: "TRIA Admin",
+        passwordHash: adminPassword,
+        role: "ADMIN",
+        badge: "TRIA Staff",
+        triaPoints: 1000,
+      },
+    });
+    console.log("✅ Admin user created");
+  } else {
+    console.log("ℹ️  Admin user already exists");
   }
-  for (const branch of BRANCHES) {
-    await prisma.branch.upsert({ where: { slug: branch.slug }, update: { ...branch, active: true }, create: { ...branch, active: true } });
-  }
 
-  const passwordHash = await hash(DEMO_PASSWORD, 12);
-
-  const admin = await prisma.user.upsert({
-    where: { email: "admin@triacafe.vn" },
-    update: { role: Role.ADMIN, badge: "TRIA Admin" },
-    create: {
-      email: "admin@triacafe.vn",
-      name: "TRIA Admin",
-      passwordHash,
-      role: Role.ADMIN,
-      badge: "TRIA Admin",
-      triaPoints: 500,
-    },
-  });
-
-  const barista = await prisma.user.upsert({
-    where: { email: "hoang.barista@triacafe.vn" },
-    update: {},
-    create: {
-      email: "hoang.barista@triacafe.vn",
-      name: "Hoàng Barista",
-      passwordHash,
-      role: Role.TRIA_BARISTA,
-      badge: "TRIA Master Barista",
-      triaPoints: 1280,
-    },
-  });
-
-  const owner = await prisma.user.upsert({
-    where: { email: "minh.duc@triacafe.vn" },
-    update: {},
-    create: {
-      email: "minh.duc@triacafe.vn",
-      name: "Minh Đức",
-      passwordHash,
-      role: Role.CAFE_OWNER,
-      badge: "Cafe Owner",
-      triaPoints: 980,
-    },
-  });
-
-  const posts = [
+  // 2. Seed Products
+  const products = [
     {
-      title: "Cách căn chỉnh độ mịn hạt Robusta Cầu Đất cho máy pha Espresso 1 Group không bị chua",
-      content:
-        "Với Fine Robusta mật độ cao, mình bắt đầu ở 18g dose, yield 40g trong 27-30 giây. Nếu shot chua và dòng chảy nhanh, giảm cỡ xay từng nấc nhỏ trước khi tăng nhiệt. Hãy ghi lại mỗi thay đổi để tìm đúng điểm cân bằng.",
-      category: "home-barista",
-      tags: ["#DialIn", "#FineRobusta"],
-      authorId: barista.id,
-      upvotes: 128,
-      views: 1830,
+      slug: "fine-robusta-lam-dong-premium",
+      name: "TRIA Fine Robusta - Lam Dong Premium",
+      category: "beans",
+      target: "b2c",
+      price: 185000,
+      unit: "250g",
+      roastLevel: "Medium Roast",
+      notes: "Dark Chocolate, Ripe Berry, Caramel Finish",
+      image: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?auto=format&fit=crop&q=80&w=600",
+      description: "100% Robusta Chế biến Ẩm (Wet Process) từ Bảo Lộc. Thích hợp pha Espresso và Phin hiện đại.",
+      rating: 4.9,
+      reviews: 128,
     },
     {
-      title: "[Bắt bệnh] Máy pha bị tụt áp suất giữa chừng và tiếng bơm kêu to",
-      content:
-        "Hãy tắt máy, xả áp và kiểm tra lần lượt nguồn nước, van cấp, lưới lọc và bơm. Không tự tháo nồi hơi khi máy còn nóng. Nếu tiếng bơm vẫn lớn sau khi mồi nước, gửi video và mã máy để kỹ thuật viên TRIA hỗ trợ.",
-      category: "machine-tech",
-      tags: ["#GiaiCuuBarista", "#SuaMay"],
-      authorId: barista.id,
-      upvotes: 96,
-      views: 2410,
+      slug: "signature-blend-vietnamese-heritage",
+      name: "TRIA Signature Blend - Vietnamese Heritage",
+      category: "beans",
+      target: "b2b",
+      price: 320000,
+      unit: "1Kg",
+      roastLevel: "Medium-Dark",
+      notes: "Nhiều Crema, Vị Đậm Đà, Hậu Vị Ngọt",
+      image: "https://images.unsplash.com/photo-1587734195503-904fca47e0e9?auto=format&fit=crop&q=80&w=600",
+      description: "Dòng hạt tiêu chuẩn tối ưu chi phí cho các quán Espresso & Bistro. Chiết xuất ổn định, đậm gu Việt.",
+      rating: 5.0,
+      reviews: 310,
     },
     {
-      title: "Bài toán Cost 1 ly Latte cho quán cà phê diện tích 30m2 tại Quận 1",
-      content:
-        "Với 18g cà phê, 180ml sữa và bao bì, tổng cost nguyên liệu của một ly Latte là khoảng 11.800đ. Điều quan trọng là cố định recipe, cân định lượng mỗi ca và theo dõi hao hụt sữa.",
-      category: "cafe-owner",
-      tags: ["#CostLy", "#VanHanhQuan"],
-      authorId: owner.id,
-      upvotes: 112,
-      views: 3270,
+      slug: "espresso-pro-home-barista",
+      name: "TRIA Espresso Pro - Home Barista",
+      category: "machines",
+      target: "b2c",
+      price: 8900000,
+      unit: "Máy",
+      roastLevel: "N/A",
+      notes: "Bơm ULKA Ý 15 Bar, PID Control, Vòi Đánh Sữa Chuyên Nghiệp",
+      image: "https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?auto=format&fit=crop&q=80&w=600",
+      description: "Thiết kế nhỏ gọn, khung kim loại cao cấp. Dành riêng cho trải nghiệm pha cà phê chuẩn Barista tại nhà.",
+      rating: 4.8,
+      reviews: 64,
     },
     {
-      title: "Cupping Notes: TRIA Signature Blend và hậu vị caramel của vụ mới",
-      content:
-        "Mẻ blend lần này có body dày và crema ổn định. Ở espresso, note chocolate nổi bật; pour-over cho hậu vị caramel rõ hơn. Đây là lựa chọn tốt cho menu sữa và cold brew.",
-      category: "tria-lab",
-      tags: ["#TriaTester", "#Cupping"],
-      authorId: admin.id,
-      upvotes: 74,
-      views: 1540,
+      slug: "espresso-pro-commercial-2-group",
+      name: "TRIA Espresso Pro - Commercial 2 Group",
+      category: "machines",
+      target: "b2b",
+      price: 68000000,
+      unit: "Máy",
+      roastLevel: "N/A",
+      notes: "Nồi hơi kép 11L, Công suất 3500W, Định lượng tự động",
+      image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&q=80&w=600",
+      description: "Dòng máy pha công nghiệp chịu tải cao cho giờ cao điểm. Tích hợp công nghệ kiểm soát nhiệt độ độ chính xác cao.",
+      rating: 4.9,
+      reviews: 42,
     },
     {
-      title: "Mời tham gia Workshop Cupping Fine Robusta sáng Thứ 7 tại TRIA Flagship Q.3",
-      content:
-        "Workshop diễn ra lúc 09:00 sáng Thứ 7 tại TRIA Flagship Q.3. Số lượng giới hạn 18 người, ưu tiên thành viên Community đăng ký sớm.",
-      category: "events",
-      tags: ["#WorkshopTRIA", "#HCMC"],
-      authorId: admin.id,
-      upvotes: 86,
-      views: 2100,
-    },
-    {
-      title: "Vệ sinh group head mỗi ngày: checklist 5 phút cho quán đông khách",
-      content:
-        "Cuối mỗi ca, chạy backflush nước, chải group head, lau shower screen và vệ sinh vòi steam ngay sau khi dùng. Mỗi tuần nên dùng bột vệ sinh theo hướng dẫn của nhà sản xuất.",
-      category: "machine-tech",
-      tags: ["#BaoDuong", "#BarWorkflow"],
-      authorId: owner.id,
-      upvotes: 61,
-      views: 920,
-    },
-    {
-      title: "Pour-over Fine Robusta: nên dùng nhiệt độ bao nhiêu để vị không gắt?",
-      content:
-        "Ở 92 độ C, ly có sweetness cân bằng nhất. Giảm nhiệt nếu hậu vị khô; tăng nhẹ nhiệt hoặc kéo dài thời gian bloom nếu ly mỏng và thiếu body.",
-      category: "home-barista",
-      tags: ["#PourOver", "#Recipe"],
-      authorId: barista.id,
-      upvotes: 49,
-      views: 880,
-    },
-    {
-      title: "Chọn máy pha 2 Group cho quán 80 ly/ngày: bài toán đầu tư và bảo trì",
-      content:
-        "Nếu lưu lượng ổn định trên 60 ly/ngày, máy 2 Group giúp giảm thời gian chờ và giữ nhiệt tốt hơn. Hãy tính cả chi phí lọc nước, bảo trì định kỳ và training barista vào ngân sách.",
-      category: "cafe-owner",
-      tags: ["#B2B", "#May2Group"],
-      authorId: owner.id,
-      upvotes: 88,
-      views: 1940,
+      slug: "barista-kit-tamper-pitcher",
+      name: "TRIA Barista Kit - Tamper & Pitcher Set",
+      category: "accessories",
+      target: "b2c",
+      price: 790000,
+      unit: "Bộ",
+      roastLevel: "N/A",
+      notes: "Tamper 58mm, ca đánh sữa 450ml, chổi vệ sinh",
+      image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&q=80&w=600",
+      description: "Bộ dụng cụ nền tảng cho Home Barista, hoàn thiện góc pha chế tại nhà gọn gàng và chuyên nghiệp.",
+      rating: 4.8,
+      reviews: 37,
     },
   ];
 
-  for (const post of posts) {
-    const existing = await prisma.communityPost.findFirst({ where: { title: post.title } });
-    if (!existing) {
-      const created = await prisma.communityPost.create({ data: post });
-      await prisma.comment.create({
-        data: {
-          content: "Cảm ơn anh đã chia sẻ, mình sẽ thử áp dụng ngay tại quán.",
-          postId: created.id,
-          authorId: barista.id,
-          accepted: true,
-        },
-      });
-    } else {
-      // Keep demo metrics believable and deterministic when reseeding a dev or
-      // staging database. Production traffic can grow these counters afterward.
-      await prisma.communityPost.update({
-        where: { id: existing.id },
-        data: { upvotes: Math.min(post.upvotes, 24), views: Math.min(post.views, 240) },
-      });
-    }
-  }
-
-  // One upcoming workshop so registration has a real target.
-  const workshop = await prisma.workshop.findFirst({ where: { title: "Cupping Fine Robusta" } });
-  if (!workshop) {
-    const nextSaturday = new Date();
-    nextSaturday.setDate(nextSaturday.getDate() + ((6 - nextSaturday.getDay() + 7) % 7 || 7));
-    nextSaturday.setHours(9, 0, 0, 0);
-    await prisma.workshop.create({
-      data: {
-        title: "Cupping Fine Robusta",
-        locationId: "loc1",
-        startsAt: nextSaturday,
-        capacity: 18,
-      },
+  for (const product of products) {
+    await prisma.product.upsert({
+      where: { slug: product.slug },
+      update: product,
+      create: product,
     });
   }
+  console.log(`✅ ${products.length} products seeded`);
 
-  console.log(`Seeded. Demo password for all accounts: ${DEMO_PASSWORD}`);
+  // 3. Seed Branches
+  const branches = [
+    {
+      slug: "co-so-phu-huu",
+      name: "CS1 - Phú Hữu, TP. Thủ Đức",
+      address: "Số 741 Nguyễn Duy Trinh, Phường Phú Hữu, TP. Thủ Đức, TP. Hồ Chí Minh",
+      hours: "08:00 - 21:30 hàng ngày",
+      phone: "0989 668 113",
+      features: [
+        "Thử máy pha B2C & B2B",
+        "Cupping Lab hạt Robusta",
+        "Quầy pha chế thực chiến",
+        "Barista Training Corner",
+      ],
+      image: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=1200",
+    },
+    {
+      slug: "co-so-thao-dien",
+      name: "CS2 - Thảo Điền, TP. Thủ Đức",
+      address: "Số 32A Nguyễn Bá Huân, Phường Thảo Điền, TP. Thủ Đức, TP. Hồ Chí Minh",
+      hours: "08:00 - 21:30 hàng ngày",
+      phone: "0983 020 629",
+      features: [
+        "Thử máy pha B2C & B2B",
+        "Cupping Lab hạt Robusta",
+        "Workshop Cuối tuần",
+        "Khu Demo B2B",
+      ],
+      image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&q=80&w=1200",
+    },
+    {
+      slug: "co-so-binh-trung-tay",
+      name: "CS3 - Bình Trưng Tây, TP. Thủ Đức",
+      address: "Số 342 Nguyễn Duy Trinh, Phường Bình Trưng Tây, TP. Thủ Đức, TP. Hồ Chí Minh",
+      hours: "08:00 - 21:30 hàng ngày",
+      phone: "0989 668 113",
+      features: [
+        "Trưng bày Xưởng Rang",
+        "Trung tâm Bảo hành & Kỹ thuật Máy",
+        "Workshop Cuối tuần",
+        "Khu Demo B2B",
+      ],
+      image: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=1200",
+    },
+  ];
+
+  for (const branch of branches) {
+    await prisma.branch.upsert({
+      where: { slug: branch.slug },
+      update: branch,
+      create: branch,
+    });
+  }
+  console.log(`✅ ${branches.length} branches seeded`);
+
+  console.log("🎉 Database seeding complete!");
 }
 
 main()
-  .catch((error) => {
-    console.error(error);
+  .catch((e) => {
+    console.error("❌ Seed error:", e);
     process.exit(1);
   })
   .finally(async () => {
