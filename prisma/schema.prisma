@@ -50,6 +50,7 @@ model Product {
   notes       String
   description String   @db.Text
   image       String
+  images      String[] @default([])
   rating      Float    @default(0)
   reviews     Int      @default(0)
   active      Boolean  @default(true)

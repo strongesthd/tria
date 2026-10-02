@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -6,6 +5,7 @@ import { Check, Star } from "lucide-react";
 import { JsonLdScript } from "../../../components/seo/JsonLdScript";
 import AddToCartButton from "../../../components/shop/AddToCartButton";
 import BeanPurchaseOptions from "../../../components/shop/BeanPurchaseOptions";
+import ProductGallery from "../../../components/shop/ProductGallery";
 import { HOTLINE, PRODUCTS, buildProductJsonLd, buildBreadcrumbJsonLd } from "../../../lib/site-data";
 
 type Params = Promise<{ slug: string }>;
@@ -54,16 +54,8 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
       </Link>
 
       <div className="mt-6 grid gap-10 lg:grid-cols-2">
-        <div className="relative overflow-hidden rounded-2xl border border-[#2A2421] bg-[#171412]">
-          <Image
-            src={product.image}
-            alt={product.name}
-            width={800}
-            height={600}
-            priority
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            className="aspect-square w-full object-cover"
-          />
+        <div>
+          <ProductGallery name={product.name} images={[product.image, ...(product.images ?? [])]} />
           <span className={`absolute left-4 top-4 rounded-md px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider ${product.target === "b2b" ? "bg-[#C87D55] text-white" : "border border-[#C87D55]/30 bg-[#2A2421] text-[#E2A168]"}`}>
             {product.target === "b2b" ? "Dành cho B2B / Quán" : "Dành cho Home Barista"}
           </span>

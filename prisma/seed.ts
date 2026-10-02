@@ -42,6 +42,7 @@ async function main() {
       description: "100% Robusta Chế biến Ẩm (Wet Process) từ Bảo Lộc. Thích hợp pha Espresso và Phin hiện đại.",
       rating: 4.9,
       reviews: 128,
+      images: ["https://images.unsplash.com/photo-1559056199-641a0ac8b55e?auto=format&fit=crop&q=80&w=600"],
     },
     {
       slug: "signature-blend-vietnamese-heritage",
@@ -56,6 +57,7 @@ async function main() {
       description: "Dòng hạt tiêu chuẩn tối ưu chi phí cho các quán Espresso & Bistro. Chiết xuất ổn định, đậm gu Việt.",
       rating: 5.0,
       reviews: 310,
+      images: ["https://images.unsplash.com/photo-1587734195503-904fca47e0e9?auto=format&fit=crop&q=80&w=600"],
     },
     {
       slug: "espresso-pro-home-barista",
@@ -70,6 +72,7 @@ async function main() {
       description: "Thiết kế nhỏ gọn, khung kim loại cao cấp. Dành riêng cho trải nghiệm pha cà phê chuẩn Barista tại nhà.",
       rating: 4.8,
       reviews: 64,
+      images: ["https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?auto=format&fit=crop&q=80&w=600"],
     },
     {
       slug: "espresso-pro-commercial-2-group",
@@ -84,6 +87,7 @@ async function main() {
       description: "Dòng máy pha công nghiệp chịu tải cao cho giờ cao điểm. Tích hợp công nghệ kiểm soát nhiệt độ độ chính xác cao.",
       rating: 4.9,
       reviews: 42,
+      images: ["https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&q=80&w=600"],
     },
     {
       slug: "barista-kit-tamper-pitcher",
@@ -98,6 +102,7 @@ async function main() {
       description: "Bộ dụng cụ nền tảng cho Home Barista, hoàn thiện góc pha chế tại nhà gọn gàng và chuyên nghiệp.",
       rating: 4.8,
       reviews: 37,
+      images: ["https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&q=80&w=600"],
     },
   ];
 

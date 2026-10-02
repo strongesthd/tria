@@ -22,6 +22,7 @@ export type Product = {
   roastLevel: string;
   notes: string;
   image: string;
+  images?: string[];
   description: string;
   rating: number;
   reviews: number;

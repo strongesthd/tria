@@ -28,6 +28,7 @@ async function getHomepageData(): Promise<{ products: Product[]; branchCount: nu
       roastLevel: p.roastLevel,
       notes: p.notes,
       image: p.image,
+      images: p.images,
       description: p.description,
       rating: p.rating,
       reviews: p.reviews,

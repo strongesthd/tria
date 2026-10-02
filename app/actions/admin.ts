@@ -27,14 +27,14 @@ export async function updateProductStatus(productId: string, active: boolean) {
   revalidatePath("/admin");
 }
 
-export async function createProduct(data: { slug: string; name: string; category: string; target: string; price: number; unit: string; roastLevel: string; notes: string; description: string; image: string }) {
+export async function createProduct(data: { slug: string; name: string; category: string; target: string; price: number; unit: string; roastLevel: string; notes: string; description: string; image: string; images?: string[] }) {
   await requireAdmin();
   const product = await prisma.product.create({ data });
   revalidatePath("/admin"); revalidatePath("/"); revalidatePath("/san-pham");
   return product;
 }
 
-export async function updateProduct(productId: string, data: { slug: string; name: string; category: string; target: string; price: number; unit: string; roastLevel: string; notes: string; description: string; image: string }) {
+export async function updateProduct(productId: string, data: { slug: string; name: string; category: string; target: string; price: number; unit: string; roastLevel: string; notes: string; description: string; image: string; images?: string[] }) {
   await requireAdmin();
   const product = await prisma.product.update({ where: { id: productId }, data });
   revalidatePath("/admin"); revalidatePath("/"); revalidatePath("/san-pham");
