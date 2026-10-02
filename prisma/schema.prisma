@@ -70,6 +70,7 @@ model Branch {
   phone     String
   features  String[]
   image     String
+  images    String[] @default([])
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

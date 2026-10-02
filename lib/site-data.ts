@@ -19,7 +19,7 @@ export type Product = {
   target: Target;
   price: number;
   unit: string;
-  roastLevel: string;
+  roastLevel?: string | null;
   notes: string;
   image: string;
   images?: string[];

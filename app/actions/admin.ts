@@ -53,14 +53,14 @@ export async function updateBranchStatus(branchId: string, active: boolean) {
   revalidatePath("/admin");
 }
 
-export async function createBranch(data: { slug: string; name: string; address: string; hours: string; phone: string; features: string[]; image: string }) {
+export async function createBranch(data: { slug: string; name: string; address: string; hours: string; phone: string; features: string[]; image: string; images?: string[] }) {
   await requireAdmin();
   const branch = await prisma.branch.create({ data });
   revalidatePath("/admin"); revalidatePath("/"); revalidatePath("/he-thong-quan");
   return branch;
 }
 
-export async function updateBranch(branchId: string, data: { slug: string; name: string; address: string; hours: string; phone: string; features: string[]; image: string }) {
+export async function updateBranch(branchId: string, data: { slug: string; name: string; address: string; hours: string; phone: string; features: string[]; image: string; images?: string[] }) {
   await requireAdmin();
   const branch = await prisma.branch.update({ where: { id: branchId }, data });
   revalidatePath("/admin"); revalidatePath("/"); revalidatePath("/he-thong-quan");
@@ -93,6 +93,8 @@ export async function updateLeadStatus(leadId: string, status: string) {
 
 export async function deleteUser(userId: string) {
   await requireAdmin();
+  const session = await auth();
+  if (session?.user?.id === userId) throw new Error("Không thể xóa tài khoản admin đang đăng nhập.");
   await prisma.user.delete({ where: { id: userId } });
   revalidatePath("/admin");
 }

@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { BarChart3, CalendarDays, CheckCircle2, Inbox, MapPin, MessageSquare, RefreshCw, Shield, ShoppingBag, Store, Trash2, Users } from "lucide-react";
 import { deleteMessage, deleteOrder, updateMessageStatus, updateOrderStatus } from "../../app/actions/admin";
 import { BranchManager, ProductManager } from "./CatalogManager";
+import UserManager from "./UserManager";
 
 type Dashboard = {
   stats: Record<string, number>;
@@ -92,7 +93,7 @@ export default function AdminDashboard() {
             {tab === "products" && <ProductManager />}
             {tab === "branches" && <BranchManager />}
             {tab === "points" && <InfoPanel title="Điểm bán On-The-Go" body="Quản lý các lead hợp tác vị trí/nhượng quyền từ module Hợp tác điểm bán." stats={`${data.stats.leads || 0} lead mới đang chờ xử lý`} icon="map" />}
-            {tab === "users" && <InfoPanel title="Người dùng" body="Quản lý thành viên, role, badge, TRIA Points. Các thay đổi quyền được thực hiện qua server action requireAdmin." stats={`${data.stats.users || 0} người dùng`} icon="users" />}
+            {tab === "users" && <UserManager />}
             {tab === "bookings" && <DataTable title="Lịch demo / booking gần đây" rows={data.recentBookings} empty="Chưa có booking." />}
             {tab === "orders" && <DataTable title="Đơn đặt hàng gần đây" rows={data.recentOrders} empty="Chưa có đơn hàng." onStatus={updateOrderStatus} onDelete={deleteOrder} />}
             {tab === "messages" && <DataTable title="Tin nhắn liên hệ" rows={data.recentMessages} empty="Chưa có tin nhắn." onStatus={updateMessageStatus} onDelete={deleteMessage} />}
