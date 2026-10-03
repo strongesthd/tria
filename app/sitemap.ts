@@ -10,6 +10,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/he-thong-quan`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
     { url: `${SITE_URL}/giai-phap-b2b`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
     { url: `${SITE_URL}/hop-tac`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
+    { url: `${SITE_URL}/phap-ly/dieu-khoan`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
+    { url: `${SITE_URL}/phap-ly/bao-mat`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
+    { url: `${SITE_URL}/phap-ly/cong-dong`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.4 },
+    { url: `${SITE_URL}/phap-ly/quyen-loi`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
   ];
 
   const categoryRoutes: MetadataRoute.Sitemap = ["beans", "machines", "accessories"].map(

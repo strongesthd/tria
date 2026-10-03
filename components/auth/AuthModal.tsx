@@ -169,7 +169,7 @@ export default function AuthModal({ open, onClose, oauthEnabled }: AuthModalProp
         )}
 
         <p className="mt-5 text-center text-[11px] text-[#A69B93]">
-          Bằng việc đăng ký, bạn đồng ý với điều khoản sử dụng và chính sách bảo mật của TRIA CAFE.
+          Bằng việc đăng ký, bạn đồng ý với <a href="/phap-ly/dieu-khoan" target="_blank" rel="noreferrer" className="font-semibold text-[#D97706] hover:underline">Điều khoản sử dụng</a> và <a href="/phap-ly/bao-mat" target="_blank" rel="noreferrer" className="font-semibold text-[#D97706] hover:underline">Chính sách bảo mật</a> của TRIA CAFE.
         </p>
       </div>
     </div>,

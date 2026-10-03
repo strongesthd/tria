@@ -1,0 +1,10 @@
+import type { Metadata } from "next";
+import LegalPage from "../../../components/legal/LegalPage";
+export const metadata: Metadata = { title: "Chính sách bảo mật", description: "Chính sách thu thập, sử dụng, lưu trữ và bảo vệ dữ liệu cá nhân tại TRIA CAFE." };
+export default function PrivacyPage() { return <LegalPage eyebrow="Privacy · TRIA CAFE" title="Chính sách bảo mật" intro="TRIA CAFE tôn trọng quyền riêng tư và xử lý dữ liệu cá nhân theo mục đích minh bạch, cần thiết cho vận hành website, hỗ trợ khách hàng và cung cấp dịch vụ." sections={[
+ { title: "1. Dữ liệu được thu thập", paragraphs: ["Tùy tương tác, TRIA có thể thu thập họ tên, email, số điện thoại/Zalo, địa chỉ giao hàng, thông tin booking, nhu cầu hợp tác, nội dung bài viết/bình luận và dữ liệu kỹ thuật cần thiết như IP, thiết bị, log truy cập."] },
+ { title: "2. Mục đích sử dụng", paragraphs: ["Dữ liệu được dùng để tạo tài khoản, xác thực, xử lý đơn hàng, đặt lịch, trả lời yêu cầu, quản lý cộng đồng, chống gian lận, cải thiện sản phẩm và thực hiện nghĩa vụ pháp lý."], bullets: ["Không bán dữ liệu cá nhân cho bên thứ ba.", "Chỉ chia sẻ phần cần thiết với nhà cung cấp vận chuyển, thanh toán, lưu trữ hoặc nền tảng kỹ thuật để hoàn thành dịch vụ.", "Có thể gửi thông tin chăm sóc/marketing khi bạn đồng ý hoặc pháp luật cho phép; bạn có thể từ chối."] },
+ { title: "3. Lưu trữ và bảo vệ", paragraphs: ["TRIA áp dụng kiểm soát truy cập, mật khẩu băm, rate limit, security headers và phân quyền quản trị. Không phương thức truyền/lưu trữ nào tuyệt đối an toàn; hãy báo ngay khi nghi ngờ tài khoản bị xâm nhập."] },
+ { title: "4. Quyền của bạn", paragraphs: ["Bạn có quyền yêu cầu biết, truy cập, chỉnh sửa, rút lại đồng ý, hạn chế xử lý hoặc xóa dữ liệu trong phạm vi pháp luật. Gửi yêu cầu tới hello@triacafe.vn; TRIA có thể cần xác minh danh tính trước khi xử lý."] },
+ { title: "5. Cookie và dịch vụ bên thứ ba", paragraphs: ["Website có thể dùng cookie cần thiết cho phiên đăng nhập, giỏ hàng và bảo mật. Hình ảnh CDN, OAuth hoặc dịch vụ phân tích có chính sách riêng; bạn nên xem chính sách của nhà cung cấp tương ứng."] },
+]} />; }

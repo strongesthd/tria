@@ -35,6 +35,15 @@ export default function Footer() {
             ))}
           </ul>
         </div>
+        <div>
+          <h2 className="mb-3 text-sm font-bold text-white">Pháp lý &amp; Quy định</h2>
+          <ul className="space-y-1.5">
+            <li><Link href="/phap-ly/dieu-khoan" className="transition-colors hover:text-white">Điều khoản sử dụng</Link></li>
+            <li><Link href="/phap-ly/bao-mat" className="transition-colors hover:text-white">Chính sách bảo mật</Link></li>
+            <li><Link href="/phap-ly/cong-dong" className="transition-colors hover:text-white">Quy định cộng đồng</Link></li>
+            <li><Link href="/phap-ly/quyen-loi" className="transition-colors hover:text-white">Quyền lợi &amp; trách nhiệm</Link></li>
+          </ul>
+        </div>
 
         <div>
           <h2 className="mb-3 text-sm font-bold text-white">Sản Phẩm Cốt Lõi</h2>
