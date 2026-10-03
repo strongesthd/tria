@@ -5,6 +5,16 @@ import { auth } from "../../auth";
 import { prisma } from "../../lib/prisma";
 import { revalidatePath } from "next/cache";
 
+function toSlug(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/đ/g, "d")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 async function requireAdmin() {
   const session = await auth();
   if (session?.user?.role !== Role.ADMIN) throw new Error("Bạn không có quyền quản trị.");
@@ -29,14 +39,20 @@ export async function updateProductStatus(productId: string, active: boolean) {
 
 export async function createProduct(data: { slug: string; name: string; category: string; target: string; price: number; unit: string; roastLevel: string; notes: string; description: string; image: string; images?: string[] }) {
   await requireAdmin();
-  const product = await prisma.product.create({ data });
+  const slug = toSlug(data.name);
+  const duplicate = await prisma.product.findUnique({ where: { slug }, select: { id: true } });
+  if (duplicate) throw new Error("Tên sản phẩm đã tồn tại, slug bị trùng.");
+  const product = await prisma.product.create({ data: { ...data, slug } });
   revalidatePath("/admin"); revalidatePath("/"); revalidatePath("/san-pham");
   return product;
 }
 
 export async function updateProduct(productId: string, data: { slug: string; name: string; category: string; target: string; price: number; unit: string; roastLevel: string; notes: string; description: string; image: string; images?: string[] }) {
   await requireAdmin();
-  const product = await prisma.product.update({ where: { id: productId }, data });
+  const slug = toSlug(data.name);
+  const duplicate = await prisma.product.findFirst({ where: { slug, NOT: { id: productId } }, select: { id: true } });
+  if (duplicate) throw new Error("Tên sản phẩm đã tồn tại, slug bị trùng.");
+  const product = await prisma.product.update({ where: { id: productId }, data: { ...data, slug } });
   revalidatePath("/admin"); revalidatePath("/"); revalidatePath("/san-pham");
   return product;
 }
@@ -55,14 +71,20 @@ export async function updateBranchStatus(branchId: string, active: boolean) {
 
 export async function createBranch(data: { slug: string; name: string; address: string; hours: string; phone: string; features: string[]; image: string; images?: string[] }) {
   await requireAdmin();
-  const branch = await prisma.branch.create({ data });
+  const slug = toSlug(data.name);
+  const duplicate = await prisma.branch.findUnique({ where: { slug }, select: { id: true } });
+  if (duplicate) throw new Error("Tên cơ sở đã tồn tại, slug bị trùng.");
+  const branch = await prisma.branch.create({ data: { ...data, slug } });
   revalidatePath("/admin"); revalidatePath("/"); revalidatePath("/he-thong-quan");
   return branch;
 }
 
 export async function updateBranch(branchId: string, data: { slug: string; name: string; address: string; hours: string; phone: string; features: string[]; image: string; images?: string[] }) {
   await requireAdmin();
-  const branch = await prisma.branch.update({ where: { id: branchId }, data });
+  const slug = toSlug(data.name);
+  const duplicate = await prisma.branch.findFirst({ where: { slug, NOT: { id: branchId } }, select: { id: true } });
+  if (duplicate) throw new Error("Tên cơ sở đã tồn tại, slug bị trùng.");
+  const branch = await prisma.branch.update({ where: { id: branchId }, data: { ...data, slug } });
   revalidatePath("/admin"); revalidatePath("/"); revalidatePath("/he-thong-quan");
   return branch;
 }
