@@ -90,7 +90,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
   const qSlug = query ? `&q=${encodeURIComponent(query)}` : "";
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <JsonLdScript data={[buildBreadcrumbJsonLd([{ name: "Trang chủ", href: "/" }, { name: "Sản phẩm", href: "/san-pham" }])]} />
 
       <header className="mb-8">

@@ -57,7 +57,7 @@ export default async function PostDetailPage({ params }: { params: Params }) {
     CATEGORY_LABELS[post.category as keyof typeof CATEGORY_LABELS] || "Thảo luận";
 
   return (
-    <article className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
+    <article className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <JsonLdScript
         data={[
           buildBreadcrumbJsonLd([

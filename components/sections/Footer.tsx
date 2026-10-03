@@ -70,7 +70,7 @@ export default function Footer() {
           </ul>
         </div>
 
-        <div>
+        <div className="md:-mt-1">
           <h2 className="mb-3 text-sm font-bold text-white">Hotline &amp; Hỗ Trợ Kỹ Thuật</h2>
           <p className="mb-1 text-base font-bold text-[#E2A168]">
             <a href={`tel:${HOTLINE.replace(/\s/g, "")}`}>{HOTLINE}</a>

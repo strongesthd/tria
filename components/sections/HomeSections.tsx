@@ -8,7 +8,7 @@ import { useCart } from "../cart/CartProvider";
 
 export function Hero({ branchCount = 3 }: { branchCount?: number }) {
   return (
-    <section className="relative overflow-hidden border-b border-[#2A2421] bg-gradient-to-b from-[#171412] via-[#0F0D0C] to-[#0F0D0C] py-16 md:py-24">
+    <section className="relative overflow-hidden border-b border-[#2A2421] bg-gradient-to-b from-[#171412] via-[#0F0D0C] to-[#0F0D0C] py-12 md:py-16">
       <div aria-hidden className="pointer-events-none absolute right-1/4 top-0 h-96 w-96 rounded-full bg-[#C87D55]/10 blur-3xl" />
       <div aria-hidden className="pointer-events-none absolute bottom-0 left-10 h-80 w-80 rounded-full bg-[#E2A168]/5 blur-3xl" />
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -140,7 +140,7 @@ export function Pillars() {
 
 export function ProductCategoryCards({ categories = PRODUCT_CATEGORIES }: { categories?: Category[] }) {
   return (
-    <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+    <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-4">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#D97706]">Shop by category</p>
         <h2 className="mt-2 text-2xl font-bold text-white md:text-3xl">Danh mục sản phẩm</h2>
