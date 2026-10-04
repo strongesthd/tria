@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { BarChart3, CalendarDays, CheckCircle2, Inbox, MapPin, MessageSquare, RefreshCw, Shield, ShoppingBag, Store, Trash2, Users } from "lucide-react";
-import { deleteMessage, deleteOrder, updateMessageStatus, updateOrderStatus } from "../../app/actions/admin";
+import { deleteLead, deleteMessage, deleteOrder, updateBookingStatus, updateLeadStatus, updateMessageStatus, updateOrderStatus } from "../../app/actions/admin";
 import { BranchManager, ProductManager } from "./CatalogManager";
 import UserManager from "./UserManager";
 
@@ -11,6 +11,7 @@ type Dashboard = {
   recentOrders: AdminRow[];
   recentBookings: AdminRow[];
   recentMessages: AdminRow[];
+  recentLeads: AdminRow[];
 };
 
 type AdminRow = {
@@ -23,6 +24,10 @@ type AdminRow = {
   status?: string | null;
   total?: number | null;
   user?: { name?: string | null; email?: string | null } | null;
+  fullName?: string | null;
+  partnershipType?: string | null;
+  location?: string | null;
+  date?: string | Date | null;
 };
 
 type Tab = "overview" | "products" | "branches" | "points" | "users" | "bookings" | "orders" | "messages";
@@ -92,9 +97,9 @@ export default function AdminDashboard() {
             {tab === "overview" && <Overview stats={data.stats} orders={data.recentOrders} bookings={data.recentBookings} messages={data.recentMessages} />}
             {tab === "products" && <ProductManager />}
             {tab === "branches" && <BranchManager />}
-            {tab === "points" && <InfoPanel title="Điểm bán On-The-Go" body="Quản lý các lead hợp tác vị trí/nhượng quyền từ module Hợp tác điểm bán." stats={`${data.stats.leads || 0} lead mới đang chờ xử lý`} icon="map" />}
+            {tab === "points" && <DataTable title="Lead hợp tác / điểm bán" rows={data.recentLeads} empty="Chưa có lead hợp tác." onStatus={updateLeadStatus} onDelete={deleteLead} />}
             {tab === "users" && <UserManager />}
-            {tab === "bookings" && <DataTable title="Lịch demo / booking gần đây" rows={data.recentBookings} empty="Chưa có booking." />}
+            {tab === "bookings" && <DataTable title="Lịch demo / booking gần đây" rows={data.recentBookings} empty="Chưa có booking." onStatus={updateBookingStatus} />}
             {tab === "orders" && <DataTable title="Đơn đặt hàng gần đây" rows={data.recentOrders} empty="Chưa có đơn hàng." onStatus={updateOrderStatus} onDelete={deleteOrder} />}
             {tab === "messages" && <DataTable title="Tin nhắn liên hệ" rows={data.recentMessages} empty="Chưa có tin nhắn." onStatus={updateMessageStatus} onDelete={deleteMessage} />}
           </>
@@ -182,7 +187,7 @@ function DataTable({ title, rows, empty, onStatus, onDelete }: { title: string; 
             <thead className="bg-[#221D1A] text-xs uppercase text-[#A69B93]"><tr><th className="px-5 py-3">Thông tin</th><th className="px-5 py-3">Trạng thái</th><th className="px-5 py-3">Thao tác</th></tr></thead>
             <tbody>{rows.map((row) => (
               <tr key={row.id} className="border-t border-[#2A2421] text-[#CDBBAA]">
-                <td className="px-5 py-4"><strong className="text-white">{row.name || row.subject || row.user?.email || row.type}</strong><span className="mt-1 block text-xs text-[#81746B]">{row.phone || row.user?.email || row.locationId || (row.total ? `${row.total.toLocaleString("vi-VN")} VNĐ` : "")}</span></td>
+                <td className="px-5 py-4"><strong className="text-white">{row.name || row.fullName || row.subject || row.user?.email || row.type}</strong><span className="mt-1 block text-xs text-[#81746B]">{row.phone || row.user?.email || row.location || row.locationId || row.partnershipType || (row.date ? new Date(row.date).toLocaleString("vi-VN") : "") || (row.total ? `${row.total.toLocaleString("vi-VN")} VNĐ` : "")}</span></td>
                 <td className="px-5 py-4"><span className="rounded-full bg-[#D97706]/15 px-2 py-1 text-xs text-[#F0B429]">{row.status || "Mới"}</span></td>
                 <td className="px-5 py-4"><div className="flex gap-2">
                   {onStatus && <button type="button" aria-label="Cập nhật trạng thái" onClick={() => void onStatus(row.id, row.status === "NEW" ? "PROCESSING" : "DONE")} className="rounded-lg border border-[#3A302B] p-2 hover:border-[#D97706]"><CheckCircle2 className="h-4 w-4" /></button>}

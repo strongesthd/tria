@@ -107,6 +107,12 @@ export async function updateMessageStatus(messageId: string, status: string) {
   revalidatePath("/admin");
 }
 
+export async function updateBookingStatus(bookingId: string, status: string) {
+  await requireAdmin();
+  await prisma.booking.update({ where: { id: bookingId }, data: { note: status } });
+  revalidatePath("/admin");
+}
+
 export async function updateLeadStatus(leadId: string, status: string) {
   await requireAdmin();
   await prisma.partnershipLead.update({ where: { id: leadId }, data: { status } });

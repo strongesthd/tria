@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { Bookmark, Eye, MessageCircle, Share2, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Bookmark, Check, Eye, MessageCircle, Share2, ThumbsDown, ThumbsUp } from "lucide-react";
+import { useState } from "react";
 import { CommunityPost, badgeFor } from "./types";
 
 type PostCardProps = {
@@ -13,6 +14,7 @@ type PostCardProps = {
 };
 
 export function PostCard({ post, onOpen, onVote, saved, onSave }: PostCardProps) {
+  const [shared, setShared] = useState(false);
   const badge = badgeFor(post.author.badge);
   const authorName = post.author.name || "Thành viên TRIA";
   const avatar = post.author.image || "";
@@ -86,8 +88,15 @@ export function PostCard({ post, onOpen, onVote, saved, onSave }: PostCardProps)
             <span className="flex items-center gap-1"><MessageCircle className="h-4 w-4" /> {post.comments}</span>
             <span className="flex items-center gap-1"><Eye className="h-4 w-4" /> {post.views}</span>
           </div>
-          <button type="button" aria-label={`Chia sẻ bài viết: ${post.title}`} className="hover:text-white">
-            <Share2 className="h-4 w-4" />
+          <button type="button" aria-label={`Chia sẻ bài viết: ${post.title}`} onClick={async () => {
+            const url = `${window.location.origin}/cong-dong/${post.id}`;
+            try {
+              if (navigator.share) await navigator.share({ title: post.title, text: post.content.slice(0, 120), url });
+              else { await navigator.clipboard.writeText(url); setShared(true); window.setTimeout(() => setShared(false), 1800); }
+            } catch { /* User cancelled native share. */ }
+          }} className="flex items-center gap-1 hover:text-white">
+            {shared ? <Check className="h-4 w-4 text-emerald-400" /> : <Share2 className="h-4 w-4" />}
+            {shared && <span className="text-[10px] text-emerald-400">Đã copy</span>}
           </button>
         </div>
       </div>

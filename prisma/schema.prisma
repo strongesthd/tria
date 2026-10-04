@@ -163,6 +163,7 @@ model Booking {
   type       String
   date       DateTime
   note       String?
+  status     String    @default("NEW")
   createdAt  DateTime  @default(now())
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
