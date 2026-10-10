@@ -1,3 +1,5 @@
+name: triacafe-prod
+
 services:
   db:
     image: postgres:16-alpine
@@ -63,3 +65,5 @@ services:
 
 volumes:
   tria_postgres_data:
+    external: true
+    name: deploy_tria_postgres_data

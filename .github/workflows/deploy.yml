@@ -129,39 +129,40 @@ jobs:
 
             cd "$APP_DIR"
 
-            # Compose reads interpolation vars (POSTGRES_*) from the shell or
-            # `.env`, not from a service-level env_file, so export them first.
-            set -a
-            . "$APP_DIR/.env.production"
-            set +a
+            compose() {
+              docker compose \
+                --project-name triacafe-prod \
+                --env-file "$APP_DIR/.env.production" \
+                -f "$APP_DIR/deploy/docker-compose.prod.yml" \
+                "$@"
+            }
 
             # Apply additive Prisma schema changes on every deploy before the
             # web container starts. `db push` is idempotent for unchanged code.
-            docker compose -f deploy/docker-compose.prod.yml run --rm migrator
+            compose run --rm migrator
             mkdir -p "$APP_DIR/runtime"
             touch "$APP_DIR/runtime/.db-initialized"
 
             # Keep the admin catalog and homepage content in sync with the
             # versioned source data. Seed uses idempotent upserts.
-            docker compose -f deploy/docker-compose.prod.yml run --rm migrator npx tsx prisma/seed.ts
+            compose run --rm migrator npx tsx prisma/seed.ts
 
-            if ! docker compose -f deploy/docker-compose.prod.yml up -d --build --remove-orphans; then
+            if ! compose up -d --build --remove-orphans; then
               echo 'Docker Compose failed. Container logs follow:'
-              docker compose -f deploy/docker-compose.prod.yml logs --tail 200 || true
-              docker compose -f deploy/docker-compose.prod.yml ps || true
+              compose logs --tail 200 || true
+              compose ps || true
               exit 1
             fi
 
             for attempt in $(seq 1 30); do
               if curl --fail --silent --show-error --max-time 10 http://127.0.0.1:8082/ >/dev/null; then
                 rm -rf "$UPLOAD_DIR"
-                docker image prune -f
                 echo 'Deploy done'
                 exit 0
               fi
               sleep 3
             done
 
-            docker compose -f deploy/docker-compose.prod.yml ps
-            docker compose -f deploy/docker-compose.prod.yml logs --tail 100 web || true
+            compose ps
+            compose logs --tail 100 web || true
             exit 1

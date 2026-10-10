@@ -33,6 +33,7 @@ ssh-copy-id -i ~/.ssh/tria_deploy.pub -p 2223 root@27.72.104.154
 # 4. SSH into VPS and create the app directory + production env
 ssh -p 2223 root@27.72.104.154
 mkdir -p /home/app/triacafe.vn/runtime
+docker volume create deploy_tria_postgres_data
 cp /path/to/.env.production /home/app/triacafe.vn/.env.production
 ```
 
@@ -83,7 +84,7 @@ server {
 3. Then `deploy` uploads the source tarball to VPS via SCP.
 4. VPS extracts into `/home/app/triacafe.vn`, keeps `.env.production` untouched.
 5. On first deploy, the `migrator` service runs `prisma db push` to initialise the schema.
-6. `docker compose up -d --build` rebuilds the container with the new code.
+6. Compose uses the isolated project name `triacafe-prod` and rebuilds only TRIA.
 7. Health check polls `http://127.0.0.1:8082/` until the app is ready.
 
 ## Manual deploy
@@ -91,7 +92,7 @@ server {
 ```bash
 ssh -p 2223 root@27.72.104.154
 cd /home/app/triacafe.vn
-docker compose -f deploy/docker-compose.prod.yml up -d --build --remove-orphans
+docker compose --project-name triacafe-prod --env-file .env.production -f deploy/docker-compose.prod.yml up -d --build --remove-orphans
 ```
 
 ## Database migrations
@@ -101,11 +102,11 @@ For schema changes on subsequent deploys, SSH in and run:
 
 ```bash
 cd /home/app/triacafe.vn
-docker compose -f deploy/docker-compose.prod.yml run --rm migrator
+docker compose --project-name triacafe-prod --env-file .env.production -f deploy/docker-compose.prod.yml run --rm migrator
 ```
 
 ## View logs
 
 ```bash
-docker compose -f /home/app/triacafe.vn/deploy/docker-compose.prod.yml logs -f web
+docker compose --project-name triacafe-prod --env-file /home/app/triacafe.vn/.env.production -f /home/app/triacafe.vn/deploy/docker-compose.prod.yml logs -f web
 ```
