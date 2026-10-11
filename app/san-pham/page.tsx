@@ -167,13 +167,14 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
       <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {filtered.map((p) => (
           <li key={p.id} className="group overflow-hidden rounded-2xl border border-[#2A2421] bg-[#171412] transition-all hover:border-[#C87D55]/50">
+            <Link href={`/san-pham/${p.slug}`} className="block">
             <div className="relative h-48 overflow-hidden bg-[#221D1A]">
               <Image src={p.image} alt={p.name} width={400} height={300} loading="lazy" sizes="(max-width: 1024px) 50vw, 25vw" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
               <span className={`absolute left-3 top-3 rounded-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${p.target === "b2b" ? "bg-[#C87D55] text-white" : "border border-[#C87D55]/30 bg-[#2A2421] text-[#E2A168]"}`}>
                 {p.target === "b2b" ? "Dành cho B2B / Quán" : "Dành cho Home Barista"}
               </span>
             </div>
-            <div className="space-y-3 p-5">
+            <div className="space-y-3 p-5 pb-0">
               <div className="flex items-center justify-between text-xs text-[#A69B93]">
                 <span className="flex items-center gap-1 text-amber-400"><Star className="h-3.5 w-3.5 fill-current" /> {p.rating} ({p.reviews})</span>
                 <span>{p.unit}</span>
@@ -184,10 +185,10 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
               <div className="flex items-baseline justify-between pt-1">
                 <span className="text-lg font-extrabold text-[#E2A168]">{p.price.toLocaleString("vi-VN")} VNĐ</span>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <Link href={`/san-pham/${p.slug}`} className="rounded-xl border border-[#3A302B] bg-[#221D1A] px-2 py-2 text-center text-xs font-semibold text-[#E2A168] transition-all hover:bg-[#2A2421]">Xem chi tiết</Link>
-                <AddToCartButton product={p} />
-              </div>
+            </div>
+            </Link>
+            <div className="px-5 pb-5 pt-3">
+              <AddToCartButton product={p} />
             </div>
           </li>
         ))}
