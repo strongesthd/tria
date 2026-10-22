@@ -125,6 +125,17 @@ model NewsArticle {
   @@index([published, publishedAt])
 }
 
+model MediaAsset {
+  id        String   @id @default(cuid())
+  filename  String
+  mimeType  String
+  size      Int
+  data      Bytes
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
 model Order {
   id         String      @id @default(cuid())
   userId     String

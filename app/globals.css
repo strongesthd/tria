@@ -96,3 +96,72 @@ textarea {
   white-space: nowrap;
   border-width: 0;
 }
+
+.cms-rich-editor h2,
+.cms-content h1,
+.cms-content h2 {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.cms-rich-editor h3,
+.cms-content h3,
+.cms-content h4 {
+  margin: 1rem 0 0.5rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.cms-rich-editor p,
+.cms-content p {
+  margin: 0.5rem 0;
+}
+
+.cms-rich-editor ul,
+.cms-content ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+}
+
+.cms-rich-editor ol,
+.cms-content ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+}
+
+.cms-rich-editor blockquote,
+.cms-content blockquote {
+  margin: 0.75rem 0;
+  border-left: 3px solid #d97706;
+  padding-left: 1rem;
+  color: #cdbbaa;
+}
+
+.cms-rich-editor img,
+.cms-content img {
+  display: inline-block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+}
+
+.cms-rich-editor a,
+.cms-content a {
+  color: #e2a168;
+  text-decoration: underline;
+}
+
+.cms-rich-editor table,
+.cms-content table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cms-rich-editor td,
+.cms-rich-editor th,
+.cms-content td,
+.cms-content th {
+  border: 1px solid #4a3b31;
+  padding: 0.5rem;
+}

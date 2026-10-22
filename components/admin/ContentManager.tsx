@@ -11,6 +11,7 @@ import {
   updateNewsArticle,
 } from "../../app/actions/admin";
 import ImageUploadButton from "./ImageUploadButton";
+import RichContentEditor from "./RichContentEditor";
 
 type ContentType = "pages" | "articles";
 type FooterSection = "POLICY" | "SUPPORT" | null;
@@ -171,10 +172,10 @@ export default function ContentManager() {
 
       {editor && (
         <div className="fixed inset-0 z-[90] overflow-y-auto bg-black/75 p-4" role="dialog" aria-modal="true" aria-label={type === "pages" ? "Biên tập trang" : "Biên tập bài viết"} onClick={() => !busy && setEditor(null)}>
-          <form onSubmit={(event) => void save(event)} onClick={(event) => event.stopPropagation()} className="mx-auto my-6 grid max-w-3xl gap-4 rounded-2xl border border-[#4A3B31] bg-[#171412] p-6 text-sm text-[#CDBBAA]">
+          <form key={editor === "new" ? `new-${type}` : editor.id} onSubmit={(event) => void save(event)} onClick={(event) => event.stopPropagation()} className="mx-auto my-6 grid max-w-3xl gap-4 rounded-2xl border border-[#4A3B31] bg-[#171412] p-6 text-sm text-[#CDBBAA]">
             <div>
               <h3 className="text-xl font-bold text-white">{editor === "new" ? "Tạo mới" : "Chỉnh sửa"} {type === "pages" ? "trang Footer" : "bài viết"}</h3>
-              <p className="mt-1 text-xs text-[#81746B]">Nội dung được hiển thị dưới dạng văn bản, hỗ trợ xuống dòng.</p>
+              <p className="mt-1 text-xs text-[#81746B]">Soạn thảo định dạng, chèn HTML, ảnh và tệp đính kèm.</p>
             </div>
             <label className="grid gap-1">Tiêu đề<input name="title" required minLength={2} maxLength={180} defaultValue={pageEditor?.title || articleEditor?.title} className="rounded-lg border border-[#3A302B] bg-[#221D1A] px-3 py-2 text-white" /></label>
             <label className="grid gap-1">Slug / đường dẫn<input name="slug" required maxLength={140} pattern="[A-Za-z0-9À-ỹĐđ_-]+" defaultValue={pageEditor?.slug || articleEditor?.slug} placeholder="vi-du-trang-noi-dung" className="rounded-lg border border-[#3A302B] bg-[#221D1A] px-3 py-2 text-white" /><span className="text-[11px] text-[#81746B]">Chỉ dùng chữ, số, dấu gạch ngang hoặc gạch dưới.</span></label>
@@ -192,7 +193,7 @@ export default function ContentManager() {
                 <ContentImageField key={articleEditor?.id || "new"} value={articleEditor?.image || ""} />
               </>
             )}
-            <label className="grid gap-1">Nội dung<textarea name="content" required minLength={1} maxLength={100000} rows={12} defaultValue={pageEditor?.content || articleEditor?.content} className="resize-y rounded-lg border border-[#3A302B] bg-[#221D1A] px-3 py-2 text-white" placeholder="Nhập nội dung tại đây..." /></label>
+            <RichContentEditor key={editor === "new" ? `editor-new-${type}` : `editor-${editor.id}`} name="content" initialContent={pageEditor?.content || articleEditor?.content} />
             <label className="flex items-center gap-2"><input name="published" type="checkbox" defaultChecked={pageEditor?.published || articleEditor?.published} className="accent-[#D97706]" /> Xuất bản công khai</label>
             {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
             <div className="flex justify-end gap-2">

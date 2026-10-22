@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { JsonLdScript } from "../../../components/seo/JsonLdScript";
 import { prisma } from "../../../lib/prisma";
 import { SITE_URL, buildBreadcrumbJsonLd } from "../../../lib/site-data";
+import { sanitizeContentHtml } from "../../../lib/sanitize-content";
 
 type Params = Promise<{ slug: string }>;
 
@@ -37,9 +38,10 @@ export default async function CmsPage({ params }: { params: Params }) {
         <h1 className="text-3xl font-extrabold text-white">{page.title}</h1>
         {page.summary && <p className="mt-3 text-sm leading-6 text-[#A69B93]">{page.summary}</p>}
       </header>
-      <div className="mt-6 whitespace-pre-wrap break-words rounded-2xl border border-[#2A2421] bg-[#171412] p-6 text-sm leading-7 text-[#E8E2D9] sm:p-8">
-        {page.content}
-      </div>
+      <div
+        className="cms-content mt-6 whitespace-pre-wrap break-words rounded-2xl border border-[#2A2421] bg-[#171412] p-6 text-sm leading-7 text-[#E8E2D9] sm:p-8"
+        dangerouslySetInnerHTML={{ __html: sanitizeContentHtml(page.content) }}
+      />
     </article>
   );
 }

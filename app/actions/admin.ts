@@ -6,6 +6,7 @@ import { auth } from "../../auth";
 import { prisma } from "../../lib/prisma";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { cmsPageSchema, footerLinkSchema, newsArticleSchema } from "../../lib/validation";
+import { sanitizeContentHtml } from "../../lib/sanitize-content";
 
 function toSlug(value: string) {
   return value
@@ -228,6 +229,7 @@ export async function deleteFooterLink(id: string) {
 export async function createCmsPage(input: unknown) {
   await requireAdmin();
   const data = parseCmsInput(cmsPageSchema, input);
+  data.content = sanitizeContentHtml(data.content);
   try {
     const page = await prisma.cmsPage.create({ data });
     revalidateTag("site-footer");
@@ -243,6 +245,7 @@ export async function updateCmsPage(id: string, input: unknown) {
   await requireAdmin();
   const pageId = parseContentId(id);
   const data = parseCmsInput(cmsPageSchema, input);
+  data.content = sanitizeContentHtml(data.content);
   try {
     const previous = await prisma.cmsPage.findUnique({ where: { id: pageId }, select: { slug: true } });
     const page = await prisma.cmsPage.update({ where: { id: pageId }, data });
@@ -272,6 +275,7 @@ export async function deleteCmsPage(id: string) {
 export async function createNewsArticle(input: unknown) {
   await requireAdmin();
   const data = parseCmsInput(newsArticleSchema, input);
+  data.content = sanitizeContentHtml(data.content);
   try {
     const article = await prisma.newsArticle.create({
       data: { ...data, publishedAt: data.published ? new Date() : null },
@@ -290,6 +294,7 @@ export async function updateNewsArticle(id: string, input: unknown) {
   await requireAdmin();
   const articleId = parseContentId(id);
   const data = parseCmsInput(newsArticleSchema, input);
+  data.content = sanitizeContentHtml(data.content);
   try {
     const previous = await prisma.newsArticle.findUnique({ where: { id: articleId }, select: { slug: true, published: true, publishedAt: true } });
     const article = await prisma.newsArticle.update({

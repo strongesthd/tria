@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { JsonLdScript } from "../../../components/seo/JsonLdScript";
 import { prisma } from "../../../lib/prisma";
 import { SITE_URL, buildBreadcrumbJsonLd } from "../../../lib/site-data";
+import { sanitizeContentHtml } from "../../../lib/sanitize-content";
 
 type Params = Promise<{ slug: string }>;
 
@@ -63,9 +64,10 @@ export default async function NewsArticlePage({ params }: { params: Params }) {
         {article.excerpt && <p className="mt-4 text-base leading-7 text-[#A69B93]">{article.excerpt}</p>}
       </header>
       {article.image && <Image src={article.image} alt="" width={1200} height={675} unoptimized className="mt-6 max-h-[32rem] w-full rounded-2xl object-cover" />}
-      <div className="mt-6 whitespace-pre-wrap break-words rounded-2xl border border-[#2A2421] bg-[#171412] p-6 text-sm leading-7 text-[#E8E2D9] sm:p-8">
-        {article.content}
-      </div>
+      <div
+        className="cms-content mt-6 whitespace-pre-wrap break-words rounded-2xl border border-[#2A2421] bg-[#171412] p-6 text-sm leading-7 text-[#E8E2D9] sm:p-8"
+        dangerouslySetInnerHTML={{ __html: sanitizeContentHtml(article.content) }}
+      />
     </article>
   );
 }
