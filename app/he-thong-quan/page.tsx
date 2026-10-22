@@ -3,21 +3,25 @@ import { Metadata } from "next";
 import { Clock, MapPin } from "lucide-react";
 import { JsonLdScript } from "../../components/seo/JsonLdScript";
 import BookingForm from "../../components/shop/BookingForm";
-import { BRANCHES, SITE_URL, buildBreadcrumbJsonLd } from "../../lib/site-data";
+import { getPublicBranches, type PublicBranch } from "../../lib/branch-data";
+import { SITE_URL, buildBreadcrumbJsonLd } from "../../lib/site-data";
 
-export const metadata: Metadata = {
-  title: "Hệ thống quán & Trải nghiệm tại TP.HCM",
-  description:
-    "Ba cơ sở TRIA CAFE tại TP. Thủ Đức. Đặt lịch thử máy pha và cupping cà phê miễn phí.",
-  alternates: { canonical: "/he-thong-quan" },
-  openGraph: {
-    title: "Hệ thống quán TRIA CAFE tại TP.HCM",
-    description: "Đặt lịch thử máy pha và cupping cà phê miễn phí tại 2 chi nhánh TP.HCM.",
-    images: [BRANCHES[0].image],
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const branches = await getPublicBranches();
+  const description = "Đặt lịch thử máy pha và cupping cà phê tại các cơ sở TRIA CAFE.";
+  return {
+    title: "Hệ thống quán & Trải nghiệm tại TP.HCM",
+    description,
+    alternates: { canonical: "/he-thong-quan" },
+    openGraph: {
+      title: "Hệ thống quán TRIA CAFE tại TP.HCM",
+      description,
+      ...(branches[0] ? { images: [branches[0].image] } : {}),
+    },
+  };
+}
 
-function branchJsonLd(branch: (typeof BRANCHES)[number]) {
+function branchJsonLd(branch: PublicBranch) {
   return {
     "@context": "https://schema.org",
     "@type": "CafeOrCoffeeShop",
@@ -36,7 +40,9 @@ function branchJsonLd(branch: (typeof BRANCHES)[number]) {
   };
 }
 
-export default function BranchesPage() {
+export default async function BranchesPage() {
+  const branches = await getPublicBranches();
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <JsonLdScript
@@ -45,7 +51,7 @@ export default function BranchesPage() {
             { name: "Trang chủ", href: "/" },
             { name: "Hệ thống quán", href: "/he-thong-quan" },
           ]),
-          ...BRANCHES.map(branchJsonLd),
+          ...branches.map(branchJsonLd),
         ]}
       />
 
@@ -59,8 +65,8 @@ export default function BranchesPage() {
         </p>
       </header>
 
-      <div className="mt-8 grid gap-8 md:grid-cols-2">
-        {BRANCHES.map((loc) => (
+      {branches.length ? <div className="mt-8 grid gap-8 md:grid-cols-2">
+        {branches.map((loc) => (
           <article key={loc.id} id={loc.slug} className="scroll-mt-28 overflow-hidden rounded-2xl border border-[#2A2421] bg-[#171412]">
             <Image
               src={loc.image}
@@ -71,6 +77,21 @@ export default function BranchesPage() {
               sizes="(max-width: 768px) 100vw, 50vw"
               className="h-56 w-full object-cover"
             />
+            {loc.images.length > 0 && (
+              <div className="grid grid-cols-3 gap-2 px-4 pt-4">
+                {loc.images.map((image, index) => (
+                  <Image
+                    key={`${loc.id}-gallery-${index}`}
+                    src={image}
+                    alt={`Ảnh ${index + 1} tại ${loc.name}`}
+                    width={480}
+                    height={320}
+                    unoptimized
+                    className="h-24 w-full rounded-lg object-cover"
+                  />
+                ))}
+              </div>
+            )}
             <div className="space-y-4 p-6">
               <h2 className="text-xl font-bold text-white">{loc.name}</h2>
               <div className="space-y-2 text-xs text-[#A69B93]">
@@ -105,14 +126,14 @@ export default function BranchesPage() {
             </div>
           </article>
         ))}
-      </div>
+      </div> : <p className="mt-8 rounded-xl border border-dashed border-[#3A302B] p-8 text-center text-sm text-[#81746B]">Hiện chưa có cơ sở nào đang hoạt động.</p>}
 
       <div id="booking" className="mx-auto mt-10 max-w-3xl scroll-mt-28 rounded-2xl border border-[#2A2421] bg-[#171412] p-8">
         <div className="mb-6 space-y-2 text-center">
           <h2 className="text-xl font-bold text-white">Đăng Ký Đặt Lịch Thử Máy &amp; Cupping Cà Phê</h2>
           <p className="text-xs text-[#A69B93]">Đội ngũ Kỹ thuật &amp; Barista Trainer sẽ chuẩn bị sẵn thiết bị &amp; mẫu hạt cho bạn.</p>
         </div>
-        <BookingForm />
+        <BookingForm branches={branches} />
       </div>
     </div>
   );

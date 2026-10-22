@@ -6,7 +6,7 @@ export type FooterData = {
   available: boolean;
   branches: { id: string; name: string; address: string; hours: string; image: string }[];
   categories: ReturnType<typeof buildFooterCategories>;
-  articles: { id: string; title: string }[];
+  articles: { id: string; title: string; href: string }[];
   policyLinks: { id: string; label: string; href: string }[];
   supportLinks: { id: string; label: string; href: string }[];
 };
@@ -22,7 +22,7 @@ const emptyFooterData: FooterData = {
 
 async function queryFooterData(): Promise<FooterData> {
   try {
-    const [branches, products, articles, policyLinks, supportLinks] = await Promise.all([
+    const [branches, products, articles, policyPages, supportPages, policyLinks, supportLinks] = await Promise.all([
       prisma.branch.findMany({
         where: { active: true },
         orderBy: [{ name: "asc" }, { createdAt: "asc" }],
@@ -36,32 +36,71 @@ async function queryFooterData(): Promise<FooterData> {
         take: 12,
         select: { category: true },
       }),
-      prisma.communityPost.findMany({
-        orderBy: { createdAt: "desc" },
-        take: 4,
-        select: { id: true, title: true },
+      Promise.all([
+        prisma.newsArticle.findMany({
+          where: { published: true },
+          orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+          take: 4,
+          select: { id: true, slug: true, title: true, publishedAt: true, createdAt: true },
+        }),
+        prisma.communityPost.findMany({
+          orderBy: { createdAt: "desc" },
+          take: 4,
+          select: { id: true, title: true, createdAt: true },
+        }),
+      ]),
+      prisma.cmsPage.findMany({
+        where: { published: true, footerSection: "POLICY" },
+        orderBy: [{ sortOrder: "asc" }, { updatedAt: "asc" }],
+        take: 8,
+        select: { id: true, title: true, slug: true, sortOrder: true },
+      }),
+      prisma.cmsPage.findMany({
+        where: { published: true, footerSection: "SUPPORT" },
+        orderBy: [{ sortOrder: "asc" }, { updatedAt: "asc" }],
+        take: 8,
+        select: { id: true, title: true, slug: true, sortOrder: true },
       }),
       prisma.footerLink.findMany({
         where: { section: "POLICY", active: true },
         orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
         take: 8,
-        select: { id: true, label: true, href: true },
+        select: { id: true, label: true, href: true, sortOrder: true },
       }),
       prisma.footerLink.findMany({
         where: { section: "SUPPORT", active: true },
         orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
         take: 8,
-        select: { id: true, label: true, href: true },
+        select: { id: true, label: true, href: true, sortOrder: true },
       }),
     ]);
+
+    const [newsArticles, communityPosts] = articles;
+    const latestArticles = [
+      ...newsArticles.map((article) => ({
+        id: `news-${article.id}`,
+        title: article.title,
+        href: `/tin-tuc/${article.slug}`,
+        createdAt: article.publishedAt || article.createdAt,
+      })),
+      ...communityPosts.map((post) => ({
+        id: `community-${post.id}`,
+        title: post.title,
+        href: `/cong-dong/${post.id}`,
+        createdAt: post.createdAt,
+      })),
+    ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 4);
+
+    const pageLinks = (pages: { id: string; title: string; slug: string; sortOrder: number }[]) =>
+      pages.map((page) => ({ id: `page-${page.id}`, label: page.title, href: `/noi-dung/${page.slug}`, sortOrder: page.sortOrder }));
 
     return {
       available: true,
       branches,
       categories: buildFooterCategories(products),
-      articles,
-      policyLinks,
-      supportLinks,
+      articles: latestArticles,
+      policyLinks: [...pageLinks(policyPages), ...policyLinks].sort((a, b) => a.sortOrder - b.sortOrder).slice(0, 8),
+      supportLinks: [...pageLinks(supportPages), ...supportLinks].sort((a, b) => a.sortOrder - b.sortOrder).slice(0, 8),
     };
   } catch {
     console.error("[footer-data] Could not load public footer content.");
@@ -69,7 +108,7 @@ async function queryFooterData(): Promise<FooterData> {
   }
 }
 
-const getCachedFooterData = unstable_cache(queryFooterData, ["tria-footer-data-v1"], {
+const getCachedFooterData = unstable_cache(queryFooterData, ["tria-footer-data-v2"], {
   revalidate: 300,
   tags: ["site-footer"],
 });

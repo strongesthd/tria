@@ -44,3 +44,10 @@ Roles: `MEMBER`, `CAFE_OWNER`, `TRIA_BARISTA`, `TRIA_TECH`, `ADMIN`.
 - `/admin/*` chỉ cho phép `ADMIN`.
 - Server Actions trong `app/actions` yêu cầu session và kiểm tra role khi cần.
 - OAuth callback cần cấu hình redirect URL `/api/auth/callback/google` và `/api/auth/callback/facebook`.
+
+### Quản lý nội dung
+
+- Vào `/admin` → tab **Nội dung** để tạo trang CMS gắn vào nhóm Footer hoặc soạn tin tức/bài viết.
+- Trang đã xuất bản có đường dẫn `/noi-dung/{slug}`; tin tức nằm tại `/tin-tuc` và `/tin-tuc/{slug}`.
+- Ảnh upload cho cơ sở, sản phẩm và bài viết được lưu dạng Data URL trong PostgreSQL (tối đa 5MB mỗi ảnh). Cân nhắc dung lượng database khi tải nhiều ảnh.
+- Sau khi cập nhật mã/schema, chạy `npm run db:generate` và `npm run db:push` để áp dụng model CMS lên database.

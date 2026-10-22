@@ -16,7 +16,7 @@ async function getHomepageData(): Promise<{ products: Product[]; branchCount: nu
       prisma.product.findMany({ where: { active: true }, orderBy: { createdAt: "asc" } }),
       prisma.branch.count({ where: { active: true } }),
     ]);
-    if (!dbProducts.length || !branchCount) return { products: PRODUCTS, branchCount: 3 };
+    if (!dbProducts.length) return { products: PRODUCTS, branchCount };
     const products: Product[] = dbProducts.map((p) => ({
       id: p.id,
       slug: p.slug,

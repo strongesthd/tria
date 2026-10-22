@@ -3,12 +3,13 @@
 import { useActionState } from "react";
 import { Check, Loader2 } from "lucide-react";
 import { submitBooking, type BookingState } from "../../app/actions/booking";
-import { BRANCHES } from "../../lib/site-data";
+import { BRANCHES, type Branch } from "../../lib/site-data";
 
 const initialState: BookingState = {};
 
-export default function BookingForm() {
+export default function BookingForm({ branches = BRANCHES }: { branches?: Branch[] }) {
   const [state, formAction, pending] = useActionState(submitBooking, initialState);
+  const availableBranches = branches.length ? branches : BRANCHES;
 
   if (state.success) {
     return (
@@ -25,9 +26,9 @@ export default function BookingForm() {
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
           <span className="mb-1 block text-xs font-semibold text-[#A69B93]">Chi Nhánh Trải Nghiệm</span>
-          <select name="locationId" defaultValue="loc1" className="w-full rounded-xl border border-[#332A25] bg-[#221D1A] px-4 py-2.5 text-sm text-white outline-none focus:border-[#C87D55]">
-            {BRANCHES.map((branch, index) => (
-              <option key={branch.id} value={branch.id}>
+          <select name="locationId" defaultValue={availableBranches[0].slug} className="w-full rounded-xl border border-[#332A25] bg-[#221D1A] px-4 py-2.5 text-sm text-white outline-none focus:border-[#C87D55]">
+            {availableBranches.map((branch, index) => (
+              <option key={branch.id} value={branch.slug}>
                 {branch.name} {index === 0 ? "(Flagship)" : "(Roastery Lab)"}
               </option>
             ))}

@@ -5,6 +5,7 @@ import { BarChart3, CalendarDays, CheckCircle2, Inbox, MapPin, MessageSquare, Re
 import { deleteLead, deleteMessage, deleteOrder, updateBookingStatus, updateLeadStatus, updateMessageStatus, updateOrderStatus } from "../../app/actions/admin";
 import { BranchManager, ProductManager } from "./CatalogManager";
 import FooterLinkManager from "./FooterLinkManager";
+import ContentManager from "./ContentManager";
 import UserManager from "./UserManager";
 
 type Dashboard = {
@@ -31,13 +32,14 @@ type AdminRow = {
   date?: string | Date | null;
 };
 
-type Tab = "overview" | "products" | "branches" | "footer" | "points" | "users" | "bookings" | "orders" | "messages";
+type Tab = "overview" | "products" | "branches" | "footer" | "content" | "points" | "users" | "bookings" | "orders" | "messages";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Tổng quan" },
   { id: "products", label: "Sản phẩm" },
   { id: "branches", label: "Hệ thống quán" },
   { id: "footer", label: "Footer" },
+  { id: "content", label: "Nội dung" },
   { id: "points", label: "Điểm bán" },
   { id: "users", label: "Users" },
   { id: "bookings", label: "Lịch demo" },
@@ -77,7 +79,7 @@ export default function AdminDashboard() {
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#D97706]">TRIA Admin</p>
             <h1 className="mt-2 text-3xl font-extrabold text-white">Quản trị hệ thống</h1>
-            <p className="mt-2 text-sm text-[#A69B93]">Quản lý sản phẩm, hệ thống, người dùng, booking, đơn hàng và liên hệ.</p>
+            <p className="mt-2 text-sm text-[#A69B93]">Quản lý sản phẩm, nội dung website, người dùng, booking, đơn hàng và liên hệ.</p>
           </div>
           <button type="button" onClick={load} className="inline-flex w-fit items-center gap-2 rounded-xl border border-[#3A302B] px-4 py-2 text-sm text-[#CDBBAA] hover:border-[#D97706]">
             <RefreshCw className="h-4 w-4" aria-hidden /> Làm mới
@@ -86,7 +88,7 @@ export default function AdminDashboard() {
 
         {error && <p role="alert" className="mb-6 rounded-xl border border-red-900/50 bg-red-950/30 p-4 text-sm text-red-400">{error}</p>}
 
-        <nav className="mb-6 grid grid-cols-2 gap-2 rounded-2xl border border-[#2A2421] bg-[#171412] p-2 sm:grid-cols-4 lg:grid-cols-9" aria-label="Admin sections">
+        <nav className="mb-6 grid grid-cols-2 gap-2 rounded-2xl border border-[#2A2421] bg-[#171412] p-2 sm:grid-cols-4 lg:grid-cols-10" aria-label="Admin sections">
           {TABS.map((item) => (
             <button key={item.id} type="button" onClick={() => setTab(item.id)} aria-current={tab === item.id} className={`rounded-xl px-2 py-3 text-xs font-bold transition ${tab === item.id ? "bg-[#D97706] text-[#1C1613]" : "text-[#A69B93] hover:bg-[#2A2421] hover:text-white"}`}>
               {item.label}
@@ -100,6 +102,7 @@ export default function AdminDashboard() {
             {tab === "products" && <ProductManager />}
             {tab === "branches" && <BranchManager />}
             {tab === "footer" && <FooterLinkManager />}
+            {tab === "content" && <ContentManager />}
             {tab === "points" && <DataTable title="Lead hợp tác / điểm bán" rows={data.recentLeads} empty="Chưa có lead hợp tác." onStatus={updateLeadStatus} onDelete={deleteLead} />}
             {tab === "users" && <UserManager />}
             {tab === "bookings" && <DataTable title="Lịch demo / booking gần đây" rows={data.recentBookings} empty="Chưa có booking." onStatus={updateBookingStatus} />}

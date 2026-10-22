@@ -84,7 +84,7 @@ export const profileSchema = z.object({
 });
 
 export const bookingSchema = z.object({
-  locationId: z.enum(["loc1", "loc2", "loc3"]),
+  locationId: z.string().trim().min(1, "Vui lòng chọn chi nhánh.").max(140),
   bookingType: z.enum(["b2b_demo", "b2c_demo", "cupping"]),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ngày không hợp lệ."),
   name: nameSchema,
@@ -123,6 +123,42 @@ export const footerLinkSchema = z.object({
       "Chỉ chấp nhận đường dẫn nội bộ của website."
     ),
   sortOrder: z.number().int().min(0).max(9999),
+});
+
+const cmsImageSchema = z
+  .string()
+  .max(7_000_000, "Ảnh không được vượt quá 5MB.")
+  .refine(
+    (value) => !value.startsWith("data:") || /^data:image\/(jpeg|png|webp|gif);base64,/.test(value),
+    "Định dạng ảnh không hợp lệ."
+  )
+  .optional()
+  .nullable();
+
+const cmsSlugSchema = z
+  .string()
+  .trim()
+  .min(1, "Đường dẫn không được để trống.")
+  .max(140)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Đường dẫn chỉ được chứa chữ thường, số và dấu gạch ngang.");
+
+export const cmsPageSchema = z.object({
+  title: z.string().trim().min(2, "Tiêu đề quá ngắn.").max(160),
+  slug: cmsSlugSchema,
+  summary: z.string().trim().max(300, "Mô tả ngắn quá dài."),
+  content: z.string().trim().min(1, "Nội dung không được để trống.").max(50_000),
+  footerSection: z.enum(["POLICY", "SUPPORT"]).nullable(),
+  sortOrder: z.number().int().min(0).max(9999),
+  published: z.boolean(),
+});
+
+export const newsArticleSchema = z.object({
+  title: z.string().trim().min(2, "Tiêu đề quá ngắn.").max(180),
+  slug: cmsSlugSchema,
+  excerpt: z.string().trim().max(300, "Mô tả ngắn quá dài."),
+  content: z.string().trim().min(1, "Nội dung không được để trống.").max(100_000),
+  image: cmsImageSchema,
+  published: z.boolean(),
 });
 
 /** Turns a ZodError into a flat `field -> message` map for form rendering. */

@@ -69,8 +69,11 @@ export default async function Footer() {
   const articleItems = data.articles.map((article) => ({
     id: article.id,
     label: article.title,
-    href: `/cong-dong/${article.id}`,
+    href: article.href,
   }));
+  if (data.articles.length) {
+    articleItems.push({ id: "news-index", label: "Xem tất cả bài viết", href: "/tin-tuc" });
+  }
   const bottomPolicyLinks = data.policyLinks.slice(0, 2);
   const featuredSupportLink = data.supportLinks[0];
 
