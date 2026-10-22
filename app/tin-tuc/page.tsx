@@ -13,12 +13,38 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function NewsPage() {
-  const articles = await prisma.newsArticle.findMany({
-    where: { published: true },
-    orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
-    take: 100,
-    select: { slug: true, title: true, excerpt: true, image: true, publishedAt: true },
-  });
+  const [newsArticles, communityPosts] = await Promise.all([
+    prisma.newsArticle.findMany({
+      where: { published: true },
+      orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+      take: 100,
+      select: { slug: true, title: true, excerpt: true, image: true, publishedAt: true, createdAt: true },
+    }),
+    prisma.communityPost.findMany({
+      where: { published: true },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+      select: { id: true, title: true, content: true, image: true, createdAt: true },
+    }),
+  ]);
+  const articles = [
+    ...newsArticles.map((article) => ({
+      id: `news-${article.slug}`,
+      href: `/tin-tuc/${article.slug}`,
+      title: article.title,
+      excerpt: article.excerpt,
+      image: article.image,
+      publishedAt: article.publishedAt || article.createdAt,
+    })),
+    ...communityPosts.map((post) => ({
+      id: `community-${post.id}`,
+      href: `/cong-dong/${post.id}`,
+      title: post.title,
+      excerpt: post.content.slice(0, 300),
+      image: post.image,
+      publishedAt: post.createdAt,
+    })),
+  ].sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime()).slice(0, 100);
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -34,13 +60,13 @@ export default async function NewsPage() {
       {articles.length ? (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {articles.map((article) => (
-            <article key={article.slug} className="overflow-hidden rounded-2xl border border-[#2A2421] bg-[#171412]">
+            <article key={article.id} className="overflow-hidden rounded-2xl border border-[#2A2421] bg-[#171412]">
               {article.image && <Image src={article.image} alt="" width={900} height={500} unoptimized className="h-52 w-full object-cover" />}
               <div className="p-5">
-                {article.publishedAt && <time dateTime={article.publishedAt.toISOString()} className="text-xs text-[#81746B]">{article.publishedAt.toLocaleDateString("vi-VN")}</time>}
+                <time dateTime={article.publishedAt.toISOString()} className="text-xs text-[#81746B]">{article.publishedAt.toLocaleDateString("vi-VN")}</time>
                 <h2 className="mt-2 text-lg font-bold text-white">{article.title}</h2>
                 {article.excerpt && <p className="mt-2 line-clamp-3 text-sm leading-6 text-[#A69B93]">{article.excerpt}</p>}
-                <Link href={`/tin-tuc/${article.slug}`} className="mt-4 inline-flex text-sm font-semibold text-[#E2A168] hover:underline">Đọc bài viết</Link>
+                <Link href={article.href} className="mt-4 inline-flex text-sm font-semibold text-[#E2A168] hover:underline">Đọc bài viết</Link>
               </div>
             </article>
           ))}

@@ -1,12 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { ExternalLink, FileText, Newspaper, Pencil, Plus, Trash2 } from "lucide-react";
+import Image from "next/image";
+import { Check, ExternalLink, Eye, EyeOff, FileText, Newspaper, Pencil, Plus, Trash2 } from "lucide-react";
 import {
   createCmsPage,
   createNewsArticle,
   deleteCmsPage,
   deleteNewsArticle,
+  setCommunityPostPublished,
+  setNewsArticlePublished,
   updateCmsPageContent,
   updateNewsArticle,
 } from "../../app/actions/admin";
@@ -21,7 +24,8 @@ type CmsPageDetail = CmsPage & { summary: string; content: string; sortOrder: nu
 type NewsArticle = {
   id: string; slug: string; title: string; published: boolean; publishedAt: string | null; updatedAt: string; source?: "cms";
 };
-type CommunityPost = { id: string; title: string; category: string; createdAt: string; source: "community" };
+type CommunityPost = { id: string; title: string; category: string; published: boolean; reviewedAt: string | null; createdAt: string; source: "community" };
+type CommunityPostDetail = CommunityPost & { content: string; image: string | null; author: { name: string | null } };
 type NewsArticleDetail = NewsArticle & { excerpt: string; content: string; image: string | null };
 type ContentListItem = CmsPage | NewsArticle | CommunityPost;
 type ContentItem = CmsPageDetail | NewsArticleDetail;
@@ -39,6 +43,7 @@ export default function ContentManager() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [editor, setEditor] = useState<ContentItem | "new" | null>(null);
+  const [communityReview, setCommunityReview] = useState<CommunityPostDetail | null>(null);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
@@ -119,6 +124,45 @@ export default function ContentManager() {
     }
   }
 
+  async function reviewCommunityPost(item: CommunityPost) {
+    setError("");
+    try {
+      const response = await fetch(`/api/admin/cms?type=community&id=${encodeURIComponent(item.id)}`, { cache: "no-store" });
+      const payload = await response.json() as { item?: CommunityPostDetail; error?: string };
+      if (!response.ok || !payload.item) throw new Error(payload.error || "Không tải được bài cộng đồng.");
+      setCommunityReview(payload.item);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Không tải được bài cộng đồng.");
+    }
+  }
+
+  async function toggleCommunityPost(item: CommunityPost) {
+    setBusy(true);
+    setError("");
+    try {
+      await setCommunityPostPublished(item.id, !item.published);
+      setCommunityReview(null);
+      await load();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Không thể cập nhật trạng thái bài viết.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function toggleNewsArticle(item: NewsArticle) {
+    setBusy(true);
+    setError("");
+    try {
+      await setNewsArticlePublished(item.id, !item.published);
+      await load();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Không thể cập nhật trạng thái bài viết.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const items: ContentListItem[] = type === "pages" ? pages : articles;
   const pageEditor = type === "pages" && editor && editor !== "new" ? editor as CmsPageDetail : null;
   const articleEditor = type === "articles" && editor && editor !== "new" ? editor as NewsArticleDetail : null;
@@ -151,7 +195,7 @@ export default function ContentManager() {
             const isPage = type === "pages";
             const page = isPage ? item as CmsPage : null;
             const communityPost = isCommunityPost(item);
-            const published = communityPost ? true : item.published;
+            const published = item.published;
             const itemHref = communityPost ? `/cong-dong/${item.id}` : `/${isPage ? "noi-dung" : "tin-tuc"}/${item.slug}`;
             return (
               <li key={item.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -159,13 +203,16 @@ export default function ContentManager() {
                   <strong className="block truncate text-sm text-white">{item.title}</strong>
                   {(!isPage || published) && <span className="mt-1 block break-all text-xs text-[#81746B]">{itemHref}</span>}
                   <span className="mt-2 inline-flex rounded-full bg-[#2A2421] px-2 py-1 text-[11px] text-[#CDBBAA]">
-                    {communityPost ? `Bài cộng đồng · ${item.category}` : published ? "Đã xuất bản" : "Bản nháp"}
+                    {communityPost ? `Bài cộng đồng · ${published ? "Đã xuất bản" : item.reviewedAt ? "Đang ẩn" : "Chờ duyệt"} · ${item.category}` : published ? "Đã xuất bản" : "Bản nháp"}
                     {page && " · Cấu hình hiển thị trong tab Footer"}
                   </span>
                 </div>
                 <div className="flex shrink-0 gap-2">
-                  {!communityPost && <button type="button" className={buttonClass} aria-label={`Sửa ${item.title}`} onClick={() => void edit(item)}><Pencil className="h-4 w-4" aria-hidden /> Sửa</button>}
+                  {communityPost ? (
+                    <button type="button" className={buttonClass} aria-label={`Xem xét ${item.title}`} onClick={() => void reviewCommunityPost(item)}><Eye className="h-4 w-4" aria-hidden /> Xem xét</button>
+                  ) : <button type="button" className={buttonClass} aria-label={`Sửa ${item.title}`} onClick={() => void edit(item)}><Pencil className="h-4 w-4" aria-hidden /> Sửa</button>}
                   <a className={`${buttonClass} ${published ? "" : "pointer-events-none opacity-40"}`} href={itemHref} target="_blank" rel="noreferrer" aria-label={`Mở ${item.title}`}><ExternalLink className="h-4 w-4" aria-hidden /> Xem</a>
+                  {!communityPost && !isPage && <button type="button" disabled={busy} className={`${buttonClass} disabled:opacity-50`} aria-label={published ? `Ẩn ${item.title}` : `Xuất bản ${item.title}`} onClick={() => void toggleNewsArticle(item as NewsArticle)}>{published ? <EyeOff className="h-4 w-4" aria-hidden /> : <Eye className="h-4 w-4" aria-hidden />}{published ? "Ẩn" : "Đăng"}</button>}
                   {!communityPost && <button type="button" className={`${buttonClass} text-red-400`} aria-label={`Xóa ${item.title}`} onClick={() => void remove(item)}><Trash2 className="h-4 w-4" aria-hidden /> Xóa</button>}
                 </div>
               </li>
@@ -191,6 +238,7 @@ export default function ContentManager() {
                 <ContentImageField key={articleEditor?.id || "new"} value={articleEditor?.image || ""} />
               </>
             )}
+
             <RichContentEditor key={editor === "new" ? `editor-new-${type}` : `editor-${editor.id}`} name="content" initialContent={pageEditor?.content || articleEditor?.content} />
             {type === "articles" && <label className="flex items-center gap-2"><input name="published" type="checkbox" defaultChecked={articleEditor?.published} className="accent-[#D97706]" /> Xuất bản công khai</label>}
             {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
@@ -199,6 +247,31 @@ export default function ContentManager() {
               <button type="submit" disabled={busy} className="rounded-lg bg-[#D97706] px-4 py-2 font-bold text-[#1C1613] disabled:opacity-50">{busy ? "Đang lưu..." : "Lưu"}</button>
             </div>
           </form>
+        </div>
+      )}
+      {communityReview && (
+        <div className="fixed inset-0 z-[95] overflow-y-auto bg-black/75 p-4" role="dialog" aria-modal="true" aria-label={`Xem xét bài cộng đồng: ${communityReview.title}`} onClick={() => !busy && setCommunityReview(null)}>
+          <section onClick={(event) => event.stopPropagation()} className="mx-auto my-8 grid max-w-3xl gap-4 rounded-2xl border border-[#4A3B31] bg-[#171412] p-6 text-sm text-[#CDBBAA]">
+            <div>
+              <h3 className="text-xl font-bold text-white">{communityReview.title}</h3>
+              <p className="mt-1 text-xs text-[#81746B]">Tác giả: {communityReview.author.name || "Thành viên TRIA"} · {communityReview.category}</p>
+            </div>
+            {communityReview.image && <Image src={communityReview.image} alt="" width={1200} height={800} unoptimized className="max-h-80 w-full rounded-lg object-contain" />}
+            <div className="max-h-[45vh] overflow-y-auto whitespace-pre-wrap rounded-lg border border-[#3A302B] bg-[#221D1A] p-4 text-[#E8E2D9]">{communityReview.content}</div>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span className={`rounded-full px-2 py-1 text-xs ${communityReview.published ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-300"}`}>
+              {communityReview.published ? "Đã xuất bản" : communityReview.reviewedAt ? "Đang ẩn" : "Chờ duyệt"}
+              </span>
+              <div className="flex gap-2">
+                <button type="button" disabled={busy} onClick={() => setCommunityReview(null)} className={buttonClass}>Đóng</button>
+                <button type="button" disabled={busy} onClick={() => void toggleCommunityPost(communityReview)} className={`inline-flex min-h-9 items-center gap-2 rounded-lg px-3 text-xs font-bold disabled:opacity-50 ${communityReview.published ? "border border-[#3A302B] text-[#CDBBAA]" : "bg-[#D97706] text-[#1C1613]"}`}>
+                  {communityReview.published ? <EyeOff className="h-4 w-4" aria-hidden /> : <Check className="h-4 w-4" aria-hidden />}
+                  {communityReview.published ? "Ẩn bài" : "Duyệt & xuất bản"}
+                </button>
+              </div>
+            </div>
+            {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
+          </section>
         </div>
       )}
     </section>

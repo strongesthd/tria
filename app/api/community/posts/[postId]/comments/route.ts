@@ -6,6 +6,8 @@ import { createCommentSchema, fieldErrors } from "../../../../../../lib/validati
 
 export async function GET(_request: Request, { params }: { params: Promise<{ postId: string }> }) {
   const { postId } = await params;
+  const post = await prisma.communityPost.findFirst({ where: { id: postId, published: true }, select: { id: true } });
+  if (!post) return NextResponse.json({ error: "Bài viết không tồn tại." }, { status: 404 });
   const comments = await prisma.comment.findMany({
     where: { postId },
     orderBy: [{ parentId: "asc" }, { createdAt: "asc" }],
@@ -34,7 +36,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ pos
   const parsed = createCommentSchema.safeParse({ ...(body as object), postId });
   if (!parsed.success) return NextResponse.json({ error: "Dữ liệu không hợp lệ.", fields: fieldErrors(parsed.error) }, { status: 422 });
 
-  const post = await prisma.communityPost.findUnique({ where: { id: postId }, select: { id: true } });
+  const post = await prisma.communityPost.findFirst({ where: { id: postId, published: true }, select: { id: true } });
   if (!post) return NextResponse.json({ error: "Bài viết không tồn tại." }, { status: 404 });
   if (parsed.data.parentId) {
     const parent = await prisma.comment.findUnique({ where: { id: parsed.data.parentId }, select: { postId: true } });

@@ -283,6 +283,8 @@ model CommunityPost {
   image     String?   @db.Text
   category  String
   tags      String[]
+  published Boolean   @default(true)
+  reviewedAt DateTime?
   solved    Boolean   @default(false)
   upvotes   Int       @default(0)
   downvotes Int       @default(0)
@@ -293,6 +295,8 @@ model CommunityPost {
   votes     PostVote[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+
+  @@index([published, createdAt])
 }
 
 model Comment {

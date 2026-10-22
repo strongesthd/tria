@@ -14,6 +14,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ pos
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Dữ liệu không hợp lệ." }, { status: 400 }); }
   const parsed = voteSchema.safeParse({ ...(body as object), postId });
   if (!parsed.success) return NextResponse.json({ error: "Bình chọn không hợp lệ." }, { status: 422 });
+  const post = await prisma.communityPost.findFirst({ where: { id: postId, published: true }, select: { id: true } });
+  if (!post) return NextResponse.json({ error: "Bài viết không tồn tại." }, { status: 404 });
   const direction = parsed.data.direction === "up" ? 1 : -1;
   const existing = await prisma.postVote.findUnique({ where: { postId_userId: { postId, userId: session.user.id } }, select: { direction: true } });
   if (existing?.direction === direction) {

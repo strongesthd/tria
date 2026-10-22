@@ -48,7 +48,7 @@ export async function createCommunityPost(formData: FormData) {
 
   const [post] = await prisma.$transaction([
     prisma.communityPost.create({
-      data: { ...parsed.data, authorId: user.id },
+      data: { ...parsed.data, authorId: user.id, published: false },
     }),
     prisma.user.update({
       where: { id: user.id },
@@ -74,8 +74,8 @@ export async function createComment(formData: FormData) {
   }
 
   // Verify post exists and parentId (if provided) belongs to the same post.
-  const post = await prisma.communityPost.findUnique({
-    where: { id: parsed.data.postId },
+  const post = await prisma.communityPost.findFirst({
+    where: { id: parsed.data.postId, published: true },
     select: { id: true },
   });
   if (!post) throw new Error("Bài viết không tồn tại.");
@@ -114,8 +114,8 @@ export async function votePost(formData: FormData) {
     throw new Error(parsed.error.issues.map((i) => i.message).join("; "));
   }
 
-  const post = await prisma.communityPost.findUnique({
-    where: { id: parsed.data.postId },
+  const post = await prisma.communityPost.findFirst({
+    where: { id: parsed.data.postId, published: true },
     select: { id: true },
   });
   if (!post) throw new Error("Bài viết không tồn tại.");

@@ -22,7 +22,7 @@ const emptyFooterData: FooterData = {
 
 async function queryFooterData(): Promise<FooterData> {
   try {
-    const [branches, products, articles, policyPages, supportPages, policyLinks, supportLinks] = await Promise.all([
+    const [branches, products, articles, cmsPages, policyLinks, supportLinks] = await Promise.all([
       prisma.branch.findMany({
         where: { active: true },
         orderBy: [{ name: "asc" }, { createdAt: "asc" }],
@@ -44,22 +44,16 @@ async function queryFooterData(): Promise<FooterData> {
           select: { id: true, slug: true, title: true, publishedAt: true, createdAt: true },
         }),
         prisma.communityPost.findMany({
+          where: { published: true },
           orderBy: { createdAt: "desc" },
           take: 4,
           select: { id: true, title: true, createdAt: true },
         }),
       ]),
       prisma.cmsPage.findMany({
-        where: { published: true, footerSection: "POLICY" },
         orderBy: [{ sortOrder: "asc" }, { updatedAt: "asc" }],
-        take: 8,
-        select: { id: true, title: true, slug: true, sortOrder: true },
-      }),
-      prisma.cmsPage.findMany({
-        where: { published: true, footerSection: "SUPPORT" },
-        orderBy: [{ sortOrder: "asc" }, { updatedAt: "asc" }],
-        take: 8,
-        select: { id: true, title: true, slug: true, sortOrder: true },
+        take: 500,
+        select: { id: true, title: true, slug: true, sortOrder: true, footerSection: true, published: true },
       }),
       prisma.footerLink.findMany({
         where: { section: "POLICY", active: true },
@@ -93,14 +87,21 @@ async function queryFooterData(): Promise<FooterData> {
 
     const pageLinks = (pages: { id: string; title: string; slug: string; sortOrder: number }[]) =>
       pages.map((page) => ({ id: `page-${page.id}`, label: page.title, href: `/noi-dung/${page.slug}`, sortOrder: page.sortOrder }));
+    const policyPageLinks = pageLinks(cmsPages.filter((page) => page.published && page.footerSection === "POLICY"));
+    const supportPageLinks = pageLinks(cmsPages.filter((page) => page.published && page.footerSection === "SUPPORT"));
+    const cmsPageHrefs = new Set(cmsPages.map((page) => `/noi-dung/${page.slug}`));
 
     return {
       available: true,
       branches,
       categories: buildFooterCategories(products),
       articles: latestArticles,
-      policyLinks: [...pageLinks(policyPages), ...policyLinks].sort((a, b) => a.sortOrder - b.sortOrder).slice(0, 8),
-      supportLinks: [...pageLinks(supportPages), ...supportLinks].sort((a, b) => a.sortOrder - b.sortOrder).slice(0, 8),
+      policyLinks: [...policyPageLinks, ...policyLinks.filter((link) => !cmsPageHrefs.has(link.href))]
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .slice(0, 8),
+      supportLinks: [...supportPageLinks, ...supportLinks.filter((link) => !cmsPageHrefs.has(link.href))]
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .slice(0, 8),
     };
   } catch {
     console.error("[footer-data] Could not load public footer content.");

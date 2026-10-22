@@ -45,6 +45,7 @@ export async function GET(request: Request) {
         : { createdAt: "desc" as const };
 
   const where = {
+    published: true,
     ...(category && category !== "all" ? { category } : {}),
     ...(search
       ? {
@@ -125,7 +126,7 @@ export async function POST(request: Request) {
   }
 
   const post = await prisma.communityPost.create({
-    data: { ...parsed.data, authorId: session.user.id },
+    data: { ...parsed.data, authorId: session.user.id, published: false },
     select: {
       id: true,
       title: true,

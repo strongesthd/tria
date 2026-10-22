@@ -76,6 +76,47 @@ export async function moderateCommunityPost(postId: string, solved: boolean) {
   return prisma.communityPost.update({ where: { id: postId }, data: { solved } });
 }
 
+export async function setCommunityPostPublished(postId: string, published: boolean) {
+  await requireAdmin();
+  const id = parseContentId(postId);
+  try {
+    const post = await prisma.communityPost.update({
+      where: { id },
+      data: { published, reviewedAt: new Date() },
+      select: { id: true },
+    });
+    revalidateTag("site-footer");
+    revalidatePath("/admin");
+    revalidatePath("/cong-dong");
+    revalidatePath(`/cong-dong/${post.id}`);
+    revalidatePath("/tin-tuc");
+  } catch (error) {
+    contentMutationError(error, "Không thể cập nhật trạng thái bài viết.", "Không tìm thấy bài viết cộng đồng.");
+  }
+}
+
+export async function setNewsArticlePublished(articleId: string, published: boolean) {
+  await requireAdmin();
+  const id = parseContentId(articleId);
+  try {
+    const previous = await prisma.newsArticle.findUnique({ where: { id }, select: { publishedAt: true } });
+    const article = await prisma.newsArticle.update({
+      where: { id },
+      data: {
+        published,
+        publishedAt: published ? previous?.publishedAt || new Date() : null,
+      },
+      select: { slug: true },
+    });
+    revalidateTag("site-footer");
+    revalidatePath("/admin");
+    revalidatePath("/tin-tuc");
+    revalidatePath(`/tin-tuc/${article.slug}`);
+  } catch (error) {
+    contentMutationError(error, "Không thể cập nhật trạng thái bài viết.", "Không tìm thấy bài viết.");
+  }
+}
+
 export async function updateProductStatus(productId: string, active: boolean) {
   await requireAdmin();
   await prisma.product.update({ where: { id: productId }, data: { active } });

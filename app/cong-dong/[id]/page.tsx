@@ -12,7 +12,7 @@ type Params = Promise<{ id: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { id } = await params;
-  const post = await prisma.communityPost.findUnique({ where: { id } }).catch(() => null);
+  const post = await prisma.communityPost.findFirst({ where: { id, published: true } }).catch(() => null);
   if (!post) return { title: "Không tìm thấy bài viết" };
   const excerpt = post.content.slice(0, 160).trim();
   return {
@@ -37,7 +37,7 @@ export default async function PostDetailPage({ params }: { params: Params }) {
 
   const post = await prisma.communityPost
     .findUnique({
-      where: { id },
+      where: { id, published: true },
       include: {
         author: { select: { id: true, name: true, image: true, badge: true, role: true } },
         comments: {

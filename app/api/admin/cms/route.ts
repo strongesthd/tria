@@ -9,6 +9,25 @@ export async function GET(request: Request) {
 
   const type = new URL(request.url).searchParams.get("type");
   const id = new URL(request.url).searchParams.get("id");
+  if (type === "community") {
+    if (!id) return NextResponse.json({ error: "Thiếu bài viết cần xem." }, { status: 400 });
+    const item = await prisma.communityPost.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        image: true,
+        category: true,
+        published: true,
+        reviewedAt: true,
+        createdAt: true,
+        author: { select: { name: true } },
+      },
+    });
+    if (!item) return NextResponse.json({ error: "Không tìm thấy bài viết." }, { status: 404 });
+    return NextResponse.json({ item }, { headers: { "Cache-Control": "private, no-store" } });
+  }
   if (type === "pages") {
     if (id) {
       const item = await prisma.cmsPage.findUnique({ where: { id } });
@@ -37,7 +56,7 @@ export async function GET(request: Request) {
       prisma.communityPost.findMany({
         orderBy: [{ createdAt: "desc" }],
         take: 200,
-        select: { id: true, title: true, category: true, createdAt: true },
+        select: { id: true, title: true, category: true, published: true, reviewedAt: true, createdAt: true },
       }),
     ]);
     const items = [

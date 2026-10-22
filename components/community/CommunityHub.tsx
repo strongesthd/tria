@@ -18,6 +18,7 @@ export default function CommunityHub() {
   const [saved, setSaved] = useState<string[]>([]);
   const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [submissionNotice, setSubmissionNotice] = useState("");
   const [sort, setSort] = useState("latest");
   const deferredSearch = useDeferredValue(search);
 
@@ -126,13 +127,14 @@ export default function CommunityHub() {
     }
   };
 
-  const createPost = (post: CommunityPost) => {
-    setPosts((current) => [post, ...current]);
+  const createPost = () => {
     setCreateOpen(false);
+    setSubmissionNotice("Bài viết đã gửi và đang chờ quản trị viên xét duyệt.");
   };
 
   return (
     <div className="rounded-3xl border border-[#2A2421] bg-[#0F0D0C] p-4 md:p-8">
+      {submissionNotice && <p role="status" className="mb-6 rounded-xl border border-emerald-900/50 bg-emerald-950/30 p-4 text-sm text-emerald-300">{submissionNotice}</p>}
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
         <ForumFeed
           posts={filteredPosts}

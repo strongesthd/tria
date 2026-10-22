@@ -3,9 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import { ImagePlus, Loader2, X } from "lucide-react";
-import { CommunityCategory, CommunityPost } from "./types";
+import { CommunityCategory } from "./types";
 
-type CreatePostModalProps = { open: boolean; onClose: () => void; onCreate: (post: CommunityPost) => void };
+type CreatePostModalProps = { open: boolean; onClose: () => void; onCreate: () => void };
 
 const categories: { id: Exclude<CommunityCategory, "all">; label: string }[] = [
   { id: "home-barista", label: "Góc Home Barista" },
@@ -53,30 +53,7 @@ export function CreatePostModal({ open, onClose, onCreate }: CreatePostModalProp
         throw new Error(data.error || "Không thể đăng bài. Vui lòng thử lại.");
       }
 
-      const created = await res.json();
-      onCreate({
-        id: created.id,
-        title: created.title,
-        content: created.content,
-        category: created.category,
-        categoryLabel: categories.find((c) => c.id === created.category)?.label || "Góc Home Barista",
-        tags: created.tags ?? [],
-        status: "Thảo luận",
-        time: "Vừa xong",
-        upvotes: created.upvotes ?? 0,
-        downvotes: created.downvotes ?? 0,
-        comments: 0,
-        views: 0,
-        points: 10,
-        author: {
-          id: created.author?.id ?? "",
-          name: created.author?.name ?? "Thành viên mới",
-          image: created.author?.image ?? null,
-          role: created.author?.role ?? "MEMBER",
-          badge: created.author?.badge ?? "Newbie Brewer",
-        },
-        commentsData: [],
-      });
+      onCreate();
       event.currentTarget.reset();
       setImage(null);
       setImageName("");
@@ -101,6 +78,9 @@ export function CreatePostModal({ open, onClose, onCreate }: CreatePostModalProp
         </div>
 
         <form onSubmit={submit} className="mt-6 space-y-4">
+          <p className="rounded-lg border border-[#D97706]/30 bg-[#D97706]/10 p-3 text-xs leading-5 text-[#E8C59F]">
+            Bài viết sẽ được quản trị viên xem xét trước khi xuất hiện công khai.
+          </p>
           <label className="block">
             <span className="sr-only">Tiêu đề</span>
             <input name="title" required maxLength={180} placeholder="Tiêu đề: Bạn đang muốn chia sẻ điều gì?" className="w-full rounded-xl border border-[#3A302B] bg-[#221D1A] px-4 py-3 text-sm text-white outline-none focus:border-[#D97706]" />
