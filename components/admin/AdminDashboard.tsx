@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { BarChart3, CalendarDays, CheckCircle2, Inbox, MapPin, MessageSquare, RefreshCw, Shield, ShoppingBag, Store, Trash2, Users } from "lucide-react";
+import { BarChart3, CalendarDays, CheckCircle2, ExternalLink, Inbox, MapPin, MessageSquare, RefreshCw, Shield, ShoppingBag, Store, Trash2, Users } from "lucide-react";
+import Link from "next/link";
 import { deleteLead, deleteMessage, deleteOrder, updateBookingStatus, updateLeadStatus, updateMessageStatus, updateOrderStatus } from "../../app/actions/admin";
 import { BranchManager, ProductManager } from "./CatalogManager";
 import FooterLinkManager from "./FooterLinkManager";
@@ -74,22 +75,32 @@ export default function AdminDashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0F0D0C] px-4 py-8 text-[#FDFBF7] sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <header className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+    <main className="min-h-screen w-full bg-[#0F0D0C] px-3 py-4 text-[#FDFBF7] sm:px-5 lg:px-6">
+      <div className="w-full">
+        <header className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#D97706]">TRIA Admin</p>
-            <h1 className="mt-2 text-3xl font-extrabold text-white">Quản trị hệ thống</h1>
-            <p className="mt-2 text-sm text-[#A69B93]">Quản lý sản phẩm, nội dung website, người dùng, booking, đơn hàng và liên hệ.</p>
+            <h1 className="mt-1 text-2xl font-extrabold text-white">Quản trị hệ thống</h1>
+            <p className="mt-1 text-sm text-[#A69B93]">Quản lý sản phẩm, nội dung website, người dùng, booking, đơn hàng và liên hệ.</p>
           </div>
-          <button type="button" onClick={load} className="inline-flex w-fit items-center gap-2 rounded-xl border border-[#3A302B] px-4 py-2 text-sm text-[#CDBBAA] hover:border-[#D97706]">
-            <RefreshCw className="h-4 w-4" aria-hidden /> Làm mới
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex w-fit items-center gap-2 rounded-xl border border-[#3A302B] px-4 py-2 text-sm text-[#CDBBAA] hover:border-[#D97706] hover:text-white"
+            >
+              <ExternalLink className="h-4 w-4" aria-hidden /> Xem trang
+            </Link>
+            <button type="button" onClick={load} className="inline-flex w-fit items-center gap-2 rounded-xl border border-[#3A302B] px-4 py-2 text-sm text-[#CDBBAA] hover:border-[#D97706]">
+              <RefreshCw className="h-4 w-4" aria-hidden /> Làm mới
+            </button>
+          </div>
         </header>
 
         {error && <p role="alert" className="mb-6 rounded-xl border border-red-900/50 bg-red-950/30 p-4 text-sm text-red-400">{error}</p>}
 
-        <nav className="mb-6 grid grid-cols-2 gap-2 rounded-2xl border border-[#2A2421] bg-[#171412] p-2 sm:grid-cols-4 lg:grid-cols-10" aria-label="Admin sections">
+        <nav className="mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-[#2A2421] bg-[#171412] p-2 sm:grid-cols-4 lg:grid-cols-10" aria-label="Admin sections">
           {TABS.map((item) => (
             <button key={item.id} type="button" onClick={() => setTab(item.id)} aria-current={tab === item.id} className={`rounded-xl px-2 py-3 text-xs font-bold transition ${tab === item.id ? "bg-[#D97706] text-[#1C1613]" : "text-[#A69B93] hover:bg-[#2A2421] hover:text-white"}`}>
               {item.label}

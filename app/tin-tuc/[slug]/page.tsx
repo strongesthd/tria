@@ -41,7 +41,7 @@ export default async function NewsArticlePage({ params }: { params: Params }) {
       <JsonLdScript data={[
         buildBreadcrumbJsonLd([
           { name: "Trang chủ", href: "/" },
-          { name: "Tin tức & bài viết", href: "/tin-tuc" },
+          { name: "Cà Phê Kể Chuyện", href: "/tin-tuc" },
           { name: article.title, href: `/tin-tuc/${article.slug}` },
         ]),
         {

@@ -4,8 +4,8 @@ import AuthProvider from "../components/auth/AuthProvider";
 import CartProvider from "../components/cart/CartProvider";
 import CartDrawer from "../components/cart/CartDrawer";
 import JsonLd from "../components/seo/JsonLd";
-import Header from "../components/sections/Header";
 import Footer from "../components/sections/Footer";
+import SiteChrome from "../components/SiteChrome";
 import { SITE_URL } from "../lib/site-data";
 
 export function generateMetadata(): Metadata {
@@ -73,11 +73,12 @@ export default async function RootLayout({
       <body className="min-h-screen bg-[#1C1613] font-sans text-[#FDFBF7] antialiased">
         <AuthProvider>
           <CartProvider>
-            <Header oauthEnabled={oauthEnabled} />
-            <main id="main-content" tabIndex={-1} className="pt-20">
+            <SiteChrome
+              oauthEnabled={oauthEnabled}
+              footer={<Footer />}
+            >
               {children}
-            </main>
-            <Footer />
+            </SiteChrome>
             <CartDrawer />
             <JsonLd />
           </CartProvider>

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Coffee, Settings, ShieldCheck, Sparkles, Star, Users } from "lucide-react";
+import { ArrowRight, Coffee, Newspaper, Settings, ShieldCheck, Sparkles, Star, Users } from "lucide-react";
 import { PRODUCT_CATEGORIES, PRODUCTS, type Category, type Product } from "../../lib/site-data";
 import { useCart } from "../cart/CartProvider";
 
@@ -240,6 +240,83 @@ export function TrustBanner({ branchCount = 3 }: { branchCount?: number }) {
           Đặt Lịch Cupping &amp; Demo Máy
         </Link>
       </div>
+    </section>
+  );
+}
+
+export function CoffeeStories({
+  stories,
+}: {
+  stories: {
+    slug: string;
+    title: string;
+    excerpt: string;
+    image: string | null;
+    publishedAt: Date | null;
+    createdAt: Date;
+  }[];
+}) {
+  return (
+    <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+      <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#C87D55]">Góc nhìn từ TRIA</p>
+          <h2 className="mt-2 flex items-center gap-2 text-2xl font-bold text-white md:text-3xl">
+            <Newspaper className="h-6 w-6 shrink-0 text-[#C87D55]" aria-hidden />
+            Cà Phê Kể Chuyện
+          </h2>
+          <p className="mt-2 text-sm text-[#A69B93]">
+            Hành trình từ hạt rang tươi đến nghệ thuật pha chế chuẩn vị
+          </p>
+        </div>
+        <Link href="/tin-tuc" className="inline-flex items-center gap-2 text-sm font-semibold text-[#E2A168] hover:underline">
+          Xem tất cả bài viết <ArrowRight className="h-4 w-4" aria-hidden />
+        </Link>
+      </div>
+
+      {stories.length ? (
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {stories.map((story) => {
+            const publishedAt = story.publishedAt || story.createdAt;
+            return (
+              <article key={story.slug} className="group overflow-hidden rounded-2xl border border-[#3A302B] bg-[#171412] transition-colors hover:border-[#C87D55]/60">
+                <Link href={`/tin-tuc/${story.slug}`} className="block">
+                  {story.image ? (
+                    <Image
+                      src={story.image}
+                      alt=""
+                      width={900}
+                      height={500}
+                      unoptimized
+                      className="h-52 w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                    />
+                  ) : (
+                    <div className="flex h-52 items-center justify-center bg-gradient-to-br from-[#332A25] to-[#171412]">
+                      <Coffee className="h-10 w-10 text-[#C87D55]" aria-hidden />
+                    </div>
+                  )}
+                  <div className="p-5">
+                    <time dateTime={publishedAt.toISOString()} className="text-xs text-[#81746B]">
+                      {publishedAt.toLocaleDateString("vi-VN")}
+                    </time>
+                    <h3 className="mt-2 line-clamp-2 text-lg font-bold text-white transition-colors group-hover:text-[#E2A168]">
+                      {story.title}
+                    </h3>
+                    {story.excerpt && <p className="mt-2 line-clamp-3 text-sm leading-6 text-[#A69B93]">{story.excerpt}</p>}
+                    <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#E2A168]">
+                      Đọc câu chuyện <ArrowRight className="h-4 w-4" aria-hidden />
+                    </span>
+                  </div>
+                </Link>
+              </article>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="rounded-2xl border border-dashed border-[#3A302B] p-8 text-center text-sm text-[#81746B]">
+          Những câu chuyện từ TRIA sẽ sớm được cập nhật.
+        </p>
+      )}
     </section>
   );
 }

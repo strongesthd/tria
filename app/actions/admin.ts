@@ -110,6 +110,7 @@ export async function setNewsArticlePublished(articleId: string, published: bool
     });
     revalidateTag("site-footer");
     revalidatePath("/admin");
+    revalidatePath("/");
     revalidatePath("/tin-tuc");
     revalidatePath(`/tin-tuc/${article.slug}`);
   } catch (error) {
@@ -347,6 +348,7 @@ export async function createNewsArticle(input: unknown) {
     });
     revalidateTag("site-footer");
     revalidatePath("/admin");
+    revalidatePath("/");
     revalidatePath("/tin-tuc");
     revalidatePath(`/tin-tuc/${article.slug}`);
     return article;
@@ -371,6 +373,7 @@ export async function updateNewsArticle(id: string, input: unknown) {
     });
     revalidateTag("site-footer");
     revalidatePath("/admin");
+    revalidatePath("/");
     revalidatePath("/tin-tuc");
     if (previous) revalidatePath(`/tin-tuc/${previous.slug}`);
     revalidatePath(`/tin-tuc/${article.slug}`);
@@ -387,6 +390,7 @@ export async function deleteNewsArticle(id: string) {
     const article = await prisma.newsArticle.delete({ where: { id: articleId }, select: { slug: true } });
     revalidateTag("site-footer");
     revalidatePath("/admin");
+    revalidatePath("/");
     revalidatePath("/tin-tuc");
     revalidatePath(`/tin-tuc/${article.slug}`);
   } catch (error) {
