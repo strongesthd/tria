@@ -5,6 +5,7 @@ import { BarChart3, CalendarDays, CheckCircle2, Inbox, MapPin, MessageSquare, Re
 import { deleteLead, deleteMessage, deleteOrder, updateBookingStatus, updateLeadStatus, updateMessageStatus, updateOrderStatus } from "../../app/actions/admin";
 import { BranchManager, ProductManager } from "./CatalogManager";
 import FooterLinkManager from "./FooterLinkManager";
+import FooterPageManager from "./FooterPageManager";
 import ContentManager from "./ContentManager";
 import UserManager from "./UserManager";
 
@@ -101,7 +102,7 @@ export default function AdminDashboard() {
             {tab === "overview" && <Overview stats={data.stats} orders={data.recentOrders} bookings={data.recentBookings} messages={data.recentMessages} />}
             {tab === "products" && <ProductManager />}
             {tab === "branches" && <BranchManager />}
-            {tab === "footer" && <FooterLinkManager />}
+            {tab === "footer" && <div className="space-y-6"><FooterPageManager /><FooterLinkManager /></div>}
             {tab === "content" && <ContentManager />}
             {tab === "points" && <DataTable title="Lead hợp tác / điểm bán" rows={data.recentLeads} empty="Chưa có lead hợp tác." onStatus={updateLeadStatus} onDelete={deleteLead} />}
             {tab === "users" && <UserManager />}

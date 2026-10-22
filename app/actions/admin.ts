@@ -5,7 +5,7 @@ import type { ZodType } from "zod";
 import { auth } from "../../auth";
 import { prisma } from "../../lib/prisma";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { cmsPageSchema, footerLinkSchema, newsArticleSchema } from "../../lib/validation";
+import { cmsPageContentSchema, cmsPageFooterSettingsSchema, footerLinkSchema, newsArticleSchema } from "../../lib/validation";
 import { sanitizeContentHtml } from "../../lib/sanitize-content";
 
 function toSlug(value: string) {
@@ -228,10 +228,17 @@ export async function deleteFooterLink(id: string) {
 
 export async function createCmsPage(input: unknown) {
   await requireAdmin();
-  const data = parseCmsInput(cmsPageSchema, input);
+  const data = parseCmsInput(cmsPageContentSchema, input);
   data.content = sanitizeContentHtml(data.content);
   try {
-    const page = await prisma.cmsPage.create({ data });
+    const baseSlug = toSlug(data.title).slice(0, 130).replace(/-+$/, "") || "trang-noi-dung";
+    let slug = baseSlug;
+    for (let suffix = 2; await prisma.cmsPage.findUnique({ where: { slug }, select: { id: true } }); suffix += 1) {
+      slug = `${baseSlug}-${suffix}`;
+    }
+    const page = await prisma.cmsPage.create({
+      data: { ...data, slug, footerSection: null, sortOrder: 0, published: false },
+    });
     revalidateTag("site-footer");
     revalidatePath("/admin");
     revalidatePath(`/noi-dung/${page.slug}`);
@@ -241,10 +248,10 @@ export async function createCmsPage(input: unknown) {
   }
 }
 
-export async function updateCmsPage(id: string, input: unknown) {
+export async function updateCmsPageContent(id: string, input: unknown) {
   await requireAdmin();
   const pageId = parseContentId(id);
-  const data = parseCmsInput(cmsPageSchema, input);
+  const data = parseCmsInput(cmsPageContentSchema, input);
   data.content = sanitizeContentHtml(data.content);
   try {
     const previous = await prisma.cmsPage.findUnique({ where: { id: pageId }, select: { slug: true } });
@@ -256,6 +263,23 @@ export async function updateCmsPage(id: string, input: unknown) {
     return page;
   } catch (error) {
     contentMutationError(error, "Đường dẫn trang này đã tồn tại.", "Không tìm thấy trang cần cập nhật.");
+  }
+}
+
+export async function updateCmsPageFooterSettings(id: string, input: unknown) {
+  await requireAdmin();
+  const pageId = parseContentId(id);
+  const data = parseCmsInput(cmsPageFooterSettingsSchema, input);
+  try {
+    const previous = await prisma.cmsPage.findUnique({ where: { id: pageId }, select: { slug: true } });
+    const page = await prisma.cmsPage.update({ where: { id: pageId }, data });
+    revalidateTag("site-footer");
+    revalidatePath("/admin");
+    if (previous) revalidatePath(`/noi-dung/${previous.slug}`);
+    revalidatePath(`/noi-dung/${page.slug}`);
+    return page;
+  } catch (error) {
+    contentMutationError(error, "Slug trang này đã được sử dụng.", "Không tìm thấy trang cần cập nhật.");
   }
 }
 

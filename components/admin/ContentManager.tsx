@@ -7,16 +7,15 @@ import {
   createNewsArticle,
   deleteCmsPage,
   deleteNewsArticle,
-  updateCmsPage,
+  updateCmsPageContent,
   updateNewsArticle,
 } from "../../app/actions/admin";
 import ImageUploadButton from "./ImageUploadButton";
 import RichContentEditor from "./RichContentEditor";
 
 type ContentType = "pages" | "articles";
-type FooterSection = "POLICY" | "SUPPORT" | null;
 type CmsPage = {
-  id: string; slug: string; title: string; footerSection: FooterSection; published: boolean; updatedAt: string;
+  id: string; slug: string; title: string; published: boolean; updatedAt: string;
 };
 type CmsPageDetail = CmsPage & { summary: string; content: string; sortOrder: number };
 type NewsArticle = {
@@ -58,27 +57,23 @@ export default function ContentManager() {
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const common = {
-      title: String(form.get("title") || ""),
-      slug: String(form.get("slug") || ""),
-      content: String(form.get("content") || ""),
-      published: form.get("published") === "on",
-    };
     setBusy(true);
     setError("");
     try {
       if (type === "pages") {
         const draft = {
-          ...common,
+          title: String(form.get("title") || ""),
           summary: String(form.get("summary") || ""),
-          footerSection: (String(form.get("footerSection") || "") || null) as FooterSection,
-          sortOrder: Number(form.get("sortOrder") || 0),
+          content: String(form.get("content") || ""),
         };
         if (editor === "new") await createCmsPage(draft);
-        else if (editor) await updateCmsPage(editor.id, draft);
+        else if (editor) await updateCmsPageContent(editor.id, draft);
       } else {
         const draft = {
-          ...common,
+          title: String(form.get("title") || ""),
+          slug: String(form.get("slug") || ""),
+          content: String(form.get("content") || ""),
+          published: form.get("published") === "on",
           excerpt: String(form.get("excerpt") || ""),
           image: String(form.get("image") || "") || null,
         };
@@ -126,8 +121,8 @@ export default function ContentManager() {
     <section className="overflow-hidden rounded-xl border border-[#3A302B] bg-[#171412]">
       <header className="flex flex-col justify-between gap-4 border-b border-[#2A2421] p-5 sm:flex-row sm:items-center">
         <div>
-          <h2 className="text-xl font-bold text-white">Trang &amp; bài viết</h2>
-          <p className="mt-1 text-xs text-[#81746B]">Tạo trang nội dung cho Footer và xuất bản tin tức trên website.</p>
+          <h2 className="text-xl font-bold text-white">Trang nội dung &amp; bài viết</h2>
+          <p className="mt-1 text-xs text-[#81746B]">Soạn nội dung trang, tin tức và bài viết trên website.</p>
         </div>
         <button type="button" className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-[#D97706] px-4 text-sm font-bold text-[#1C1613]" onClick={() => { setError(""); setEditor("new"); }}>
           <Plus className="h-4 w-4" aria-hidden /> {type === "pages" ? "Tạo trang" : "Tạo bài viết"}
@@ -136,7 +131,7 @@ export default function ContentManager() {
 
       <nav className="flex gap-2 border-b border-[#2A2421] p-4" aria-label="Loại nội dung">
         <button type="button" aria-pressed={type === "pages"} onClick={() => setType("pages")} className={`${buttonClass} ${type === "pages" ? "border-[#D97706] bg-[#D97706] text-[#1C1613]" : ""}`}>
-          <FileText className="h-4 w-4" aria-hidden /> Trang Footer
+          <FileText className="h-4 w-4" aria-hidden /> Trang nội dung
         </button>
         <button type="button" aria-pressed={type === "articles"} onClick={() => setType("articles")} className={`${buttonClass} ${type === "articles" ? "border-[#D97706] bg-[#D97706] text-[#1C1613]" : ""}`}>
           <Newspaper className="h-4 w-4" aria-hidden /> Tin tức / bài viết
@@ -153,10 +148,10 @@ export default function ContentManager() {
               <li key={item.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
                   <strong className="block truncate text-sm text-white">{item.title}</strong>
-                  <span className="mt-1 block break-all text-xs text-[#81746B]">/{isPage ? "noi-dung" : "tin-tuc"}/{item.slug}</span>
+                  {(!isPage || item.published) && <span className="mt-1 block break-all text-xs text-[#81746B]">/{isPage ? "noi-dung" : "tin-tuc"}/{item.slug}</span>}
                   <span className="mt-2 inline-flex rounded-full bg-[#2A2421] px-2 py-1 text-[11px] text-[#CDBBAA]">
                     {item.published ? "Đã xuất bản" : "Bản nháp"}
-                    {page?.footerSection ? ` · ${page.footerSection === "POLICY" ? "Chính sách" : "Hỗ trợ"}` : ""}
+                    {page && " · Cấu hình hiển thị trong tab Footer"}
                   </span>
                 </div>
                 <div className="flex shrink-0 gap-2">
@@ -175,18 +170,12 @@ export default function ContentManager() {
           <form key={editor === "new" ? `new-${type}` : editor.id} onSubmit={(event) => void save(event)} onClick={(event) => event.stopPropagation()} className="mx-auto my-6 grid max-w-3xl gap-4 rounded-2xl border border-[#4A3B31] bg-[#171412] p-6 text-sm text-[#CDBBAA]">
             <div>
               <h3 className="text-xl font-bold text-white">{editor === "new" ? "Tạo mới" : "Chỉnh sửa"} {type === "pages" ? "trang Footer" : "bài viết"}</h3>
-              <p className="mt-1 text-xs text-[#81746B]">Soạn thảo định dạng, chèn HTML, ảnh và tệp đính kèm.</p>
+              <p className="mt-1 text-xs text-[#81746B]">{type === "pages" ? "Chỉ chỉnh sửa nội dung tại đây. Slug và hiển thị Footer được quản lý trong tab Footer." : "Soạn thảo định dạng, chèn HTML, ảnh và tệp đính kèm."}</p>
             </div>
             <label className="grid gap-1">Tiêu đề<input name="title" required minLength={2} maxLength={180} defaultValue={pageEditor?.title || articleEditor?.title} className="rounded-lg border border-[#3A302B] bg-[#221D1A] px-3 py-2 text-white" /></label>
-            <label className="grid gap-1">Slug / đường dẫn<input name="slug" required maxLength={140} pattern="[A-Za-z0-9À-ỹĐđ_-]+" defaultValue={pageEditor?.slug || articleEditor?.slug} placeholder="vi-du-trang-noi-dung" className="rounded-lg border border-[#3A302B] bg-[#221D1A] px-3 py-2 text-white" /><span className="text-[11px] text-[#81746B]">Chỉ dùng chữ, số, dấu gạch ngang hoặc gạch dưới.</span></label>
+            {type === "articles" && <label className="grid gap-1">Slug / đường dẫn<input name="slug" required maxLength={140} pattern="[A-Za-z0-9À-ỹĐđ_-]+" defaultValue={articleEditor?.slug} placeholder="vi-du-bai-viet" className="rounded-lg border border-[#3A302B] bg-[#221D1A] px-3 py-2 text-white" /><span className="text-[11px] text-[#81746B]">Chỉ dùng chữ, số, dấu gạch ngang hoặc gạch dưới.</span></label>}
             {type === "pages" ? (
-              <>
-                <label className="grid gap-1">Mô tả ngắn<textarea name="summary" maxLength={300} rows={2} defaultValue={pageEditor?.summary} className="rounded-lg border border-[#3A302B] bg-[#221D1A] px-3 py-2 text-white" /></label>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="grid gap-1">Hiển thị trong Footer<select name="footerSection" defaultValue={pageEditor?.footerSection || ""} className="rounded-lg border border-[#3A302B] bg-[#221D1A] px-3 py-2 text-white"><option value="">Không gắn vào Footer</option><option value="POLICY">Chính sách</option><option value="SUPPORT">Tư vấn &amp; hỗ trợ</option></select></label>
-                  <label className="grid gap-1">Thứ tự hiển thị<input name="sortOrder" type="number" min={0} max={9999} defaultValue={pageEditor?.sortOrder ?? 0} className="rounded-lg border border-[#3A302B] bg-[#221D1A] px-3 py-2 text-white" /></label>
-                </div>
-              </>
+              <label className="grid gap-1">Mô tả ngắn<textarea name="summary" maxLength={300} rows={2} defaultValue={pageEditor?.summary} className="rounded-lg border border-[#3A302B] bg-[#221D1A] px-3 py-2 text-white" /></label>
             ) : (
               <>
                 <label className="grid gap-1">Mô tả ngắn<textarea name="excerpt" maxLength={300} rows={2} defaultValue={articleEditor?.excerpt} className="rounded-lg border border-[#3A302B] bg-[#221D1A] px-3 py-2 text-white" /></label>
@@ -194,7 +183,7 @@ export default function ContentManager() {
               </>
             )}
             <RichContentEditor key={editor === "new" ? `editor-new-${type}` : `editor-${editor.id}`} name="content" initialContent={pageEditor?.content || articleEditor?.content} />
-            <label className="flex items-center gap-2"><input name="published" type="checkbox" defaultChecked={pageEditor?.published || articleEditor?.published} className="accent-[#D97706]" /> Xuất bản công khai</label>
+            {type === "articles" && <label className="flex items-center gap-2"><input name="published" type="checkbox" defaultChecked={articleEditor?.published} className="accent-[#D97706]" /> Xuất bản công khai</label>}
             {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
             <div className="flex justify-end gap-2">
               <button type="button" disabled={busy} onClick={() => setEditor(null)} className={buttonClass}>Hủy</button>

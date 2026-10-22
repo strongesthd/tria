@@ -1,29 +1,34 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { cmsPageSchema, newsArticleSchema } from "../lib/validation";
+import { cmsPageContentSchema, cmsPageFooterSettingsSchema, newsArticleSchema } from "../lib/validation";
 import { sanitizeContentHtml } from "../lib/sanitize-content";
 
-const validPage = {
+const validPageContent = {
   title: "  Điều khoản sử dụng ",
-  slug: "dieu-khoan-su-dung",
   summary: "",
   content: "Nội dung trang",
+};
+const validPageSettings = {
+  slug: "dieu-khoan-su-dung",
   footerSection: "POLICY",
   sortOrder: 1,
   published: true,
 };
 
-test("CMS page validation trims fields and supports Footer placement", () => {
-  assert.deepEqual(cmsPageSchema.parse(validPage), {
-    ...validPage,
+test("CMS page content validation accepts only editable content fields", () => {
+  assert.deepEqual(cmsPageContentSchema.parse(validPageContent), {
+    ...validPageContent,
     title: "Điều khoản sử dụng",
   });
+  assert.equal(cmsPageContentSchema.safeParse({ ...validPageContent, ...validPageSettings }).success, false);
 });
 
-test("CMS page validation requires non-empty content and safe slugs", () => {
-  assert.equal(cmsPageSchema.safeParse({ ...validPage, content: " " }).success, false);
-  assert.equal(cmsPageSchema.safeParse({ ...validPage, slug: "../admin" }).success, false);
-  assert.equal(cmsPageSchema.safeParse({ ...validPage, footerSection: "EXTERNAL" }).success, false);
+test("CMS Footer settings validation accepts only safe placement metadata", () => {
+  assert.deepEqual(cmsPageFooterSettingsSchema.parse(validPageSettings), validPageSettings);
+  assert.equal(cmsPageContentSchema.safeParse({ ...validPageContent, content: " " }).success, false);
+  assert.equal(cmsPageFooterSettingsSchema.safeParse({ ...validPageSettings, slug: "../admin" }).success, false);
+  assert.equal(cmsPageFooterSettingsSchema.safeParse({ ...validPageSettings, footerSection: "EXTERNAL" }).success, false);
+  assert.equal(cmsPageFooterSettingsSchema.safeParse({ ...validPageSettings, title: "Other title" }).success, false);
 });
 
 test("News article validation enforces content and uploaded image types", () => {

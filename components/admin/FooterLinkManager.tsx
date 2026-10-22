@@ -135,8 +135,8 @@ export default function FooterLinkManager() {
     <section className="overflow-hidden rounded-xl border border-[#3A302B] bg-[#171412]">
       <div className="flex flex-col justify-between gap-4 border-b border-[#2A2421] p-5 sm:flex-row sm:items-center">
         <div>
-          <h2 className="text-xl font-bold text-white">Liên kết footer</h2>
-          <p className="mt-1 text-xs text-[#81746B]">{total} liên kết trong cơ sở dữ liệu</p>
+          <h2 className="text-xl font-bold text-white">Liên kết Footer tùy chỉnh</h2>
+          <p className="mt-1 text-xs text-[#81746B]">{total} liên kết độc lập; nội dung trang được quản lý ở bảng phía trên.</p>
         </div>
         <button
           type="button"

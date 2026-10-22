@@ -142,15 +142,18 @@ const cmsSlugSchema = z
   .max(140)
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Đường dẫn chỉ được chứa chữ thường, số và dấu gạch ngang.");
 
-export const cmsPageSchema = z.object({
+export const cmsPageContentSchema = z.object({
   title: z.string().trim().min(2, "Tiêu đề quá ngắn.").max(160),
-  slug: cmsSlugSchema,
   summary: z.string().trim().max(300, "Mô tả ngắn quá dài."),
   content: z.string().trim().min(1, "Nội dung không được để trống.").max(50_000),
+}).strict();
+
+export const cmsPageFooterSettingsSchema = z.object({
+  slug: cmsSlugSchema,
   footerSection: z.enum(["POLICY", "SUPPORT"]).nullable(),
   sortOrder: z.number().int().min(0).max(9999),
   published: z.boolean(),
-});
+}).strict();
 
 export const newsArticleSchema = z.object({
   title: z.string().trim().min(2, "Tiêu đề quá ngắn.").max(180),

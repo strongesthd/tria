@@ -18,7 +18,7 @@ export async function GET(request: Request) {
     const items = await prisma.cmsPage.findMany({
       orderBy: [{ updatedAt: "desc" }],
       take: 200,
-      select: { id: true, slug: true, title: true, footerSection: true, published: true, updatedAt: true },
+      select: { id: true, slug: true, title: true, footerSection: true, sortOrder: true, published: true, updatedAt: true },
     });
     return NextResponse.json({ items });
   }
