@@ -120,7 +120,7 @@ async function main() {
     {
       slug: "co-so-phu-huu",
       name: "CS1 - Phú Hữu, TP. Thủ Đức",
-      address: "Số 741 Nguyễn Duy Trinh, Phường Phú Hữu, TP. Thủ Đức, TP. Hồ Chí Minh",
+      address: "Số 641 Nguyễn Duy Trinh, Phường Phú Hữu, TP. Thủ Đức, TP. Hồ Chí Minh",
       hours: "08:00 - 21:30 hàng ngày",
       phone: "0989 668 113",
       features: [
@@ -159,6 +159,15 @@ async function main() {
       ],
       image: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=1200",
     },
+    {
+      slug: "ha-noi-mo-lao",
+      name: "TRIA Hà Nội - Mỗ Lao",
+      address: "Số 46-47, Liền kề 11B, KĐT Mỗ Lao, Phường Hà Đông, Hà Nội",
+      hours: "Liên hệ để đặt lịch trải nghiệm",
+      phone: "0989 668 113",
+      features: ["Tư vấn & trải nghiệm sản phẩm TRIA"],
+      image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&q=80&w=1200",
+    },
   ];
 
   for (const branch of branches) {
@@ -169,6 +178,23 @@ async function main() {
     });
   }
   console.log(`✅ ${branches.length} branches seeded`);
+
+  const footerLinks = [
+    { section: "POLICY" as const, label: "Chính sách bảo mật", href: "/phap-ly/bao-mat", sortOrder: 10 },
+    { section: "POLICY" as const, label: "Điều khoản sử dụng", href: "/phap-ly/dieu-khoan", sortOrder: 20 },
+    { section: "POLICY" as const, label: "Quy định cộng đồng", href: "/phap-ly/cong-dong", sortOrder: 30 },
+    { section: "POLICY" as const, label: "Quyền lợi & trách nhiệm", href: "/phap-ly/quyen-loi", sortOrder: 40 },
+    { section: "SUPPORT" as const, label: "Tư vấn & đặt lịch trải nghiệm", href: "/he-thong-quan#booking", sortOrder: 10 },
+    { section: "SUPPORT" as const, label: "Giải pháp cho quán cà phê", href: "/giai-phap-b2b", sortOrder: 20 },
+    { section: "SUPPORT" as const, label: "Hợp tác điểm bán", href: "/hop-tac", sortOrder: 30 },
+    { section: "SUPPORT" as const, label: "Hỏi đáp cộng đồng", href: "/cong-dong", sortOrder: 40 },
+  ];
+
+  const seededFooterLinks = await prisma.footerLink.createMany({
+    data: footerLinks,
+    skipDuplicates: true,
+  });
+  console.log(`✅ ${seededFooterLinks.count} footer links seeded`);
 
   console.log("🎉 Database seeding complete!");
 }

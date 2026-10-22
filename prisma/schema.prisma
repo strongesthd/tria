@@ -15,6 +15,11 @@ enum Role {
   ADMIN
 }
 
+enum FooterLinkSection {
+  POLICY
+  SUPPORT
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -74,6 +79,20 @@ model Branch {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model FooterLink {
+  id        String           @id @default(cuid())
+  section   FooterLinkSection
+  label     String
+  href      String
+  sortOrder Int              @default(0)
+  active    Boolean          @default(true)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@unique([section, label])
+  @@index([section, active, sortOrder])
 }
 
 model Order {

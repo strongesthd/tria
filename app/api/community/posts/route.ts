@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { auth } from "../../../../auth";
 import { prisma } from "../../../../lib/prisma";
 import { clientIp, rateLimit } from "../../../../lib/rate-limit";
@@ -142,5 +143,6 @@ export async function POST(request: Request) {
     },
   });
 
+  revalidateTag("site-footer");
   return NextResponse.json(post, { status: 201 });
 }

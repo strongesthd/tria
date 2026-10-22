@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { BarChart3, CalendarDays, CheckCircle2, Inbox, MapPin, MessageSquare, RefreshCw, Shield, ShoppingBag, Store, Trash2, Users } from "lucide-react";
 import { deleteLead, deleteMessage, deleteOrder, updateBookingStatus, updateLeadStatus, updateMessageStatus, updateOrderStatus } from "../../app/actions/admin";
 import { BranchManager, ProductManager } from "./CatalogManager";
+import FooterLinkManager from "./FooterLinkManager";
 import UserManager from "./UserManager";
 
 type Dashboard = {
@@ -30,12 +31,13 @@ type AdminRow = {
   date?: string | Date | null;
 };
 
-type Tab = "overview" | "products" | "branches" | "points" | "users" | "bookings" | "orders" | "messages";
+type Tab = "overview" | "products" | "branches" | "footer" | "points" | "users" | "bookings" | "orders" | "messages";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Tổng quan" },
   { id: "products", label: "Sản phẩm" },
   { id: "branches", label: "Hệ thống quán" },
+  { id: "footer", label: "Footer" },
   { id: "points", label: "Điểm bán" },
   { id: "users", label: "Users" },
   { id: "bookings", label: "Lịch demo" },
@@ -84,7 +86,7 @@ export default function AdminDashboard() {
 
         {error && <p role="alert" className="mb-6 rounded-xl border border-red-900/50 bg-red-950/30 p-4 text-sm text-red-400">{error}</p>}
 
-        <nav className="mb-6 grid grid-cols-2 gap-2 rounded-2xl border border-[#2A2421] bg-[#171412] p-2 sm:grid-cols-4 lg:grid-cols-8" aria-label="Admin sections">
+        <nav className="mb-6 grid grid-cols-2 gap-2 rounded-2xl border border-[#2A2421] bg-[#171412] p-2 sm:grid-cols-4 lg:grid-cols-9" aria-label="Admin sections">
           {TABS.map((item) => (
             <button key={item.id} type="button" onClick={() => setTab(item.id)} aria-current={tab === item.id} className={`rounded-xl px-2 py-3 text-xs font-bold transition ${tab === item.id ? "bg-[#D97706] text-[#1C1613]" : "text-[#A69B93] hover:bg-[#2A2421] hover:text-white"}`}>
               {item.label}
@@ -97,6 +99,7 @@ export default function AdminDashboard() {
             {tab === "overview" && <Overview stats={data.stats} orders={data.recentOrders} bookings={data.recentBookings} messages={data.recentMessages} />}
             {tab === "products" && <ProductManager />}
             {tab === "branches" && <BranchManager />}
+            {tab === "footer" && <FooterLinkManager />}
             {tab === "points" && <DataTable title="Lead hợp tác / điểm bán" rows={data.recentLeads} empty="Chưa có lead hợp tác." onStatus={updateLeadStatus} onDelete={deleteLead} />}
             {tab === "users" && <UserManager />}
             {tab === "bookings" && <DataTable title="Lịch demo / booking gần đây" rows={data.recentBookings} empty="Chưa có booking." onStatus={updateBookingStatus} />}

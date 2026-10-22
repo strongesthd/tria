@@ -107,6 +107,24 @@ export const partnershipLeadSchema = z.object({
   notes: z.string().trim().max(2000).optional(),
 });
 
+export const footerLinkSchema = z.object({
+  section: z.enum(["POLICY", "SUPPORT"]),
+  label: z.string().trim().min(2, "Tên liên kết quá ngắn.").max(80, "Tên liên kết quá dài."),
+  href: z
+    .string()
+    .trim()
+    .min(2, "Vui lòng nhập đường dẫn nội bộ.")
+    .max(300, "Đường dẫn quá dài.")
+    .refine(
+      (value) =>
+        /^\/(?!\/)/.test(value) &&
+        !value.includes("\\") &&
+        !/[\u0000-\u001f\u007f]/.test(value),
+      "Chỉ chấp nhận đường dẫn nội bộ của website."
+    ),
+  sortOrder: z.number().int().min(0).max(9999),
+});
+
 /** Turns a ZodError into a flat `field -> message` map for form rendering. */
 export function fieldErrors(error: z.ZodError): Record<string, string> {
   const result: Record<string, string> = {};
