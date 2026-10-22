@@ -48,14 +48,12 @@ services:
       retries: 12
       start_period: 30s
 
-  # Uses the builder stage because Prisma CLI's schema engine WASM assets are
-  # development dependencies and are intentionally not shipped in the slim web
-  # runtime image.
+  # Keeps schema and seed operations independent from the Next.js build.
   migrator:
     build:
       context: ..
       dockerfile: Dockerfile
-      target: builder
+      target: migrator
     env_file:
       - ../.env.production
     environment:

@@ -140,7 +140,7 @@ jobs:
 
             # Apply additive Prisma schema changes on every deploy before the
             # web container starts. `db push` is idempotent for unchanged code.
-            compose run --rm migrator
+            compose run --build --rm migrator
             mkdir -p "$APP_DIR/runtime"
             touch "$APP_DIR/runtime/.db-initialized"
 
