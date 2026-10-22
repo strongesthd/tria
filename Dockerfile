@@ -11,6 +11,8 @@ RUN npm ci
 FROM base AS builder
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
+ARG NEXT_DEPLOYMENT_ID=local
+ENV NEXT_DEPLOYMENT_ID=$NEXT_DEPLOYMENT_ID
 RUN npx prisma generate
 RUN npm run build
 CMD ["npx", "prisma", "db", "push", "--skip-generate"]

@@ -21,6 +21,8 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile
+      args:
+        NEXT_DEPLOYMENT_ID: ${NEXT_DEPLOYMENT_ID:-local}
     container_name: tria-web
     restart: unless-stopped
     env_file:

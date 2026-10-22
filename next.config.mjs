@@ -41,6 +41,7 @@ const securityHeaders = [
 const nextConfig = {
   // Emit a small self-contained Node server for the production container.
   output: "standalone",
+  deploymentId: process.env.NEXT_DEPLOYMENT_ID || "local",
   poweredByHeader: false,
   reactStrictMode: true,
   compress: true,

@@ -45,6 +45,7 @@ Roles: `MEMBER`, `CAFE_OWNER`, `TRIA_BARISTA`, `TRIA_TECH`, `ADMIN`.
 - Server Actions trong `app/actions` yêu cầu session và kiểm tra role khi cần.
 - OAuth callback cần cấu hình redirect URL `/api/auth/callback/google` và `/api/auth/callback/facebook`.
 - Trình soạn thảo CMS hỗ trợ định dạng rich text, chỉnh HTML (được lọc thẻ/thuộc tính nguy hiểm), chèn ảnh và đính kèm PDF/DOCX/XLSX/TXT/CSV tối đa 10MB mỗi tệp. Media được lưu trong bảng `MediaAsset`.
+- Mỗi production build dùng commit SHA làm deployment ID để tránh browser/CDN dùng lẫn client bundle và Server Actions từ các bản deploy khác nhau.
 
 ### Quản lý nội dung
 

@@ -103,6 +103,7 @@ jobs:
           command_timeout: 30m
           script: |
             set -Eeuo pipefail
+            export NEXT_DEPLOYMENT_ID="${{ github.sha }}"
 
             APP_DIR="${{ vars.VPS_APP_DIR || '/home/app/triacafe.vn' }}"
             UPLOAD_DIR="/tmp/tria-upload-${{ github.run_id }}"
