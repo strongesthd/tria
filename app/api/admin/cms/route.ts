@@ -28,10 +28,25 @@ export async function GET(request: Request) {
       if (!item) return NextResponse.json({ error: "Không tìm thấy bài viết." }, { status: 404 });
       return NextResponse.json({ item });
     }
-    const items = await prisma.newsArticle.findMany({
-      orderBy: [{ updatedAt: "desc" }],
-      take: 200,
-      select: { id: true, slug: true, title: true, published: true, publishedAt: true, updatedAt: true },
+    const [articles, communityPosts] = await Promise.all([
+      prisma.newsArticle.findMany({
+        orderBy: [{ updatedAt: "desc" }],
+        take: 200,
+        select: { id: true, slug: true, title: true, published: true, publishedAt: true, updatedAt: true },
+      }),
+      prisma.communityPost.findMany({
+        orderBy: [{ createdAt: "desc" }],
+        take: 200,
+        select: { id: true, title: true, category: true, createdAt: true },
+      }),
+    ]);
+    const items = [
+      ...articles.map((article) => ({ ...article, source: "cms" as const })),
+      ...communityPosts.map((post) => ({ ...post, source: "community" as const })),
+    ].sort((a, b) => {
+      const aDate = "updatedAt" in a ? a.updatedAt : a.createdAt;
+      const bDate = "updatedAt" in b ? b.updatedAt : b.createdAt;
+      return bDate.getTime() - aDate.getTime();
     });
     return NextResponse.json({ items });
   }

@@ -19,18 +19,23 @@ type CmsPage = {
 };
 type CmsPageDetail = CmsPage & { summary: string; content: string; sortOrder: number };
 type NewsArticle = {
-  id: string; slug: string; title: string; published: boolean; publishedAt: string | null; updatedAt: string;
+  id: string; slug: string; title: string; published: boolean; publishedAt: string | null; updatedAt: string; source?: "cms";
 };
+type CommunityPost = { id: string; title: string; category: string; createdAt: string; source: "community" };
 type NewsArticleDetail = NewsArticle & { excerpt: string; content: string; image: string | null };
-type ContentListItem = CmsPage | NewsArticle;
+type ContentListItem = CmsPage | NewsArticle | CommunityPost;
 type ContentItem = CmsPageDetail | NewsArticleDetail;
 
 const buttonClass = "inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#3A302B] px-3 text-xs font-semibold text-[#CDBBAA] hover:border-[#D97706]";
 
+function isCommunityPost(item: ContentListItem): item is CommunityPost {
+  return "source" in item && item.source === "community";
+}
+
 export default function ContentManager() {
   const [type, setType] = useState<ContentType>("pages");
   const [pages, setPages] = useState<CmsPage[]>([]);
-  const [articles, setArticles] = useState<NewsArticle[]>([]);
+  const [articles, setArticles] = useState<(NewsArticle | CommunityPost)[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [editor, setEditor] = useState<ContentItem | "new" | null>(null);
@@ -41,10 +46,10 @@ export default function ContentManager() {
     setError("");
     try {
       const response = await fetch(`/api/admin/cms?type=${type}`, { cache: "no-store" });
-      const payload = await response.json() as { items?: ContentItem[]; error?: string };
+      const payload = await response.json() as { items?: ContentListItem[]; error?: string };
       if (!response.ok) throw new Error(payload.error || "Không tải được nội dung.");
       if (type === "pages") setPages((payload.items || []) as CmsPage[]);
-      else setArticles((payload.items || []) as NewsArticle[]);
+      else setArticles((payload.items || []) as (NewsArticle | CommunityPost)[]);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Không tải được nội dung.");
     } finally {
@@ -90,6 +95,7 @@ export default function ContentManager() {
   }
 
   async function remove(item: ContentListItem) {
+    if (isCommunityPost(item)) return;
     if (!window.confirm(`Xóa "${item.title}"?`)) return;
     setError("");
     try {
@@ -122,7 +128,7 @@ export default function ContentManager() {
       <header className="flex flex-col justify-between gap-4 border-b border-[#2A2421] p-5 sm:flex-row sm:items-center">
         <div>
           <h2 className="text-xl font-bold text-white">Trang nội dung &amp; bài viết</h2>
-          <p className="mt-1 text-xs text-[#81746B]">Soạn nội dung trang, tin tức và bài viết trên website.</p>
+          <p className="mt-1 text-xs text-[#81746B]">Soạn trang riêng cho website và quản lý bài viết hiện có.</p>
         </div>
         <button type="button" className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-[#D97706] px-4 text-sm font-bold text-[#1C1613]" onClick={() => { setError(""); setEditor("new"); }}>
           <Plus className="h-4 w-4" aria-hidden /> {type === "pages" ? "Tạo trang" : "Tạo bài viết"}
@@ -144,20 +150,23 @@ export default function ContentManager() {
           {items.map((item) => {
             const isPage = type === "pages";
             const page = isPage ? item as CmsPage : null;
+            const communityPost = isCommunityPost(item);
+            const published = communityPost ? true : item.published;
+            const itemHref = communityPost ? `/cong-dong/${item.id}` : `/${isPage ? "noi-dung" : "tin-tuc"}/${item.slug}`;
             return (
               <li key={item.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
                   <strong className="block truncate text-sm text-white">{item.title}</strong>
-                  {(!isPage || item.published) && <span className="mt-1 block break-all text-xs text-[#81746B]">/{isPage ? "noi-dung" : "tin-tuc"}/{item.slug}</span>}
+                  {(!isPage || published) && <span className="mt-1 block break-all text-xs text-[#81746B]">{itemHref}</span>}
                   <span className="mt-2 inline-flex rounded-full bg-[#2A2421] px-2 py-1 text-[11px] text-[#CDBBAA]">
-                    {item.published ? "Đã xuất bản" : "Bản nháp"}
+                    {communityPost ? `Bài cộng đồng · ${item.category}` : published ? "Đã xuất bản" : "Bản nháp"}
                     {page && " · Cấu hình hiển thị trong tab Footer"}
                   </span>
                 </div>
                 <div className="flex shrink-0 gap-2">
-                  <button type="button" className={buttonClass} aria-label={`Sửa ${item.title}`} onClick={() => void edit(item)}><Pencil className="h-4 w-4" aria-hidden /> Sửa</button>
-                  <a className={`${buttonClass} ${item.published ? "" : "pointer-events-none opacity-40"}`} href={`/${isPage ? "noi-dung" : "tin-tuc"}/${item.slug}`} target="_blank" rel="noreferrer" aria-label={`Mở ${item.title}`}><ExternalLink className="h-4 w-4" aria-hidden /> Xem</a>
-                  <button type="button" className={`${buttonClass} text-red-400`} aria-label={`Xóa ${item.title}`} onClick={() => void remove(item)}><Trash2 className="h-4 w-4" aria-hidden /> Xóa</button>
+                  {!communityPost && <button type="button" className={buttonClass} aria-label={`Sửa ${item.title}`} onClick={() => void edit(item)}><Pencil className="h-4 w-4" aria-hidden /> Sửa</button>}
+                  <a className={`${buttonClass} ${published ? "" : "pointer-events-none opacity-40"}`} href={itemHref} target="_blank" rel="noreferrer" aria-label={`Mở ${item.title}`}><ExternalLink className="h-4 w-4" aria-hidden /> Xem</a>
+                  {!communityPost && <button type="button" className={`${buttonClass} text-red-400`} aria-label={`Xóa ${item.title}`} onClick={() => void remove(item)}><Trash2 className="h-4 w-4" aria-hidden /> Xóa</button>}
                 </div>
               </li>
             );
@@ -169,8 +178,8 @@ export default function ContentManager() {
         <div className="fixed inset-0 z-[90] overflow-y-auto bg-black/75 p-4" role="dialog" aria-modal="true" aria-label={type === "pages" ? "Biên tập trang" : "Biên tập bài viết"} onClick={() => !busy && setEditor(null)}>
           <form key={editor === "new" ? `new-${type}` : editor.id} onSubmit={(event) => void save(event)} onClick={(event) => event.stopPropagation()} className="mx-auto my-6 grid max-w-3xl gap-4 rounded-2xl border border-[#4A3B31] bg-[#171412] p-6 text-sm text-[#CDBBAA]">
             <div>
-              <h3 className="text-xl font-bold text-white">{editor === "new" ? "Tạo mới" : "Chỉnh sửa"} {type === "pages" ? "trang Footer" : "bài viết"}</h3>
-              <p className="mt-1 text-xs text-[#81746B]">{type === "pages" ? "Chỉ chỉnh sửa nội dung tại đây. Slug và hiển thị Footer được quản lý trong tab Footer." : "Soạn thảo định dạng, chèn HTML, ảnh và tệp đính kèm."}</p>
+              <h3 className="text-xl font-bold text-white">{editor === "new" ? (type === "pages" ? "Tạo trang nội dung" : "Tạo bài viết") : (type === "pages" ? "Chỉnh sửa trang nội dung" : "Chỉnh sửa bài viết")}</h3>
+              <p className="mt-1 text-xs text-[#81746B]">{type === "pages" ? "Tạo trang riêng cho website. Slug và tùy chọn hiển thị trong Footer được quản lý tại tab Footer." : "Soạn thảo định dạng, chèn HTML, ảnh và tệp đính kèm."}</p>
             </div>
             <label className="grid gap-1">Tiêu đề<input name="title" required minLength={2} maxLength={180} defaultValue={pageEditor?.title || articleEditor?.title} className="rounded-lg border border-[#3A302B] bg-[#221D1A] px-3 py-2 text-white" /></label>
             {type === "articles" && <label className="grid gap-1">Slug / đường dẫn<input name="slug" required maxLength={140} pattern="[A-Za-z0-9À-ỹĐđ_-]+" defaultValue={articleEditor?.slug} placeholder="vi-du-bai-viet" className="rounded-lg border border-[#3A302B] bg-[#221D1A] px-3 py-2 text-white" /><span className="text-[11px] text-[#81746B]">Chỉ dùng chữ, số, dấu gạch ngang hoặc gạch dưới.</span></label>}
