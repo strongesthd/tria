@@ -105,6 +105,17 @@ cd /home/app/triacafe.vn
 docker compose --project-name triacafe-prod --env-file .env.production -f deploy/docker-compose.prod.yml run --build --rm migrator
 ```
 
+## NovaSEO article publishing
+
+Set `NOVASEO_WEBHOOK_SECRET` in `.env.production` to the same strong secret configured as `platformSettings.webhook.secret` in NovaSEO. In the NovaSEO project's webhook settings, use:
+
+```text
+URL: https://triacafe.vn/api/integrations/novaseo/articles
+Secret: the same value as NOVASEO_WEBHOOK_SECRET
+```
+
+NovaSEO signs the exact JSON request body with HMAC-SHA256 in `X-NovaSEO-Signature`. Published articles must include title, SEO title, meta description, primary/secondary keywords, slug and HTML content. NovaSEO content IDs are stored as source IDs so retries update the same article rather than creating duplicates. After setting the VPS secret, redeploy/restart the app to load it.
+
 ## View logs
 
 ```bash

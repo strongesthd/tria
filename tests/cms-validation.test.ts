@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { cmsPageContentSchema, cmsPageFooterSettingsSchema, newsArticleSchema } from "../lib/validation";
 import { sanitizeContentHtml } from "../lib/sanitize-content";
+import { createHmac } from "node:crypto";
+import { isValidNovaSeoSignature } from "../lib/novaseo-webhook";
 
 const validPageContent = {
   title: "  Điều khoản sử dụng ",
@@ -66,4 +68,13 @@ test("rich content keeps formatting and local media while stripping executable H
   assert.match(safe, /<strong>Text<\/strong>/);
   assert.match(safe, /src="\/api\/media\/abc123"/);
   assert.doesNotMatch(safe, /onerror|<script|javascript:/i);
+});
+
+test("NovaSEO webhook signatures validate the exact request body", () => {
+  const body = JSON.stringify({ title: "Article", slug: "article" });
+  const signature = createHmac("sha256", "shared-secret").update(body).digest("hex");
+  assert.equal(isValidNovaSeoSignature(body, signature, "shared-secret"), true);
+  assert.equal(isValidNovaSeoSignature(`${body} `, signature, "shared-secret"), false);
+  assert.equal(isValidNovaSeoSignature(body, signature, "wrong-secret"), false);
+  assert.equal(isValidNovaSeoSignature(body, "invalid", "shared-secret"), false);
 });

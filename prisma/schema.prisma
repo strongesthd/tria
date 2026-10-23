@@ -112,6 +112,7 @@ model CmsPage {
 
 model NewsArticle {
   id                String   @id @default(cuid())
+  sourceId          String?  @unique
   slug              String   @unique
   title             String
   excerpt           String   @default("")
