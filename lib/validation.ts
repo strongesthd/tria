@@ -155,13 +155,32 @@ export const cmsPageFooterSettingsSchema = z.object({
   published: z.boolean(),
 }).strict();
 
+export const newsArticleSeoFieldsSchema = z.object({
+  seoTitle: z.string().trim().min(1, "Vui lòng nhập tiêu đề SEO.").max(180, "Tiêu đề SEO quá dài."),
+  metaDescription: z.string().trim().min(1, "Vui lòng nhập thẻ Description.").max(300, "Thẻ Description quá dài."),
+  focusKeyword: z.string().trim().min(1, "Vui lòng nhập từ khóa chính.").max(100, "Từ khóa chính quá dài."),
+  secondaryKeywords: z.string().trim().min(1, "Vui lòng nhập từ khóa phụ.").max(300, "Từ khóa phụ quá dài."),
+});
+
 export const newsArticleSchema = z.object({
   title: z.string().trim().min(2, "Tiêu đề quá ngắn.").max(180),
   slug: cmsSlugSchema,
   excerpt: z.string().trim().max(300, "Mô tả ngắn quá dài."),
+  seoTitle: z.string().trim().max(180, "Tiêu đề SEO quá dài.").default(""),
+  metaDescription: z.string().trim().max(300, "Thẻ Description quá dài.").default(""),
+  focusKeyword: z.string().trim().max(100, "Từ khóa chính quá dài.").default(""),
+  secondaryKeywords: z.string().trim().max(300, "Từ khóa phụ quá dài.").default(""),
   content: z.string().trim().min(1, "Nội dung không được để trống.").max(100_000),
   image: cmsImageSchema,
   published: z.boolean(),
+}).superRefine((article, context) => {
+  if (!article.published) return;
+  const seo = newsArticleSeoFieldsSchema.safeParse(article);
+  if (!seo.success) {
+    for (const issue of seo.error.issues) {
+      context.addIssue({ code: "custom", path: issue.path, message: issue.message });
+    }
+  }
 });
 
 /** Turns a ZodError into a flat `field -> message` map for form rendering. */

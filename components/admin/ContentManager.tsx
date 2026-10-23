@@ -26,7 +26,15 @@ type NewsArticle = {
 };
 type CommunityPost = { id: string; title: string; category: string; published: boolean; reviewedAt: string | null; createdAt: string; source: "community" };
 type CommunityPostDetail = CommunityPost & { content: string; image: string | null; author: { name: string | null } };
-type NewsArticleDetail = NewsArticle & { excerpt: string; content: string; image: string | null };
+type NewsArticleDetail = NewsArticle & {
+  excerpt: string;
+  seoTitle: string;
+  metaDescription: string;
+  focusKeyword: string;
+  secondaryKeywords: string;
+  content: string;
+  image: string | null;
+};
 type ContentListItem = CmsPage | NewsArticle | CommunityPost;
 type ContentItem = CmsPageDetail | NewsArticleDetail;
 
@@ -45,6 +53,7 @@ export default function ContentManager() {
   const [editor, setEditor] = useState<ContentItem | "new" | null>(null);
   const [communityReview, setCommunityReview] = useState<CommunityPostDetail | null>(null);
   const [busy, setBusy] = useState(false);
+  const [publishArticle, setPublishArticle] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -85,6 +94,10 @@ export default function ContentManager() {
           content: String(form.get("content") || ""),
           published: form.get("published") === "on",
           excerpt: String(form.get("excerpt") || ""),
+          seoTitle: String(form.get("seoTitle") || ""),
+          metaDescription: String(form.get("metaDescription") || ""),
+          focusKeyword: String(form.get("focusKeyword") || ""),
+          secondaryKeywords: String(form.get("secondaryKeywords") || ""),
           image: String(form.get("image") || "") || null,
         };
         if (editor === "new") await createNewsArticle(draft);
@@ -118,6 +131,7 @@ export default function ContentManager() {
       const response = await fetch(`/api/admin/cms?type=${type}&id=${encodeURIComponent(item.id)}`, { cache: "no-store" });
       const payload = await response.json() as { item?: ContentItem; error?: string };
       if (!response.ok || !payload.item) throw new Error(payload.error || "Không tải được nội dung.");
+      setPublishArticle(type === "articles" && payload.item.published);
       setEditor(payload.item);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Không tải được nội dung.");
@@ -174,7 +188,7 @@ export default function ContentManager() {
           <h2 className="text-xl font-bold text-white">Trang nội dung &amp; bài viết</h2>
           <p className="mt-1 text-xs text-[#81746B]">Soạn trang riêng cho website và quản lý bài viết hiện có.</p>
         </div>
-        <button type="button" className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-[#D97706] px-4 text-sm font-bold text-[#1C1613]" onClick={() => { setError(""); setEditor("new"); }}>
+        <button type="button" className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-[#D97706] px-4 text-sm font-bold text-[#1C1613]" onClick={() => { setError(""); setPublishArticle(false); setEditor("new"); }}>
           <Plus className="h-4 w-4" aria-hidden /> {type === "pages" ? "Tạo trang" : "Tạo bài viết"}
         </button>
       </header>
@@ -235,12 +249,19 @@ export default function ContentManager() {
             ) : (
               <>
                 <label className="grid gap-1">Mô tả ngắn<textarea name="excerpt" maxLength={300} rows={2} defaultValue={articleEditor?.excerpt} className="rounded-lg border border-[#3A302B] bg-[#221D1A] px-3 py-2 text-white" /></label>
+                <fieldset className="grid gap-3 rounded-lg border border-[#3A302B] p-4">
+                  <legend className="px-1 font-semibold text-white">Thông tin SEO</legend>
+                  <label className="grid gap-1">Tiêu đề SEO (SEO Title)<input name="seoTitle" required={publishArticle} maxLength={180} defaultValue={articleEditor?.seoTitle} placeholder="Tiêu đề hiển thị trên Google" className="rounded-lg border border-[#3A302B] bg-[#221D1A] px-3 py-2 text-white" /><span className="text-[11px] text-[#81746B]">Nên viết ngắn gọn, mô tả đúng nội dung bài viết.</span></label>
+                  <label className="grid gap-1">Thẻ Description<textarea name="metaDescription" required={publishArticle} maxLength={300} rows={3} defaultValue={articleEditor?.metaDescription} placeholder="Mô tả nội dung bài viết trên kết quả tìm kiếm" className="rounded-lg border border-[#3A302B] bg-[#221D1A] px-3 py-2 text-white" /><span className="text-[11px] text-[#81746B]">Khuyến nghị khoảng 120–160 ký tự; nội dung nên rõ ràng và phù hợp với bài viết.</span></label>
+                  <label className="grid gap-1">Từ khóa chính<input name="focusKeyword" required={publishArticle} maxLength={100} defaultValue={articleEditor?.focusKeyword} placeholder="Ví dụ: cà phê Arabica" className="rounded-lg border border-[#3A302B] bg-[#221D1A] px-3 py-2 text-white" /></label>
+                  <label className="grid gap-1">Từ khóa phụ<input name="secondaryKeywords" required={publishArticle} maxLength={300} defaultValue={articleEditor?.secondaryKeywords} placeholder="Phân cách bằng dấu phẩy" className="rounded-lg border border-[#3A302B] bg-[#221D1A] px-3 py-2 text-white" /></label>
+                </fieldset>
                 <ContentImageField key={articleEditor?.id || "new"} value={articleEditor?.image || ""} />
               </>
             )}
 
             <RichContentEditor key={editor === "new" ? `editor-new-${type}` : `editor-${editor.id}`} name="content" initialContent={pageEditor?.content || articleEditor?.content} />
-            {type === "articles" && <label className="flex items-center gap-2"><input name="published" type="checkbox" defaultChecked={articleEditor?.published} className="accent-[#D97706]" /> Xuất bản công khai</label>}
+            {type === "articles" && <label className="flex items-center gap-2"><input name="published" type="checkbox" checked={publishArticle} onChange={(event) => setPublishArticle(event.currentTarget.checked)} className="accent-[#D97706]" /> Xuất bản công khai</label>}
             {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
             <div className="flex justify-end gap-2">
               <button type="button" disabled={busy} onClick={() => setEditor(null)} className={buttonClass}>Hủy</button>

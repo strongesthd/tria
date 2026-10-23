@@ -36,11 +36,24 @@ test("News article validation enforces content and uploaded image types", () => 
     title: "TRIA ra mắt sản phẩm mới",
     slug: "tria-ra-mat-san-pham-moi",
     excerpt: "",
+    seoTitle: "",
+    metaDescription: "",
+    focusKeyword: "",
+    secondaryKeywords: "",
     content: "Chi tiết bài viết",
     image: null,
     published: false,
   };
   assert.equal(newsArticleSchema.safeParse(article).success, true);
+  assert.equal(newsArticleSchema.safeParse({ ...article, published: true }).success, false);
+  assert.equal(newsArticleSchema.safeParse({
+    ...article,
+    published: true,
+    seoTitle: "TRIA ra mắt sản phẩm mới",
+    metaDescription: "Khám phá sản phẩm mới từ TRIA.",
+    focusKeyword: "sản phẩm TRIA",
+    secondaryKeywords: "cà phê, thiết bị pha chế",
+  }).success, true);
   assert.equal(newsArticleSchema.safeParse({ ...article, image: "data:text/html;base64,SGVsbG8=" }).success, false);
   assert.equal(newsArticleSchema.safeParse({ ...article, content: "" }).success, false);
 });

@@ -5,7 +5,7 @@ import type { ZodType } from "zod";
 import { auth } from "../../auth";
 import { prisma } from "../../lib/prisma";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { cmsPageContentSchema, cmsPageFooterSettingsSchema, footerLinkSchema, newsArticleSchema } from "../../lib/validation";
+import { cmsPageContentSchema, cmsPageFooterSettingsSchema, footerLinkSchema, newsArticleSchema, newsArticleSeoFieldsSchema } from "../../lib/validation";
 import { sanitizeContentHtml } from "../../lib/sanitize-content";
 
 function toSlug(value: string) {
@@ -98,6 +98,15 @@ export async function setCommunityPostPublished(postId: string, published: boole
 export async function setNewsArticlePublished(articleId: string, published: boolean) {
   await requireAdmin();
   const id = parseContentId(articleId);
+  if (published) {
+    const article = await prisma.newsArticle.findUnique({
+      where: { id },
+      select: { seoTitle: true, metaDescription: true, focusKeyword: true, secondaryKeywords: true },
+    });
+    if (!article) throw new Error("Không tìm thấy bài viết.");
+    const seo = newsArticleSeoFieldsSchema.safeParse(article);
+    if (!seo.success) throw new Error(seo.error.issues[0]?.message || "Vui lòng hoàn thiện thông tin SEO trước khi xuất bản.");
+  }
   try {
     const previous = await prisma.newsArticle.findUnique({ where: { id }, select: { publishedAt: true } });
     const article = await prisma.newsArticle.update({

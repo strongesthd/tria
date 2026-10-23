@@ -83,7 +83,7 @@ server {
 2. First the `validate` job runs `tsc --noEmit` + `eslint .` (must pass).
 3. Then `deploy` uploads the source tarball to VPS via SCP.
 4. VPS extracts into `/home/app/triacafe.vn`, keeps `.env.production` untouched.
-5. On first deploy, the `migrator` service runs `prisma db push` to initialise the schema.
+5. On every deploy, the `migrator` service runs `prisma db push` before the web container starts, keeping the VPS database schema in sync with Prisma.
 6. Compose uses the isolated project name `triacafe-prod` and rebuilds only TRIA.
 7. Health check polls `http://127.0.0.1:8082/` until the app is ready.
 
@@ -92,17 +92,17 @@ server {
 ```bash
 ssh -p 2223 root@27.72.104.154
 cd /home/app/triacafe.vn
+docker compose --project-name triacafe-prod --env-file .env.production -f deploy/docker-compose.prod.yml run --build --rm migrator
 docker compose --project-name triacafe-prod --env-file .env.production -f deploy/docker-compose.prod.yml up -d --build --remove-orphans
 ```
 
 ## Database migrations
 
-The workflow runs `prisma db push` on first deploy only.
-For schema changes on subsequent deploys, SSH in and run:
+The GitHub Actions deployment runs `prisma db push` on every deploy, before starting the web container. For a manual deploy or a schema update outside the workflow, run the migrator before rebuilding/restarting the web service:
 
 ```bash
 cd /home/app/triacafe.vn
-docker compose --project-name triacafe-prod --env-file .env.production -f deploy/docker-compose.prod.yml run --rm migrator
+docker compose --project-name triacafe-prod --env-file .env.production -f deploy/docker-compose.prod.yml run --build --rm migrator
 ```
 
 ## View logs

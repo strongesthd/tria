@@ -13,14 +13,19 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const { slug } = await params;
   const article = await prisma.newsArticle.findUnique({ where: { slug, published: true } });
   if (!article) return { title: "Không tìm thấy bài viết" };
-  const description = article.excerpt || article.content.slice(0, 160);
+  const title = article.seoTitle || article.title;
+  const description = article.metaDescription || article.excerpt || article.content.slice(0, 160);
+  const keywords = [article.focusKeyword, ...article.secondaryKeywords.split(",")]
+    .map((keyword) => keyword.trim())
+    .filter(Boolean);
   return {
-    title: article.title,
+    title,
     description,
+    ...(keywords.length ? { keywords } : {}),
     alternates: { canonical: `/tin-tuc/${article.slug}` },
     openGraph: {
       type: "article",
-      title: article.title,
+      title,
       description,
       url: `${SITE_URL}/tin-tuc/${article.slug}`,
       publishedTime: article.publishedAt?.toISOString(),
@@ -48,7 +53,8 @@ export default async function NewsArticlePage({ params }: { params: Params }) {
           "@context": "https://schema.org",
           "@type": "Article",
           headline: article.title,
-          description: article.excerpt || article.content.slice(0, 200),
+          description: article.metaDescription || article.excerpt || article.content.slice(0, 200),
+          keywords: [article.focusKeyword, ...article.secondaryKeywords.split(",")].map((keyword) => keyword.trim()).filter(Boolean),
           datePublished: article.publishedAt?.toISOString(),
           dateModified: article.updatedAt.toISOString(),
           author,

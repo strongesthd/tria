@@ -115,7 +115,7 @@ export default async function Footer() {
                 {data.branches.map((branch) => {
                   const mapHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(branch.address)}`;
                   return (
-                    <li key={branch.id} className="w-full max-w-64 min-w-0 overflow-hidden rounded-md border border-[#DDD0BF] bg-[#FFFCF6] shadow-sm">
+                    <li key={branch.id} className="flex w-full max-w-64 min-w-0 flex-col overflow-hidden rounded-md border border-[#DDD0BF] bg-[#FFFCF6] shadow-sm">
                       <div className="relative aspect-[16/8] overflow-hidden bg-[#DED2C2]">
                         <Image
                           src={branch.image}
@@ -127,7 +127,7 @@ export default async function Footer() {
                           className="h-full w-full object-cover transition-transform duration-300 hover:scale-[1.03]"
                         />
                       </div>
-                      <div className="flex min-h-[190px] flex-col p-4">
+                      <div className="flex min-h-[190px] flex-1 flex-col p-4">
                         <h3 className="line-clamp-2 min-h-10 text-sm font-bold leading-5 text-[#321B0E]">{branch.name}</h3>
                         <p className="mt-3 flex items-start gap-2 text-[11px] leading-4 text-[#65564B]">
                           <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#8A4A24]" aria-hidden />
