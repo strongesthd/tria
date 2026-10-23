@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLdScript } from "../../../components/seo/JsonLdScript";
+import RelatedArticlesCarousel from "../../../components/news/RelatedArticlesCarousel";
 import { prisma } from "../../../lib/prisma";
 import { SITE_URL, buildBreadcrumbJsonLd } from "../../../lib/site-data";
 import { sanitizeContentHtml } from "../../../lib/sanitize-content";
@@ -39,10 +40,17 @@ export default async function NewsArticlePage({ params }: { params: Params }) {
   const { slug } = await params;
   const article = await prisma.newsArticle.findUnique({ where: { slug, published: true } });
   if (!article) notFound();
+  const relatedArticles = await prisma.newsArticle.findMany({
+    where: { published: true, slug: { not: article.slug } },
+    orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+    take: 8,
+    select: { slug: true, title: true, excerpt: true, image: true },
+  });
   const author = { "@type": "Organization", name: "TRIA CAFE" };
 
   return (
-    <article className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+    <main className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+      <article>
       <JsonLdScript data={[
         buildBreadcrumbJsonLd([
           { name: "Trang chủ", href: "/" },
@@ -74,6 +82,8 @@ export default async function NewsArticlePage({ params }: { params: Params }) {
         className="cms-content mt-6 whitespace-pre-wrap break-words rounded-2xl border border-[#2A2421] bg-[#171412] p-6 text-sm leading-7 text-[#E8E2D9] sm:p-8"
         dangerouslySetInnerHTML={{ __html: sanitizeContentHtml(article.content) }}
       />
-    </article>
+      </article>
+      <RelatedArticlesCarousel articles={relatedArticles} />
+    </main>
   );
 }
