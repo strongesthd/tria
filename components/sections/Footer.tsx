@@ -197,8 +197,12 @@ export default async function Footer() {
       </section>
 
       <div className="bg-[#3A2115] text-[#F4EBDD]">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 text-xs sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 text-xs sm:px-6 lg:px-8">
           <p>© {new Date().getFullYear()} TRIA CAFE. Cà phê Việt &amp; giải pháp pha chế hiện đại.</p>
+          <p className="leading-5 text-[#D8C8B9]">
+            TRIA CAFE là thương hiệu thuộc sở hữu của CÔNG TY CỔ PHẦN NHÀ ĐẸP VIỆT NAM ·
+            GPĐKKD số 0103395977 do Sở Kế hoạch và Đầu tư thành phố Hà Nội cấp ngày 19/02/2009.
+          </p>
           {bottomPolicyLinks.length > 0 && (
             <div className="flex flex-wrap gap-x-4 gap-y-2">
               {bottomPolicyLinks.map((item) => (
