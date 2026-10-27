@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { Coffee, Star } from "lucide-react";
 import { JsonLdScript } from "../../components/seo/JsonLdScript";
+import { prisma } from "../../lib/prisma";
+import { toSiteProduct } from "../../lib/product-data";
 import AddToCartButton from "../../components/shop/AddToCartButton";
 import {
   PRODUCTS,
@@ -14,6 +16,21 @@ import {
 } from "../../lib/site-data";
 
 type SearchParams = Promise<{ category?: string; target?: string; q?: string }>;
+
+export const dynamic = "force-dynamic";
+
+async function getProducts() {
+  try {
+    const products = await prisma.product.findMany({
+      where: { active: true },
+      orderBy: { createdAt: "asc" },
+    });
+    if (products.length) return products.map(toSiteProduct);
+  } catch (error) {
+    console.error("[product-list] Could not load products from the database.", error);
+  }
+  return PRODUCTS;
+}
 
 /** Build a unique, length-optimised title for every filter combination. */
 function seoTitle(category: string, target: string): string {
@@ -70,11 +87,12 @@ function h1Text(category: string, target: string): string {
 
 export default async function ProductsPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
+  const products = await getProducts();
   const category = params.category || "all";
   const target = params.target || "all";
   const query = (params.q || "").trim().toLowerCase();
 
-  const filtered = PRODUCTS.filter((p) => {
+  const filtered = products.filter((p) => {
     const matchesCategory = category === "all" || p.category === (category as ProductCategory);
     const matchesTarget = target === "all" || p.target === (target as Target);
     const matchesQuery =

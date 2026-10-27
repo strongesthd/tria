@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { prisma } from "../lib/prisma";
 import { PRODUCT_CATEGORIES, PRODUCTS, SITE_NAME, type Product } from "../lib/site-data";
+import { toSiteProduct } from "../lib/product-data";
 import { Hero, Pillars, ProductCategoryCards, FeaturedProducts, TrustBanner, CoffeeStories } from "../components/sections/HomeSections";
 
 export const metadata: Metadata = {
@@ -27,22 +28,7 @@ async function getHomepageData(): Promise<{
       }),
     ]);
     if (!dbProducts.length) return { products: PRODUCTS, branchCount, stories };
-    const products: Product[] = dbProducts.map((p) => ({
-      id: p.id,
-      slug: p.slug,
-      name: p.name,
-      category: p.category as Product["category"],
-      target: p.target as Product["target"],
-      price: p.price,
-      unit: p.unit,
-      roastLevel: p.roastLevel,
-      notes: p.notes,
-      image: p.image,
-      images: p.images,
-      description: p.description,
-      rating: p.rating,
-      reviews: p.reviews,
-    }));
+    const products: Product[] = dbProducts.map(toSiteProduct);
     return { products, branchCount, stories };
   } catch (error) {
     console.error("[homepage] Could not load homepage data from the database.", error);

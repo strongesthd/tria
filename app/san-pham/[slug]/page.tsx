@@ -7,16 +7,26 @@ import AddToCartButton from "../../../components/shop/AddToCartButton";
 import BeanPurchaseOptions from "../../../components/shop/BeanPurchaseOptions";
 import ProductGallery from "../../../components/shop/ProductGallery";
 import { HOTLINE, PRODUCTS, buildProductJsonLd, buildBreadcrumbJsonLd } from "../../../lib/site-data";
+import { prisma } from "../../../lib/prisma";
+import { toSiteProduct } from "../../../lib/product-data";
 
 type Params = Promise<{ slug: string }>;
 
-export function generateStaticParams() {
-  return PRODUCTS.map((p) => ({ slug: p.slug }));
+export const dynamic = "force-dynamic";
+
+async function getProduct(slug: string) {
+  try {
+    const record = await prisma.product.findUnique({ where: { slug, active: true } });
+    if (record) return toSiteProduct(record);
+  } catch (error) {
+    console.error(`[product-detail] Could not load product "${slug}" from the database.`, error);
+  }
+  return PRODUCTS.find((product) => product.slug === slug);
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
-  const product = PRODUCTS.find((p) => p.slug === slug);
+  const product = await getProduct(slug);
   if (!product) return {};
   return {
     title: product.name,
@@ -33,7 +43,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
 export default async function ProductDetailPage({ params }: { params: Params }) {
   const { slug } = await params;
-  const product = PRODUCTS.find((p) => p.slug === slug);
+  const product = await getProduct(slug);
   if (!product) notFound();
 
   return (

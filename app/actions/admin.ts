@@ -7,6 +7,7 @@ import { prisma } from "../../lib/prisma";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { cmsPageContentSchema, cmsPageFooterSettingsSchema, footerLinkSchema, newsArticleSchema, newsArticleSeoFieldsSchema } from "../../lib/validation";
 import { sanitizeContentHtml } from "../../lib/sanitize-content";
+import { parseProductPriceOptionsInput } from "../../lib/product-pricing";
 
 function toSlug(value: string) {
   return value
@@ -134,27 +135,44 @@ export async function updateProductStatus(productId: string, active: boolean) {
   revalidatePath("/admin");
 }
 
-export async function createProduct(data: { slug: string; name: string; category: string; target: string; price: number; unit: string; roastLevel: string; notes: string; description: string; image: string; images?: string[] }) {
+type ProductInput = { slug: string; name: string; category: string; target: string; price: number; unit: string; priceOptions: string; roastLevel: string; notes: string; description: string; image: string; images?: string[] };
+
+export async function createProduct(data: ProductInput) {
   await requireAdmin();
   validateImagePayload(data.image, data.images);
   const slug = toSlug(data.name);
   const duplicate = await prisma.product.findUnique({ where: { slug }, select: { id: true } });
   if (duplicate) throw new Error("Tên sản phẩm đã tồn tại, slug bị trùng.");
-  const product = await prisma.product.create({ data: { ...data, slug } });
+  const priceOptions = parseProductPriceOptionsInput(data.priceOptions, data.unit, data.price, data.category);
+  const product = await prisma.product.create({
+    data: {
+      ...data,
+      slug,
+      priceOptions: priceOptions ?? Prisma.DbNull,
+    },
+  });
   revalidateTag("site-footer");
-  revalidatePath("/admin"); revalidatePath("/"); revalidatePath("/san-pham");
+  revalidatePath("/admin"); revalidatePath("/"); revalidatePath("/san-pham"); revalidatePath(`/san-pham/${slug}`);
   return product;
 }
 
-export async function updateProduct(productId: string, data: { slug: string; name: string; category: string; target: string; price: number; unit: string; roastLevel: string; notes: string; description: string; image: string; images?: string[] }) {
+export async function updateProduct(productId: string, data: ProductInput) {
   await requireAdmin();
   validateImagePayload(data.image, data.images);
   const slug = toSlug(data.name);
   const duplicate = await prisma.product.findFirst({ where: { slug, NOT: { id: productId } }, select: { id: true } });
   if (duplicate) throw new Error("Tên sản phẩm đã tồn tại, slug bị trùng.");
-  const product = await prisma.product.update({ where: { id: productId }, data: { ...data, slug } });
+  const priceOptions = parseProductPriceOptionsInput(data.priceOptions, data.unit, data.price, data.category);
+  const product = await prisma.product.update({
+    where: { id: productId },
+    data: {
+      ...data,
+      slug,
+      priceOptions: priceOptions ?? Prisma.DbNull,
+    },
+  });
   revalidateTag("site-footer");
-  revalidatePath("/admin"); revalidatePath("/"); revalidatePath("/san-pham");
+  revalidatePath("/admin"); revalidatePath("/"); revalidatePath("/san-pham"); revalidatePath(`/san-pham/${slug}`);
   return product;
 }
 

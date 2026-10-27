@@ -96,6 +96,11 @@ async function main() {
       target: "b2c",
       price: 185000,
       unit: "250g",
+      priceOptions: [
+        { unit: "250g", price: 185000 },
+        { unit: "500g", price: 280000 },
+        { unit: "1kg", price: 405000 },
+      ],
       roastLevel: "Medium Roast",
       notes: "Dark Chocolate, Ripe Berry, Caramel Finish",
       image: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?auto=format&fit=crop&q=80&w=600",
@@ -111,6 +116,11 @@ async function main() {
       target: "b2b",
       price: 320000,
       unit: "1Kg",
+      priceOptions: [
+        { unit: "250g", price: 320000 },
+        { unit: "500g", price: 415000 },
+        { unit: "1kg", price: 540000 },
+      ],
       roastLevel: "Medium-Dark",
       notes: "Nhiều Crema, Vị Đậm Đà, Hậu Vị Ngọt",
       image: "https://images.unsplash.com/photo-1587734195503-904fca47e0e9?auto=format&fit=crop&q=80&w=600",
