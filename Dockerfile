@@ -11,7 +11,7 @@ RUN npm ci
 FROM dependencies AS migrator
 COPY prisma ./prisma
 RUN npx prisma generate
-CMD ["npx", "prisma", "db", "push", "--skip-generate"]
+CMD ["sh", "-c", "node prisma/prepare-product-source-id.js && npx prisma db push --skip-generate"]
 
 FROM base AS builder
 COPY --from=dependencies /app/node_modules ./node_modules

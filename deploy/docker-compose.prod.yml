@@ -61,7 +61,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: ["npx", "prisma", "db", "push", "--skip-generate"]
+    command: ["sh", "-c", "node prisma/prepare-product-source-id.js && npx prisma db push --skip-generate"]
 
 volumes:
   tria_postgres_data:
