@@ -75,3 +75,18 @@ export function formatProductPriceOptions(value: unknown, price: number): string
     .map(({ unit, price: optionPrice }) => `${unit}: ${optionPrice}`)
     .join("\n");
 }
+
+export function getCartProductPrice(
+  product: { id: string; category: string; price: number; priceOptions?: unknown },
+  cartProductId: string,
+): { price: number; unit: string | null } | null {
+  if (cartProductId === product.id) return { price: product.price, unit: null };
+  if (!cartProductId.startsWith(`${product.id}-`)) return null;
+
+  const suffix = cartProductId.slice(product.id.length + 1);
+  if (product.category !== "beans") return null;
+  const option = getBeanPriceOptions(product.price, product.priceOptions)
+    .sort((left, right) => right.unit.length - left.unit.length)
+    .find(({ unit }) => suffix === unit || suffix.startsWith(`${unit}-`));
+  return option ? { price: option.price, unit: option.unit } : null;
+}

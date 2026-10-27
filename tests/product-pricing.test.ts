@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   formatProductPriceOptions,
+  getCartProductPrice,
   getBeanPriceOptions,
   parseProductPriceOptions,
   parseProductPriceOptionsInput,
@@ -38,4 +39,16 @@ test("valid stored options override legacy defaults and invalid values fall back
   assert.deepEqual(getBeanPriceOptions(185000, configured), configured);
   assert.deepEqual(parseProductPriceOptions([{ unit: "250g", price: -1 }]), []);
   assert.equal(formatProductPriceOptions(configured, 185000), "200g: 175000\n1kg: 700000");
+});
+
+test("cart pricing uses the server-configured option price and rejects unknown options", () => {
+  const product = {
+    id: "product-123",
+    category: "beans",
+    price: 185000,
+    priceOptions: [{ unit: "250g", price: 185000 }, { unit: "500g", price: 280000 }],
+  };
+  assert.deepEqual(getCartProductPrice(product, "product-123-500g-espresso"), { price: 280000, unit: "500g" });
+  assert.equal(getCartProductPrice(product, "product-123-750g-espresso"), null);
+  assert.deepEqual(getCartProductPrice(product, "product-123"), { price: 185000, unit: null });
 });

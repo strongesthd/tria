@@ -116,6 +116,12 @@ Secret: the same value as NOVASEO_WEBHOOK_SECRET
 
 NovaSEO signs the exact JSON request body with HMAC-SHA256 in `X-NovaSEO-Signature`. Published articles must include title, SEO title, meta description, primary/secondary keywords, slug and HTML content. NovaSEO content IDs are stored as source IDs so retries update the same article rather than creating duplicates. After setting the VPS secret, redeploy/restart the app to load it.
 
+## Chatbot product publishing
+
+Set `TRIA_CHATBOT_WEBHOOK_SECRET` in the VPS `.env.production` to a strong shared secret. In the chatbot tenant's Website channel, choose `TRIA CAFE`, set the website URL to `https://triacafe.vn`, and enter the same value as the API Key / Webhook secret. Publish products with the Website platform enabled. The chatbot signs each request with HMAC-SHA256 in `X-Tria-Signature`; TRIA upserts products by the chatbot source ID, so republishing updates the existing product. Product edits and status changes sync too; deleting a linked chatbot product unpublishes it on TRIA.
+
+The TRIA deploy workflow reads `.env.production` on every deployment. After adding or changing `TRIA_CHATBOT_WEBHOOK_SECRET`, run a deployment/restart so the web container loads it. Product image URLs uploaded by the chatbot use `https://chatbot.novatechhp.vn`.
+
 ## View logs
 
 ```bash

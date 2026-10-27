@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --import tsx --test tests/footer-link-validation.test.ts tests/footer-data-utils.test.ts tests/cms-validation.test.ts tests/product-pricing.test.ts",
+    "test": "node --import tsx --test tests/footer-link-validation.test.ts tests/footer-data-utils.test.ts tests/cms-validation.test.ts tests/product-pricing.test.ts tests/chatbot-product-webhook.test.ts",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",

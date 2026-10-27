@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "../../../auth";
 import { prisma } from "../../../lib/prisma";
 import { checkoutSchema } from "../../../lib/validation";
+import { getCartProductPrice } from "../../../lib/product-pricing";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -17,7 +18,14 @@ export async function POST(request: Request) {
     const items = parsed.data.items.map((item) => {
       const product = productMap.get(item.id.split("-")[0]);
       if (!product) throw new Error("Sản phẩm không tồn tại.");
-      return { productId: product.id, name: product.name, unitPrice: product.price, quantity: item.quantity };
+      const selectedPrice = getCartProductPrice(product, item.id);
+      if (!selectedPrice) throw new Error("Tùy chọn sản phẩm không hợp lệ.");
+      return {
+        productId: product.id,
+        name: selectedPrice.unit ? `${product.name} · ${selectedPrice.unit}` : product.name,
+        unitPrice: selectedPrice.price,
+        quantity: item.quantity,
+      };
     });
     const total = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
     const order = await prisma.order.create({ data: { userId: session.user.id, name: parsed.data.name, phone: parsed.data.phone, address: parsed.data.address, total, items: { create: items } }, select: { id: true, total: true } });

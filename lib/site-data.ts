@@ -9,7 +9,7 @@ export const SITE_URL =
 export const SITE_NAME = "TRIA CAFE";
 
 export type ProductCategory = "beans" | "machines" | "accessories";
-export type Target = "b2c" | "b2b";
+export type Target = "b2c" | "b2b" | "both";
 export type ProductPriceOption = { unit: string; price: number };
 
 export type Product = {

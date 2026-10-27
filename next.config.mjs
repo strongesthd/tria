@@ -11,7 +11,7 @@ const csp = [
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com",
-  "img-src 'self' data: blob: https://images.unsplash.com https://*.googleusercontent.com https://lh3.googleusercontent.com https://platform-lookaside.fbsbx.com",
+  "img-src 'self' data: blob: https://images.unsplash.com https://*.googleusercontent.com https://lh3.googleusercontent.com https://platform-lookaside.fbsbx.com https://chatbot.novatechhp.vn",
   "connect-src 'self' https://accounts.google.com https://www.facebook.com",
   "frame-src https://accounts.google.com https://www.facebook.com",
   "form-action 'self' https://accounts.google.com https://www.facebook.com",
@@ -67,6 +67,7 @@ const nextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
       { protocol: "https", hostname: "lh3.googleusercontent.com", pathname: "/**" },
+      { protocol: "https", hostname: "chatbot.novatechhp.vn", pathname: "/uploads/product-images/**" },
     ],
   },
 };

@@ -6,7 +6,7 @@ import { prisma } from "../../../../../lib/prisma";
 import { rateLimit, clientIp } from "../../../../../lib/rate-limit";
 import { sanitizeContentHtml } from "../../../../../lib/sanitize-content";
 import { SITE_URL } from "../../../../../lib/site-data";
-import { isValidNovaSeoSignature } from "../../../../../lib/novaseo-webhook";
+import { isValidWebhookSignature } from "../../../../../lib/novaseo-webhook";
 
 export const runtime = "nodejs";
 
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
   }
 
   const signature = request.headers.get("x-novaseo-signature") || "";
-  if (!isValidNovaSeoSignature(rawBody, signature, secret)) {
+  if (!isValidWebhookSignature(rawBody, signature, secret)) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
