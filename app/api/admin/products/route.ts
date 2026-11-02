@@ -1,7 +1,29 @@
 import { NextResponse } from "next/server";
-import { Role } from "@prisma/client";
+import { Prisma, Role } from "@prisma/client";
 import { auth } from "../../../../auth";
 import { prisma } from "../../../../lib/prisma";
+import { parseProductPriceOptionsInput } from "../../../../lib/product-pricing";
+import { sanitizeContentHtml } from "../../../../lib/sanitize-content";
+
+function toSlug(value: string) {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/đ/g, "d").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+type ProductPayload = { name: string; category: string; target: string; price: number; unit: string; priceOptions: string; accessoryIds?: string[]; roastLevel: string; notes: string; description: string; image: string; images?: string[] };
+
+async function validatePayload(data: ProductPayload) {
+  const slug = toSlug(data.name);
+  if (!slug || !data.name || !data.category || !data.target || !Number.isSafeInteger(data.price) || data.price < 1 || !data.unit || !data.image) {
+    throw new Error("Vui lòng nhập đầy đủ thông tin sản phẩm.");
+  }
+  const accessoryIds = data.category === "machines" ? [...new Set(data.accessoryIds || [])] : [];
+  if (accessoryIds.length > 12 || accessoryIds.some((id) => typeof id !== "string" || !id)) throw new Error("Danh sách phụ kiện không hợp lệ.");
+  if (accessoryIds.length) {
+    const accessories = await prisma.product.count({ where: { id: { in: accessoryIds }, category: "accessories", active: true } });
+    if (accessories !== accessoryIds.length) throw new Error("Một hoặc nhiều phụ kiện không còn kinh doanh.");
+  }
+  return { ...data, slug, accessoryIds, notes: sanitizeContentHtml(data.notes || ""), description: sanitizeContentHtml(data.description || ""), priceOptions: parseProductPriceOptionsInput(data.priceOptions || "", data.unit, data.price, data.category) };
+}
 
 export async function GET(request: Request) {
   const session = await auth();
@@ -18,4 +40,40 @@ export async function GET(request: Request) {
   };
   const [total, items] = await Promise.all([prisma.product.count({ where }), prisma.product.findMany({ where, orderBy: sort, skip: (page - 1) * pageSize, take: pageSize })]);
   return NextResponse.json({ items, page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) });
+}
+
+async function requireAdmin() {
+  const session = await auth();
+  if (session?.user?.role !== Role.ADMIN) throw new Error("Bạn không có quyền quản trị.");
+}
+
+export async function POST(request: Request) {
+  try {
+    await requireAdmin();
+    const data = await validatePayload(await request.json() as ProductPayload);
+    const duplicate = await prisma.product.findUnique({ where: { slug: data.slug }, select: { id: true } });
+    if (duplicate) return NextResponse.json({ error: "Tên sản phẩm đã tồn tại, slug bị trùng." }, { status: 409 });
+    const product = await prisma.product.create({ data: { ...data, priceOptions: data.priceOptions ?? Prisma.DbNull } });
+    return NextResponse.json({ product }, { status: 201 });
+  } catch (error) {
+    console.error("[admin-products] Could not create product.", error);
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Không thể lưu sản phẩm." }, { status: 400 });
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    await requireAdmin();
+    const body = await request.json() as ProductPayload & { id?: string };
+    const { id, ...payload } = body;
+    if (!id) return NextResponse.json({ error: "Thiếu mã sản phẩm." }, { status: 400 });
+    const data = await validatePayload(payload);
+    const duplicate = await prisma.product.findFirst({ where: { slug: data.slug, NOT: { id } }, select: { id: true } });
+    if (duplicate) return NextResponse.json({ error: "Tên sản phẩm đã tồn tại, slug bị trùng." }, { status: 409 });
+    const product = await prisma.product.update({ where: { id }, data: { ...data, priceOptions: data.priceOptions ?? Prisma.DbNull } });
+    return NextResponse.json({ product });
+  } catch (error) {
+    console.error("[admin-products] Could not update product.", error);
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Không thể lưu sản phẩm." }, { status: 400 });
+  }
 }

@@ -28,7 +28,7 @@ export default function ProductDetailTabs({ description, notes, roastLevel }: Pr
           <div className="cms-rich-editor text-sm leading-7 text-[#D8CDC2]" dangerouslySetInnerHTML={{ __html: description }} />
           <div className="h-fit rounded-2xl border border-[#2A2421] bg-[#171412] p-5 text-sm">
             <h2 className="flex items-center gap-2 font-bold text-white">Đặc tính nổi bật</h2>
-            <p className="mt-3 text-[#D8CDC2]">{notes || "Đang cập nhật"}</p>
+            <div className="cms-rich-editor mt-3 text-[#D8CDC2]" dangerouslySetInnerHTML={{ __html: notes || "<p>Đang cập nhật</p>" }} />
             {roastLevel && <p className="mt-3 text-xs text-[#A69B93]">Mức rang: {roastLevel}</p>}
           </div>
         </div>

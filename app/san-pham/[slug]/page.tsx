@@ -92,7 +92,7 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
             </div>
           </div>
 
-          <p className="text-sm leading-7 text-[#B9A99B]">{product.notes || "Thông tin sản phẩm đang được cập nhật."}</p>
+          <div className="cms-rich-editor text-sm leading-7 text-[#B9A99B]" dangerouslySetInnerHTML={{ __html: sanitizeContentHtml(product.notes || "<p>Thông tin sản phẩm đang được cập nhật.</p>") }} />
 
           {product.category === "beans" ? (
             <BeanPurchaseOptions product={product} />

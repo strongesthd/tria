@@ -164,6 +164,7 @@ export async function createProduct(data: ProductInput) {
   const product = await prisma.product.create({
     data: {
       ...data,
+      notes: sanitizeContentHtml(data.notes),
       description: sanitizeContentHtml(data.description),
       accessoryIds,
       slug,
@@ -187,6 +188,7 @@ export async function updateProduct(productId: string, data: ProductInput) {
     where: { id: productId },
     data: {
       ...data,
+      notes: sanitizeContentHtml(data.notes),
       description: sanitizeContentHtml(data.description),
       accessoryIds,
       slug,
