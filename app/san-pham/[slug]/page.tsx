@@ -49,6 +49,13 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
   const { slug } = await params;
   const product = await getProduct(slug);
   if (!product) notFound();
+  let viewedProducts = PRODUCTS;
+  try {
+    const records = await prisma.product.findMany({ where: { active: true }, orderBy: { createdAt: "desc" } });
+    if (records.length) viewedProducts = records.map(toSiteProduct);
+  } catch (error) {
+    console.error("[product-detail] Could not load viewed product candidates.", error);
+  }
   const accessories = product.category === "machines" && product.accessoryIds?.length
     ? await prisma.product.findMany({ where: { id: { in: product.accessoryIds }, category: "accessories", active: true } }).then((records) => records.map(toSiteProduct))
     : [];
@@ -120,8 +127,8 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
       </div>
       <ProductDetailTabs
         description={sanitizeContentHtml(product.description)}
-        notes={product.notes}
-        roastLevel={product.roastLevel}
+        product={product}
+        viewedProducts={viewedProducts}
       />
     </div>
   );
