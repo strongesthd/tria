@@ -10,6 +10,23 @@ function toSlug(value: string) {
 }
 
 type ProductPayload = { name: string; category: string; target: string; price: number; unit: string; priceOptions: string; accessoryIds?: string[]; roastLevel: string; technicalSpecs?: string; notes: string; description: string; image: string; images?: string[] };
+const adminProductSelect = {
+  id: true,
+  slug: true,
+  name: true,
+  category: true,
+  target: true,
+  price: true,
+  unit: true,
+  priceOptions: true,
+  accessoryIds: true,
+  roastLevel: true,
+  notes: true,
+  description: true,
+  image: true,
+  images: true,
+  active: true,
+} as const;
 
 async function validatePayload(data: ProductPayload) {
   const slug = toSlug(data.name);
@@ -40,7 +57,7 @@ export async function GET(request: Request) {
       ...(category ? { category } : {}),
       ...(q ? { OR: [{ name: { contains: q, mode: "insensitive" as const } }, { slug: { contains: q, mode: "insensitive" as const } }, { category: { contains: q, mode: "insensitive" as const } }] } : {}),
     };
-    const [total, items] = await Promise.all([prisma.product.count({ where }), prisma.product.findMany({ where, orderBy: sort, skip: (page - 1) * pageSize, take: pageSize })]);
+    const [total, items] = await Promise.all([prisma.product.count({ where }), prisma.product.findMany({ where, orderBy: sort, skip: (page - 1) * pageSize, take: pageSize, select: adminProductSelect })]);
     return NextResponse.json({ items, page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) });
   } catch (error) {
     console.error("[admin-products] Could not load products with technical specs.", error);
@@ -59,7 +76,7 @@ export async function POST(request: Request) {
     const data = await validatePayload(await request.json() as ProductPayload);
     const duplicate = await prisma.product.findUnique({ where: { slug: data.slug }, select: { id: true } });
     if (duplicate) return NextResponse.json({ error: "Tên sản phẩm đã tồn tại, slug bị trùng." }, { status: 409 });
-    const product = await prisma.product.create({ data: { ...data, priceOptions: data.priceOptions ?? Prisma.DbNull } });
+    const product = await prisma.product.create({ data: { ...data, priceOptions: data.priceOptions ?? Prisma.DbNull }, select: adminProductSelect });
     return NextResponse.json({ product }, { status: 201 });
   } catch (error) {
     console.error("[admin-products] Could not create product.", error);
@@ -76,7 +93,7 @@ export async function PATCH(request: Request) {
     const data = await validatePayload(payload);
     const duplicate = await prisma.product.findFirst({ where: { slug: data.slug, NOT: { id } }, select: { id: true } });
     if (duplicate) return NextResponse.json({ error: "Tên sản phẩm đã tồn tại, slug bị trùng." }, { status: 409 });
-    const product = await prisma.product.update({ where: { id }, data: { ...data, priceOptions: data.priceOptions ?? Prisma.DbNull } });
+    const product = await prisma.product.update({ where: { id }, data: { ...data, priceOptions: data.priceOptions ?? Prisma.DbNull }, select: adminProductSelect });
     return NextResponse.json({ product });
   } catch (error) {
     console.error("[admin-products] Could not update product.", error);
