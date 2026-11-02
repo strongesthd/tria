@@ -12,6 +12,7 @@ export function toSiteProduct(record: {
   priceOptions: unknown;
   accessoryIds: string[];
   roastLevel: string | null;
+  technicalSpecs: unknown;
   notes: string;
   image: string;
   images: string[];
@@ -25,5 +26,8 @@ export function toSiteProduct(record: {
     target: record.target as Product["target"],
     priceOptions: parseProductPriceOptions(record.priceOptions),
     accessoryIds: record.accessoryIds,
+    technicalSpecs: record.technicalSpecs && typeof record.technicalSpecs === "object" && !Array.isArray(record.technicalSpecs)
+      ? record.technicalSpecs as Record<string, string>
+      : {},
   };
 }

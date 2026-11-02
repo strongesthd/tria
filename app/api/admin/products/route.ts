@@ -9,7 +9,7 @@ function toSlug(value: string) {
   return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/đ/g, "d").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
 
-type ProductPayload = { name: string; category: string; target: string; price: number; unit: string; priceOptions: string; accessoryIds?: string[]; roastLevel: string; notes: string; description: string; image: string; images?: string[] };
+type ProductPayload = { name: string; category: string; target: string; price: number; unit: string; priceOptions: string; accessoryIds?: string[]; roastLevel: string; technicalSpecs?: string; notes: string; description: string; image: string; images?: string[] };
 
 async function validatePayload(data: ProductPayload) {
   const slug = toSlug(data.name);
@@ -22,7 +22,8 @@ async function validatePayload(data: ProductPayload) {
     const accessories = await prisma.product.count({ where: { id: { in: accessoryIds }, category: "accessories", active: true } });
     if (accessories !== accessoryIds.length) throw new Error("Một hoặc nhiều phụ kiện không còn kinh doanh.");
   }
-  return { ...data, slug, accessoryIds, notes: sanitizeContentHtml(data.notes || ""), description: sanitizeContentHtml(data.description || ""), priceOptions: parseProductPriceOptionsInput(data.priceOptions || "", data.unit, data.price, data.category) };
+  const technicalSpecs = Object.fromEntries((data.technicalSpecs || "").split("\n").map((line) => line.split(":").map((part) => part.trim())).filter(([label, value]) => label && value).map(([label, value]) => [label, value]));
+  return { ...data, slug, accessoryIds, technicalSpecs, notes: sanitizeContentHtml(data.notes || ""), description: sanitizeContentHtml(data.description || ""), priceOptions: parseProductPriceOptionsInput(data.priceOptions || "", data.unit, data.price, data.category) };
 }
 
 export async function GET(request: Request) {

@@ -31,6 +31,7 @@ export default function ProductDetailTabs({ description, product, viewedProducts
 
   const categoryLabels = { beans: "Cà phê hạt", machines: "Máy pha cà phê", accessories: "Phụ kiện" };
   const specifications = [
+    ...Object.entries(product.technicalSpecs || {}),
     ["Sản phẩm", product.name],
     ["Danh mục", categoryLabels[product.category]],
     ["Đơn vị", product.unit],
@@ -64,6 +65,27 @@ export default function ProductDetailTabs({ description, product, viewedProducts
                 ))}
               </dl>
             </div>
+            {recentProducts.length > 1 && (
+              <section className="mt-8 border-t border-[#2A2421] pt-6">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <h2 className="text-xl font-bold text-white">Sản phẩm đã xem</h2>
+                  <button type="button" onClick={() => { localStorage.removeItem(VIEWED_PRODUCTS_KEY); setRecentProducts([]); }} className="text-xs text-[#A69B93] hover:text-[#E2A168]">
+                    Xóa lịch sử
+                  </button>
+                </div>
+                <div className="grid gap-4">
+                  {recentProducts.filter((item) => item.slug !== product.slug).map((item) => (
+                    <Link key={item.slug} href={`/san-pham/${item.slug}`} className="overflow-hidden rounded-2xl border border-[#3A302B] bg-[#171412] transition hover:-translate-y-1 hover:border-[#D97706]">
+                      <Image src={item.image} alt={item.name} width={400} height={300} unoptimized className="aspect-[4/3] w-full object-cover" />
+                      <div className="p-4">
+                        <h3 className="line-clamp-2 text-sm font-bold text-white">{item.name}</h3>
+                        <p className="mt-2 text-sm font-semibold text-[#E2A168]">{item.price.toLocaleString("vi-VN")} VNĐ</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         </div>
       ) : (
@@ -72,27 +94,6 @@ export default function ProductDetailTabs({ description, product, viewedProducts
           <p className="mt-3 text-sm font-semibold text-white">Chưa có bình luận nào</p>
           <p className="mt-1 text-xs text-[#81746B]">Hãy đăng nhập để chia sẻ đánh giá về sản phẩm.</p>
         </div>
-      )}
-      {tab === "details" && recentProducts.length > 1 && (
-        <section className="border-t border-[#2A2421] py-8">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white">Sản phẩm đã xem</h2>
-            <button type="button" onClick={() => { localStorage.removeItem(VIEWED_PRODUCTS_KEY); setRecentProducts([]); }} className="text-xs text-[#A69B93] hover:text-[#E2A168]">
-              Xóa lịch sử
-            </button>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {recentProducts.filter((item) => item.slug !== product.slug).map((item) => (
-              <Link key={item.slug} href={`/san-pham/${item.slug}`} className="overflow-hidden rounded-2xl border border-[#3A302B] bg-[#171412] transition hover:-translate-y-1 hover:border-[#D97706]">
-                <Image src={item.image} alt={item.name} width={400} height={300} unoptimized className="aspect-[4/3] w-full object-cover" />
-                <div className="p-4">
-                  <h3 className="line-clamp-2 text-sm font-bold text-white">{item.name}</h3>
-                  <p className="mt-2 text-sm font-semibold text-[#E2A168]">{item.price.toLocaleString("vi-VN")} VNĐ</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
       )}
     </section>
   );

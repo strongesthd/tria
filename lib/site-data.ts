@@ -23,6 +23,7 @@ export type Product = {
   priceOptions?: ProductPriceOption[];
   accessoryIds?: string[];
   roastLevel?: string | null;
+  technicalSpecs?: Record<string, string>;
   notes: string;
   image: string;
   images?: string[];
