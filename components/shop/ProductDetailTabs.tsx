@@ -50,9 +50,9 @@ export default function ProductDetailTabs({ description, product, viewedProducts
       </div>
 
       {tab === "details" ? (
-        <div className="py-6">
+        <div className="grid gap-8 py-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
           <div className="cms-rich-editor text-sm leading-7 text-[#D8CDC2]" dangerouslySetInnerHTML={{ __html: description }} />
-          <div className="mt-8">
+          <div className="h-fit">
             <h2 className="mb-4 text-xl font-bold text-white">Thông số kỹ thuật</h2>
             <div className="overflow-hidden rounded-2xl border border-[#3A302B]">
               <dl className="divide-y divide-[#3A302B]">
