@@ -2,16 +2,22 @@
 
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, Maximize2, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function ProductGallery({ name, images }: { name: string; images: string[] }) {
   const [active, setActive] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const thumbnailRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const source = images.length ? images : ["/images/tria_logo.png"];
 
   function move(direction: 1 | -1) {
     setActive((current) => (current + direction + source.length) % source.length);
   }
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    thumbnailRefs.current[active]?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  }, [active, lightboxOpen]);
 
   useEffect(() => {
     if (!lightboxOpen) return;
@@ -44,9 +50,8 @@ export default function ProductGallery({ name, images }: { name: string; images:
         <button type="button" aria-label="Ảnh trước" onClick={(event) => { event.stopPropagation(); move(-1); }} className="absolute left-3 top-1/2 z-10 rounded-full border border-white/20 bg-black/45 p-3 text-white transition hover:border-[#E2A168] hover:bg-[#D97706] sm:left-8"><ChevronLeft className="h-7 w-7" /></button>
         <div className="relative flex h-full w-full max-w-6xl flex-col items-center justify-center gap-3" onClick={(event) => event.stopPropagation()}>
           <Image key={source[active]} src={source[active]} alt={`${name} - ảnh ${active + 1}`} width={1600} height={1200} unoptimized={source[active].startsWith("data:")} sizes="100vw" className="max-h-[70vh] w-auto max-w-full rounded-xl object-contain shadow-2xl animate-fade-in" />
-          <div className="rounded-full bg-black/60 px-4 py-2 text-xs font-semibold text-white backdrop-blur">{active + 1} / {source.length}</div>
           {source.length > 1 && <div className="flex max-w-[min(90vw,850px)] gap-2 overflow-x-auto rounded-xl border border-white/10 bg-black/45 p-2 backdrop-blur-sm">
-            {source.map((image, index) => <button key={`lightbox-${image}-${index}`} type="button" aria-label={`Xem ảnh ${index + 1}`} onClick={() => setActive(index)} className={`h-14 w-16 shrink-0 overflow-hidden rounded-lg border-2 transition sm:h-16 sm:w-20 ${active === index ? "border-[#D97706] shadow-[0_0_0_2px_rgba(217,119,6,0.3)]" : "border-white/20 opacity-65 hover:border-[#E2A168] hover:opacity-100"}`}><Image src={image} alt={`${name} thumbnail ${index + 1}`} width={100} height={80} unoptimized={image.startsWith("data:")} className="h-full w-full object-cover" /></button>)}
+            {source.map((image, index) => <button ref={(element) => { thumbnailRefs.current[index] = element; }} key={`lightbox-${image}-${index}`} type="button" aria-label={`Xem ảnh ${index + 1}`} aria-current={active === index ? "true" : undefined} onClick={() => setActive(index)} className={`h-14 w-16 shrink-0 overflow-hidden rounded-lg border-2 transition sm:h-16 sm:w-20 ${active === index ? "border-[#D97706] shadow-[0_0_0_2px_rgba(217,119,6,0.3)] opacity-100" : "border-white/20 opacity-65 hover:border-[#E2A168] hover:opacity-100"}`}><Image src={image} alt={`${name} thumbnail ${index + 1}`} width={100} height={80} unoptimized={image.startsWith("data:")} className="h-full w-full object-cover" /></button>)}
           </div>}
         </div>
         <button type="button" aria-label="Ảnh tiếp theo" onClick={(event) => { event.stopPropagation(); move(1); }} className="absolute right-3 top-1/2 z-10 rounded-full border border-white/20 bg-black/45 p-3 text-white transition hover:border-[#E2A168] hover:bg-[#D97706] sm:right-8"><ChevronRight className="h-7 w-7" /></button>
