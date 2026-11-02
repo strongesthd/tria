@@ -57,8 +57,8 @@ function AccessoryField({ value = [] }: { value?: string[] }) {
 
 function GalleryField({ value }: { value?: string }) {
   const initialImages = (value || "").split("\n").filter(Boolean);
-  const [urls, setUrls] = useState(initialImages.filter((image) => !image.startsWith("data:")).join("\n"));
-  const [uploads, setUploads] = useState(initialImages.filter((image) => image.startsWith("data:")));
+  const [urls, setUrls] = useState(initialImages.filter((image) => !image.startsWith("data:") && !image.startsWith("/api/media/")).join("\n"));
+  const [uploads, setUploads] = useState(initialImages.filter((image) => image.startsWith("data:") || image.startsWith("/api/media/")));
   const [error, setError] = useState("");
   const storedImages = [urls, ...uploads].filter(Boolean).join("\n");
   const urlImages = urls.split("\n").map((image) => image.trim()).filter(Boolean);

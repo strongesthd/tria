@@ -29,12 +29,14 @@ export default function ImageUploadButton({ label, multiple = false, onSelect }:
     }
 
     try {
-      const images = await Promise.all(selected.map((file) => new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => typeof reader.result === "string" ? resolve(reader.result) : reject(new Error("Không đọc được ảnh."));
-        reader.onerror = () => reject(new Error("Không đọc được ảnh."));
-        reader.readAsDataURL(file);
-      })));
+      const images = await Promise.all(selected.map(async (file) => {
+        const form = new FormData();
+        form.set("file", file);
+        const response = await fetch("/api/media", { method: "POST", body: form });
+        const payload = await response.json() as { url?: string; error?: string };
+        if (!response.ok || !payload.url) throw new Error(payload.error || "Không thể tải ảnh lên.");
+        return payload.url;
+      }));
       onSelect(images);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Không đọc được ảnh.");
