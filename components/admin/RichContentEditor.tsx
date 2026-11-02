@@ -18,6 +18,7 @@ import {
 
 type RichContentEditorProps = {
   name: string;
+  label?: string;
   initialContent?: string;
 };
 
@@ -48,7 +49,7 @@ function asInitialHtml(content: string) {
     .join("");
 }
 
-export default function RichContentEditor({ name, initialContent = "" }: RichContentEditorProps) {
+export default function RichContentEditor({ name, label = "Nội dung", initialContent = "" }: RichContentEditorProps) {
   const [html, setHtml] = useState(() => asInitialHtml(initialContent));
   const [sourceMode, setSourceMode] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -144,7 +145,7 @@ export default function RichContentEditor({ name, initialContent = "" }: RichCon
 
   return (
     <div className="grid gap-2">
-      <span className="font-semibold">Nội dung</span>
+      <span className="font-semibold">{label}</span>
       <input type="hidden" name={name} value={html} />
       <input ref={imageInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={(event) => void upload(event.currentTarget.files?.[0], "image")} />
       <input ref={fileInputRef} type="file" accept={ACCEPTED_FILE_TYPES} className="hidden" onChange={(event) => void upload(event.currentTarget.files?.[0], "file")} />
