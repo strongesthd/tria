@@ -35,3 +35,10 @@ export function contentToPlainText(value: string, maxLength = 200) {
 
   return text.length > maxLength ? `${text.slice(0, maxLength - 1).trimEnd()}…` : text;
 }
+
+export function contentToListItems(value: string, maxLength = 120) {
+  const items = [...value.matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/gi)]
+    .map((match) => contentToPlainText(match[1], maxLength))
+    .filter(Boolean);
+  return items.length ? items : [contentToPlainText(value, maxLength)].filter(Boolean);
+}
