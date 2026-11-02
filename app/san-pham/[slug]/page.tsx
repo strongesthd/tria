@@ -9,6 +9,7 @@ import ProductGallery from "../../../components/shop/ProductGallery";
 import { HOTLINE, PRODUCTS, buildProductJsonLd, buildBreadcrumbJsonLd } from "../../../lib/site-data";
 import { prisma } from "../../../lib/prisma";
 import { toSiteProduct } from "../../../lib/product-data";
+import { sanitizeContentHtml } from "../../../lib/sanitize-content";
 
 type Params = Promise<{ slug: string }>;
 
@@ -86,7 +87,7 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
             </div>
           </div>
 
-          <p className="text-sm leading-relaxed text-[#B9A99B]">{product.description}</p>
+          <div className="cms-rich-editor text-sm leading-relaxed text-[#B9A99B]" dangerouslySetInnerHTML={{ __html: sanitizeContentHtml(product.description) }} />
 
           <div className="space-y-2 rounded-2xl border border-[#2A2421] bg-[#171412] p-5 text-sm">
             <h2 className="flex items-center gap-2 font-bold text-white">
