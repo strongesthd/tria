@@ -29,16 +29,6 @@ export default function ProductDetailTabs({ description, product, viewedProducts
     }
   }, [product, viewedProducts]);
 
-  const categoryLabels = { beans: "Cà phê hạt", machines: "Máy pha cà phê", accessories: "Phụ kiện" };
-  const specifications = [
-    ...Object.entries(product.technicalSpecs || {}),
-    ["Sản phẩm", product.name],
-    ["Danh mục", categoryLabels[product.category]],
-    ["Đơn vị", product.unit],
-    ...(product.roastLevel && product.roastLevel !== "N/A" ? [["Mức rang", product.roastLevel]] : []),
-    ["Giá tham khảo", `${product.price.toLocaleString("vi-VN")} VNĐ`],
-  ];
-
   return (
     <section className="mt-12 border-t border-[#2A2421] pt-6">
       <div className="flex gap-6 border-b border-[#2A2421]" role="tablist" aria-label="Thông tin sản phẩm">
@@ -55,16 +45,7 @@ export default function ProductDetailTabs({ description, product, viewedProducts
           <div className="cms-rich-editor text-sm leading-7 text-[#D8CDC2]" dangerouslySetInnerHTML={{ __html: description }} />
           <div className="h-fit">
             <h2 className="mb-4 text-xl font-bold text-white">Thông số kỹ thuật</h2>
-            <div className="overflow-hidden rounded-2xl border border-[#3A302B]">
-              <dl className="divide-y divide-[#3A302B]">
-                {specifications.map(([label, value]) => (
-                  <div key={label} className="grid gap-2 bg-[#171412] px-4 py-3 text-sm sm:grid-cols-[12rem_1fr]">
-                    <dt className="text-[#A69B93]">{label}</dt>
-                    <dd className="font-semibold text-[#E8E2D9]">{value}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
+            <div className="cms-rich-editor rounded-2xl border border-[#3A302B] bg-[#171412] p-4 text-sm text-[#E8E2D9]" dangerouslySetInnerHTML={{ __html: product.technicalSpecs || "<p>Thông số kỹ thuật đang được cập nhật.</p>" }} />
             {recentProducts.length > 1 && (
               <section className="mt-8 border-t border-[#2A2421] pt-6">
                 <div className="mb-4 flex items-center justify-between gap-3">

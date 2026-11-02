@@ -22,7 +22,7 @@ async function validatePayload(data: ProductPayload) {
     const accessories = await prisma.product.count({ where: { id: { in: accessoryIds }, category: "accessories", active: true } });
     if (accessories !== accessoryIds.length) throw new Error("Một hoặc nhiều phụ kiện không còn kinh doanh.");
   }
-  const technicalSpecs = Object.fromEntries((data.technicalSpecs || "").split("\n").map((line) => line.split(":").map((part) => part.trim())).filter(([label, value]) => label && value).map(([label, value]) => [label, value]));
+  const technicalSpecs = sanitizeContentHtml(data.technicalSpecs || "");
   return { ...data, slug, accessoryIds, technicalSpecs, notes: sanitizeContentHtml(data.notes || ""), description: sanitizeContentHtml(data.description || ""), priceOptions: parseProductPriceOptionsInput(data.priceOptions || "", data.unit, data.price, data.category) };
 }
 

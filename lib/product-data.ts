@@ -26,8 +26,12 @@ export function toSiteProduct(record: {
     target: record.target as Product["target"],
     priceOptions: parseProductPriceOptions(record.priceOptions),
     accessoryIds: record.accessoryIds,
-    technicalSpecs: record.technicalSpecs && typeof record.technicalSpecs === "object" && !Array.isArray(record.technicalSpecs)
-      ? record.technicalSpecs as Record<string, string>
-      : {},
+    technicalSpecs: typeof record.technicalSpecs === "string"
+      ? record.technicalSpecs
+      : record.technicalSpecs && typeof record.technicalSpecs === "object" && !Array.isArray(record.technicalSpecs)
+        ? Object.entries(record.technicalSpecs as Record<string, string>)
+          .map(([label, value]) => `<p><strong>${label}:</strong> ${value}</p>`)
+          .join("")
+        : "",
   };
 }

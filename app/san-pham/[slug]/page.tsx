@@ -127,7 +127,7 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
       </div>
       <ProductDetailTabs
         description={sanitizeContentHtml(product.description)}
-        product={product}
+        product={{ ...product, technicalSpecs: sanitizeContentHtml(product.technicalSpecs || "") }}
         viewedProducts={viewedProducts}
       />
     </div>
