@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { Check, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import { JsonLdScript } from "../../../components/seo/JsonLdScript";
 import AddToCartButton from "../../../components/shop/AddToCartButton";
 import BeanPurchaseOptions from "../../../components/shop/BeanPurchaseOptions";
 import MachineBundleOptions from "../../../components/shop/MachineBundleOptions";
 import ProductGallery from "../../../components/shop/ProductGallery";
+import ProductDetailTabs from "../../../components/shop/ProductDetailTabs";
 import { HOTLINE, PRODUCTS, buildProductJsonLd, buildBreadcrumbJsonLd } from "../../../lib/site-data";
 import { prisma } from "../../../lib/prisma";
 import { toSiteProduct } from "../../../lib/product-data";
@@ -69,7 +70,7 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
       </Link>
 
       <div className="mt-6 grid gap-10 lg:grid-cols-2">
-        <div>
+        <div className="relative">
           <ProductGallery name={product.name} images={[product.image, ...(product.images ?? [])]} />
           <span className={`absolute left-4 top-4 rounded-md px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider ${product.target === "b2b" ? "bg-[#C87D55] text-white" : "border border-[#C87D55]/30 bg-[#2A2421] text-[#E2A168]"}`}>
             {product.target === "b2b" ? "Dành cho B2B / Quán" : "Dành cho Home Barista"}
@@ -91,15 +92,7 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
             </div>
           </div>
 
-          <div className="cms-rich-editor text-sm leading-relaxed text-[#B9A99B]" dangerouslySetInnerHTML={{ __html: sanitizeContentHtml(product.description) }} />
-
-          <div className="space-y-2 rounded-2xl border border-[#2A2421] bg-[#171412] p-5 text-sm">
-            <h2 className="flex items-center gap-2 font-bold text-white">
-              <Check className="h-4 w-4 text-emerald-400" aria-hidden /> Đặc tính nổi bật
-            </h2>
-            <p className="text-[#D8CDC2]">{product.notes}</p>
-            <p className="pt-1 text-xs text-[#A69B93]">Mức rang: {product.roastLevel}</p>
-          </div>
+          <p className="text-sm leading-7 text-[#B9A99B]">{product.notes || "Thông tin sản phẩm đang được cập nhật."}</p>
 
           {product.category === "beans" ? (
             <BeanPurchaseOptions product={product} />
@@ -124,6 +117,11 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
           </p>
         </div>
       </div>
+      <ProductDetailTabs
+        description={sanitizeContentHtml(product.description)}
+        notes={product.notes}
+        roastLevel={product.roastLevel}
+      />
     </div>
   );
 }
