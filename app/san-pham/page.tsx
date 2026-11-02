@@ -201,7 +201,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
               <h3 className="text-base font-bold leading-snug text-white line-clamp-2 group-hover:text-[#E2A168] transition-colors">{p.name}</h3>
               <p className="text-xs text-[#A69B93] line-clamp-2">{contentToPlainText(p.description)}</p>
               <div className="border-t border-[#2A2421] pt-2 text-xs leading-5 text-[#E8E2D9]">
-                <ul className="grid gap-1.5 pt-2">
+                <ul className="m-0 grid list-none gap-1.5 p-0 pt-2">
                   {contentToListItems(p.notes).map((item) => <li key={item} className="flex items-start gap-1.5"><span className="mt-1 text-[#D97706]" aria-hidden>✦</span><span className="line-clamp-2">{item}</span></li>)}
                 </ul>
               </div>
