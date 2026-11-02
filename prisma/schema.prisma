@@ -53,6 +53,7 @@ model Product {
   price       Int
   unit        String
   priceOptions Json?
+  accessoryIds String[] @default([])
   roastLevel  String?
   notes       String
   description String   @db.Text

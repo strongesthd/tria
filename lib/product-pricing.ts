@@ -77,13 +77,22 @@ export function formatProductPriceOptions(value: unknown, price: number): string
 }
 
 export function getCartProductPrice(
-  product: { id: string; category: string; price: number; priceOptions?: unknown },
+  product: { id: string; category: string; price: number; priceOptions?: unknown; accessoryIds?: string[] },
   cartProductId: string,
+  accessories: Array<{ id: string; category: string; price: number }> = [],
 ): { price: number; unit: string | null } | null {
   if (cartProductId === product.id) return { price: product.price, unit: null };
   if (!cartProductId.startsWith(`${product.id}-`)) return null;
 
   const suffix = cartProductId.slice(product.id.length + 1);
+  if (product.category === "machines" && suffix.startsWith("bundle-")) {
+    const ids = suffix.slice("bundle-".length).split(",").filter(Boolean);
+    const allowedAccessoryIds = product.accessoryIds || [];
+    if (!ids.length || new Set(ids).size !== ids.length || ids.some((id) => !allowedAccessoryIds.includes(id))) return null;
+    const selected = ids.map((id) => accessories.find((accessory) => accessory.id === id));
+    if (selected.some((accessory) => !accessory || accessory.category !== "accessories")) return null;
+    return { price: product.price + selected.reduce((sum, accessory) => sum + (accessory?.price || 0), 0), unit: "Combo" };
+  }
   if (product.category !== "beans") return null;
   const option = getBeanPriceOptions(product.price, product.priceOptions)
     .sort((left, right) => right.unit.length - left.unit.length)

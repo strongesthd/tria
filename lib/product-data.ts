@@ -10,6 +10,7 @@ export function toSiteProduct(record: {
   price: number;
   unit: string;
   priceOptions: unknown;
+  accessoryIds: string[];
   roastLevel: string | null;
   notes: string;
   image: string;
@@ -23,5 +24,6 @@ export function toSiteProduct(record: {
     category: record.category as Product["category"],
     target: record.target as Product["target"],
     priceOptions: parseProductPriceOptions(record.priceOptions),
+    accessoryIds: record.accessoryIds,
   };
 }

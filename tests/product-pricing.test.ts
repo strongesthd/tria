@@ -52,3 +52,18 @@ test("cart pricing uses the server-configured option price and rejects unknown o
   assert.equal(getCartProductPrice(product, "product-123-750g-espresso"), null);
   assert.deepEqual(getCartProductPrice(product, "product-123"), { price: 185000, unit: null });
 });
+
+test("cart pricing validates machine accessory bundles and adds accessory prices", () => {
+  const machine = {
+    id: "machine-123",
+    category: "machines",
+    price: 8900000,
+    accessoryIds: ["grinder-123", "cups-123"],
+  };
+  const accessories = [
+    { id: "grinder-123", category: "accessories", price: 1200000 },
+    { id: "cups-123", category: "accessories", price: 250000 },
+  ];
+  assert.deepEqual(getCartProductPrice(machine, "machine-123-bundle-grinder-123,cups-123", accessories), { price: 10350000, unit: "Combo" });
+  assert.equal(getCartProductPrice(machine, "machine-123-bundle-grinder-123,unknown", accessories), null);
+});

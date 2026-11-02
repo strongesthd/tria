@@ -5,6 +5,7 @@ import { Check, Star } from "lucide-react";
 import { JsonLdScript } from "../../../components/seo/JsonLdScript";
 import AddToCartButton from "../../../components/shop/AddToCartButton";
 import BeanPurchaseOptions from "../../../components/shop/BeanPurchaseOptions";
+import MachineBundleOptions from "../../../components/shop/MachineBundleOptions";
 import ProductGallery from "../../../components/shop/ProductGallery";
 import { HOTLINE, PRODUCTS, buildProductJsonLd, buildBreadcrumbJsonLd } from "../../../lib/site-data";
 import { prisma } from "../../../lib/prisma";
@@ -46,6 +47,9 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
   const { slug } = await params;
   const product = await getProduct(slug);
   if (!product) notFound();
+  const accessories = product.category === "machines" && product.accessoryIds?.length
+    ? await prisma.product.findMany({ where: { id: { in: product.accessoryIds }, category: "accessories", active: true } }).then((records) => records.map(toSiteProduct))
+    : [];
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -99,6 +103,8 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
 
           {product.category === "beans" ? (
             <BeanPurchaseOptions product={product} />
+          ) : product.category === "machines" && accessories.length ? (
+            <MachineBundleOptions product={product} accessories={accessories} />
           ) : (
             <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-r from-[#221D1A] to-[#171412] p-5">
               <div>

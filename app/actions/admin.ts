@@ -135,7 +135,23 @@ export async function updateProductStatus(productId: string, active: boolean) {
   revalidatePath("/admin");
 }
 
-type ProductInput = { slug: string; name: string; category: string; target: string; price: number; unit: string; priceOptions: string; roastLevel: string; notes: string; description: string; image: string; images?: string[] };
+type ProductInput = { slug: string; name: string; category: string; target: string; price: number; unit: string; priceOptions: string; accessoryIds?: string[]; roastLevel: string; notes: string; description: string; image: string; images?: string[] };
+
+async function validateAccessoryIds(ids: unknown, category: string) {
+  if (category !== "machines") return [];
+  if (!Array.isArray(ids) || !ids.every((id): id is string => typeof id === "string" && id.length > 0)) {
+    throw new Error("Danh sách phụ kiện không hợp lệ.");
+  }
+  const uniqueIds = [...new Set(ids)];
+  if (uniqueIds.length > 12) throw new Error("Mỗi máy chỉ được chọn tối đa 12 phụ kiện.");
+  if (!uniqueIds.length) return [];
+  const accessories = await prisma.product.findMany({
+    where: { id: { in: uniqueIds }, category: "accessories", active: true },
+    select: { id: true },
+  });
+  if (accessories.length !== uniqueIds.length) throw new Error("Một hoặc nhiều phụ kiện không còn kinh doanh.");
+  return uniqueIds;
+}
 
 export async function createProduct(data: ProductInput) {
   await requireAdmin();
@@ -144,10 +160,12 @@ export async function createProduct(data: ProductInput) {
   const duplicate = await prisma.product.findUnique({ where: { slug }, select: { id: true } });
   if (duplicate) throw new Error("Tên sản phẩm đã tồn tại, slug bị trùng.");
   const priceOptions = parseProductPriceOptionsInput(data.priceOptions, data.unit, data.price, data.category);
+  const accessoryIds = await validateAccessoryIds(data.accessoryIds || [], data.category);
   const product = await prisma.product.create({
     data: {
       ...data,
       description: sanitizeContentHtml(data.description),
+      accessoryIds,
       slug,
       priceOptions: priceOptions ?? Prisma.DbNull,
     },
@@ -164,11 +182,13 @@ export async function updateProduct(productId: string, data: ProductInput) {
   const duplicate = await prisma.product.findFirst({ where: { slug, NOT: { id: productId } }, select: { id: true } });
   if (duplicate) throw new Error("Tên sản phẩm đã tồn tại, slug bị trùng.");
   const priceOptions = parseProductPriceOptionsInput(data.priceOptions, data.unit, data.price, data.category);
+  const accessoryIds = await validateAccessoryIds(data.accessoryIds || [], data.category);
   const product = await prisma.product.update({
     where: { id: productId },
     data: {
       ...data,
       description: sanitizeContentHtml(data.description),
+      accessoryIds,
       slug,
       priceOptions: priceOptions ?? Prisma.DbNull,
     },

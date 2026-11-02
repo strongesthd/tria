@@ -21,6 +21,7 @@ export type Product = {
   price: number;
   unit: string;
   priceOptions?: ProductPriceOption[];
+  accessoryIds?: string[];
   roastLevel?: string | null;
   notes: string;
   image: string;

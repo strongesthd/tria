@@ -12,13 +12,18 @@ export async function POST(request: Request) {
   try {
     const parsed = checkoutSchema.safeParse(await request.json());
     if (!parsed.success) return NextResponse.json({ error: "Thông tin đặt hàng không hợp lệ." }, { status: 422 });
-    const ids = parsed.data.items.map((item) => item.id.split("-")[0]);
+    const ids = [...new Set(parsed.data.items.flatMap((item) => {
+      const baseId = item.id.split("-")[0];
+      const bundleMarker = `${baseId}-bundle-`;
+      const accessoryIds = item.id.startsWith(bundleMarker) ? item.id.slice(bundleMarker.length).split(",").filter(Boolean) : [];
+      return [baseId, ...accessoryIds];
+    }))];
     const products = await prisma.product.findMany({ where: { id: { in: ids }, active: true } });
     const productMap = new Map(products.map((product) => [product.id, product]));
     const items = parsed.data.items.map((item) => {
       const product = productMap.get(item.id.split("-")[0]);
       if (!product) throw new Error("Sản phẩm không tồn tại.");
-      const selectedPrice = getCartProductPrice(product, item.id);
+      const selectedPrice = getCartProductPrice(product, item.id, products);
       if (!selectedPrice) throw new Error("Tùy chọn sản phẩm không hợp lệ.");
       return {
         productId: product.id,
