@@ -55,7 +55,7 @@ model Product {
   priceOptions Json?
   accessoryIds String[] @default([])
   roastLevel  String?
-  technicalSpecs String? @db.Text
+  technicalSpecs Json?
   notes       String
   description String   @db.Text
   image       String
