@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Coffee, Newspaper, Settings, ShieldCheck, Sparkles, Star, Users } from "lucide-react";
 import { PRODUCT_CATEGORIES, PRODUCTS, type Category, type Product } from "../../lib/site-data";
+import { contentToPlainText } from "../../lib/sanitize-content";
 import { useCart } from "../cart/CartProvider";
 
 export function Hero({ branchCount = 3 }: { branchCount?: number }) {
@@ -210,8 +211,8 @@ function FeaturedGrid({ products }: { products: Product[] }) {
               <span>{p.unit}</span>
             </div>
             <h3 className="text-base font-bold leading-snug text-white line-clamp-2 group-hover:text-[#E2A168] transition-colors">{p.name}</h3>
-            <p className="text-xs text-[#A69B93] line-clamp-2">{p.description}</p>
-              <div className="border-t border-[#2A2421] pt-2 text-xs text-[#E8E2D9]"><span className="text-[#A69B93]">Đặc tính:</span> {p.notes}</div>
+            <p className="text-xs text-[#A69B93] line-clamp-2">{contentToPlainText(p.description)}</p>
+              <div className="border-t border-[#2A2421] pt-2 text-xs text-[#E8E2D9]"><span className="text-[#A69B93]">Đặc tính:</span> {contentToPlainText(p.notes)}</div>
               <div className="flex min-h-16 items-baseline justify-between pt-1">
                 <span className="text-lg font-extrabold text-[#E2A168]">{p.price.toLocaleString("vi-VN")} VNĐ</span>
               </div>

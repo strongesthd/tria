@@ -14,6 +14,7 @@ import {
   type ProductCategory,
   type Target,
 } from "../../lib/site-data";
+import { contentToPlainText } from "../../lib/sanitize-content";
 
 type SearchParams = Promise<{ category?: string; target?: string; q?: string }>;
 
@@ -198,8 +199,8 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
                 <span>{p.unit}</span>
               </div>
               <h3 className="text-base font-bold leading-snug text-white line-clamp-2 group-hover:text-[#E2A168] transition-colors">{p.name}</h3>
-              <p className="text-xs text-[#A69B93] line-clamp-2">{p.description}</p>
-              <div className="border-t border-[#2A2421] pt-2 text-xs text-[#E8E2D9]"><span className="text-[#A69B93]">Đặc tính:</span> {p.notes}</div>
+              <p className="text-xs text-[#A69B93] line-clamp-2">{contentToPlainText(p.description)}</p>
+              <div className="border-t border-[#2A2421] pt-2 text-xs text-[#E8E2D9]"><span className="text-[#A69B93]">Đặc tính:</span> {contentToPlainText(p.notes)}</div>
               <div className="flex items-baseline justify-between pt-1">
                 <span className="text-lg font-extrabold text-[#E2A168]">{p.price.toLocaleString("vi-VN")} VNĐ</span>
               </div>
