@@ -239,7 +239,7 @@ export function buildOrganizationJsonLd() {
     description:
       "Hệ sinh thái cà phê Việt: hạt cà phê rang tươi, máy pha chuyên nghiệp và cộng đồng tri thức.",
     telephone: HOTLINE,
-    email: "hello@triacafe.vn",
+    email: "contact@triacafe.vn",
     priceRange: "₫₫",
     currenciesAccepted: "VND",
     paymentAccepted: "Cash, Credit Card, Bank Transfer",

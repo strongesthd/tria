@@ -176,7 +176,7 @@ export default async function Footer() {
               </p>
               <p className="flex min-w-0 items-start gap-3">
                 <Mail className="mt-0.5 h-4 w-4 shrink-0 text-[#8A4A24]" aria-hidden />
-                <a href="mailto:hello@triacafe.vn" className="break-all text-[13px] hover:text-[#B7511B]">hello@triacafe.vn</a>
+                <a href="mailto:contact@triacafe.vn" className="break-all text-[13px] hover:text-[#B7511B]">contact@triacafe.vn</a>
               </p>
               <p className="flex items-center gap-3">
                 <Globe className="h-4 w-4 shrink-0 text-[#8A4A24]" aria-hidden />
