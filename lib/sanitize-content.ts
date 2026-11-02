@@ -23,3 +23,15 @@ const contentOptions: sanitizeHtml.IOptions = {
 export function sanitizeContentHtml(value: string) {
   return sanitizeHtml(value, contentOptions);
 }
+
+export function contentToPlainText(value: string, maxLength = 200) {
+  const text = sanitizeHtml(value.replace(/<\/(?:p|h[1-6]|li|div)>/gi, " ").replace(/<br\s*\/?>/gi, " "), {
+    allowedTags: [],
+    allowedAttributes: {},
+    textFilter: (text) => text,
+  })
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return text.length > maxLength ? `${text.slice(0, maxLength - 1).trimEnd()}…` : text;
+}

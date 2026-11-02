@@ -11,7 +11,7 @@ import ProductDetailTabs from "../../../components/shop/ProductDetailTabs";
 import { HOTLINE, PRODUCTS, buildProductJsonLd, buildBreadcrumbJsonLd } from "../../../lib/site-data";
 import { prisma } from "../../../lib/prisma";
 import { toSiteProduct } from "../../../lib/product-data";
-import { sanitizeContentHtml } from "../../../lib/sanitize-content";
+import { contentToPlainText, sanitizeContentHtml } from "../../../lib/sanitize-content";
 
 type Params = Promise<{ slug: string }>;
 
@@ -31,13 +31,14 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const { slug } = await params;
   const product = await getProduct(slug);
   if (!product) return {};
+  const metaDescription = contentToPlainText(product.description);
   return {
     title: product.name,
-    description: product.description,
+    description: metaDescription,
     alternates: { canonical: `/san-pham/${product.slug}` },
     openGraph: {
       title: product.name,
-      description: product.description,
+      description: metaDescription,
       type: "website",
       images: [product.image],
     },

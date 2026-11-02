@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { cmsPageContentSchema, cmsPageFooterSettingsSchema, newsArticleSchema } from "../lib/validation";
-import { sanitizeContentHtml } from "../lib/sanitize-content";
+import { contentToPlainText, sanitizeContentHtml } from "../lib/sanitize-content";
 import { createHmac } from "node:crypto";
 import { isValidNovaSeoSignature } from "../lib/novaseo-webhook";
 
@@ -68,6 +68,13 @@ test("rich content keeps formatting and local media while stripping executable H
   assert.match(safe, /<strong>Text<\/strong>/);
   assert.match(safe, /src="\/api\/media\/abc123"/);
   assert.doesNotMatch(safe, /onerror|<script|javascript:/i);
+});
+
+test("rich content metadata is plain text without HTML tags", () => {
+  assert.equal(
+    contentToPlainText("<h1>Sản phẩm mới</h1><p>Mô tả <strong>ngắn gọn</strong></p>"),
+    "Sản phẩm mới Mô tả ngắn gọn"
+  );
 });
 
 test("NovaSEO webhook signatures validate the exact request body", () => {
