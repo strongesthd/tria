@@ -244,8 +244,6 @@ async function main() {
     await prisma.cmsPage.upsert({
       where: { slug: page.slug },
       update: {
-        ...page,
-        content,
         footerSection: "POLICY",
         published: true,
       },
