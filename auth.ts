@@ -6,6 +6,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { compare } from "bcryptjs";
 import { prisma } from "./lib/prisma";
 import authConfig from "./auth.config";
+import { ensureAffiliateCode } from "./lib/affiliate";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -69,9 +70,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             role: true,
             badge: true,
             triaPoints: true,
+            affiliateCode: true,
           },
         });
         if (user) {
+          if (!user.affiliateCode) {
+            user.affiliateCode = await ensureAffiliateCode(user.id, user.name);
+          }
           session.user.id = user.id;
           session.user.name = user.name ?? "";
           session.user.email = user.email ?? "";

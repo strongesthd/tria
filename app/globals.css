@@ -118,21 +118,53 @@ textarea {
   margin: 0.5rem 0;
 }
 
-.cms-rich-editor ul,
-.cms-content ul {
-  list-style: none;
-  padding-left: 0;
+.cms-content {
+  line-height: 1.75;
 }
 
-.cms-rich-editor ol,
+.cms-content h2 {
+  margin: 1.5rem 0 0.5rem;
+}
+
+.cms-content ul,
 .cms-content ol {
+  margin: 0.5rem 0;
+  padding-left: 1.25rem;
+}
+
+.cms-content li {
+  margin: 0.25rem 0;
+}
+
+.cms-content p:empty,
+.cms-content p:has(> br:only-child) {
+  display: none;
+}
+
+.cms-rich-editor ul {
   list-style: none;
   padding-left: 0;
 }
 
-.cms-rich-editor li,
-.cms-content li {
+.cms-content ul {
+  list-style: disc;
+}
+
+.cms-rich-editor ol {
   list-style: none;
+  padding-left: 0;
+}
+
+.cms-content ol {
+  list-style: decimal;
+}
+
+.cms-rich-editor li {
+  list-style: none;
+}
+
+.cms-content li {
+  list-style: inherit;
 }
 
 .cms-rich-editor blockquote,

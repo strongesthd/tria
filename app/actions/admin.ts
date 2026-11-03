@@ -451,7 +451,11 @@ export async function deleteNewsArticle(id: string) {
 
 export async function updateOrderStatus(orderId: string, status: string) {
   await requireAdmin();
-  await prisma.order.update({ where: { id: orderId }, data: { status } });
+  await prisma.$transaction(async (transaction) => {
+    await transaction.order.update({ where: { id: orderId }, data: { status } });
+    const affiliateStatus = status === "DONE" ? "APPROVED" : status === "CANCELLED" ? "REJECTED" : "PENDING";
+    await transaction.affiliateSale.updateMany({ where: { orderId }, data: { status: affiliateStatus } });
+  });
   revalidatePath("/admin");
 }
 

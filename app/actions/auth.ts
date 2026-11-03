@@ -7,6 +7,7 @@ import { auth, signIn, signOut } from "../../auth";
 import { prisma } from "../../lib/prisma";
 import { rateLimit } from "../../lib/rate-limit";
 import { loginSchema, profileSchema, registerSchema } from "../../lib/validation";
+import { ensureAffiliateCode } from "../../lib/affiliate";
 
 export type AuthActionState = {
   error?: string;
@@ -60,7 +61,7 @@ export async function registerAction(
 
   const role = parsed.data.accountType === "business" ? Role.CAFE_OWNER : Role.MEMBER;
 
-  await prisma.user.create({
+  const user = await prisma.user.create({
     data: {
       name: parsed.data.name,
       email: parsed.data.email,
@@ -69,6 +70,7 @@ export async function registerAction(
       badge: role === Role.CAFE_OWNER ? "Cafe Owner" : "Newbie Brewer",
     },
   });
+  await ensureAffiliateCode(user.id, user.name);
 
   try {
     await signIn("credentials", {

@@ -9,6 +9,7 @@ import FooterLinkManager from "./FooterLinkManager";
 import FooterPageManager from "./FooterPageManager";
 import ContentManager from "./ContentManager";
 import UserManager from "./UserManager";
+import AffiliateManager from "./AffiliateManager";
 
 type Dashboard = {
   stats: Record<string, number>;
@@ -34,7 +35,7 @@ type AdminRow = {
   date?: string | Date | null;
 };
 
-type Tab = "overview" | "products" | "branches" | "footer" | "content" | "points" | "users" | "bookings" | "orders" | "messages";
+type Tab = "overview" | "products" | "branches" | "footer" | "content" | "points" | "users" | "bookings" | "orders" | "affiliate" | "messages";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Tổng quan" },
@@ -46,6 +47,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "users", label: "Users" },
   { id: "bookings", label: "Lịch demo" },
   { id: "orders", label: "Đơn hàng" },
+  { id: "affiliate", label: "Affiliate" },
   { id: "messages", label: "Tin nhắn" },
 ];
 
@@ -119,6 +121,7 @@ export default function AdminDashboard() {
             {tab === "users" && <UserManager />}
             {tab === "bookings" && <DataTable title="Lịch demo / booking gần đây" rows={data.recentBookings} empty="Chưa có booking." onStatus={updateBookingStatus} />}
             {tab === "orders" && <DataTable title="Đơn đặt hàng gần đây" rows={data.recentOrders} empty="Chưa có đơn hàng." onStatus={updateOrderStatus} onDelete={deleteOrder} />}
+            {tab === "affiliate" && <AffiliateManager />}
             {tab === "messages" && <DataTable title="Tin nhắn liên hệ" rows={data.recentMessages} empty="Chưa có tin nhắn." onStatus={updateMessageStatus} onDelete={deleteMessage} />}
           </>
         )}

@@ -21,51 +21,53 @@ enum FooterLinkSection {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  passwordHash  String?
-  role          Role      @default(MEMBER)
-  badge         String    @default("Newbie Brewer")
-  triaPoints    Int       @default(0)
-  accounts      Account[]
-  sessions      Session[]
-  posts         CommunityPost[]
-  comments      Comment[]
-  votes         PostVote[]
-  registrations WorkshopRegistration[]
-  bookings      Booking[]
-  orders        Order[]
+  id              String                 @id @default(cuid())
+  name            String?
+  email           String?                @unique
+  emailVerified   DateTime?
+  image           String?
+  passwordHash    String?
+  role            Role                   @default(MEMBER)
+  badge           String                 @default("Newbie Brewer")
+  triaPoints      Int                    @default(0)
+  affiliateCode   String?                @unique
+  accounts        Account[]
+  sessions        Session[]
+  posts           CommunityPost[]
+  comments        Comment[]
+  votes           PostVote[]
+  registrations   WorkshopRegistration[]
+  bookings        Booking[]
+  orders          Order[]
+  affiliateSales  AffiliateSale[]        @relation("AffiliateOwner")
   contactMessages ContactMessage[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
 }
 
 model Product {
-  id          String   @id @default(cuid())
-  sourceId    String?  @unique
-  slug        String   @unique
-  name        String
-  category    String
-  target      String
-  price       Int
-  unit        String
-  priceOptions Json?
-  accessoryIds String[] @default([])
-  roastLevel  String?
-  technicalSpecs String? @db.Text
-  notes       String
-  description String   @db.Text
-  image       String
-  images      String[] @default([])
-  rating      Float    @default(0)
-  reviews     Int      @default(0)
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  orderItems  OrderItem[]
+  id             String      @id @default(cuid())
+  sourceId       String?     @unique
+  slug           String      @unique
+  name           String
+  category       String
+  target         String
+  price          Int
+  unit           String
+  priceOptions   Json?
+  accessoryIds   String[]    @default([])
+  roastLevel     String?
+  technicalSpecs String?     @db.Text
+  notes          String
+  description    String      @db.Text
+  image          String
+  images         String[]    @default([])
+  rating         Float       @default(0)
+  reviews        Int         @default(0)
+  active         Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  orderItems     OrderItem[]
 
   @@index([category, active])
 }
@@ -86,50 +88,50 @@ model Branch {
 }
 
 model FooterLink {
-  id        String           @id @default(cuid())
+  id        String            @id @default(cuid())
   section   FooterLinkSection
   label     String
   href      String
-  sortOrder Int              @default(0)
-  active    Boolean          @default(true)
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  sortOrder Int               @default(0)
+  active    Boolean           @default(true)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
 
   @@unique([section, label])
   @@index([section, active, sortOrder])
 }
 
 model CmsPage {
-  id           String            @id @default(cuid())
-  slug         String            @unique
-  title        String
-  summary      String            @default("")
-  content      String            @db.Text
+  id            String             @id @default(cuid())
+  slug          String             @unique
+  title         String
+  summary       String             @default("")
+  content       String             @db.Text
   footerSection FooterLinkSection?
-  sortOrder    Int               @default(0)
-  published    Boolean           @default(false)
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  sortOrder     Int                @default(0)
+  published     Boolean            @default(false)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 
   @@index([published, footerSection, sortOrder])
 }
 
 model NewsArticle {
-  id                String   @id @default(cuid())
-  sourceId          String?  @unique
-  slug              String   @unique
+  id                String    @id @default(cuid())
+  sourceId          String?   @unique
+  slug              String    @unique
   title             String
-  excerpt           String   @default("")
-  seoTitle          String   @default("")
-  metaDescription   String   @default("")
-  focusKeyword      String   @default("")
-  secondaryKeywords String   @default("")
-  content           String   @db.Text
-  image             String?  @db.Text
-  published         Boolean  @default(false)
+  excerpt           String    @default("")
+  seoTitle          String    @default("")
+  metaDescription   String    @default("")
+  focusKeyword      String    @default("")
+  secondaryKeywords String    @default("")
+  content           String    @db.Text
+  image             String?   @db.Text
+  published         Boolean   @default(false)
   publishedAt       DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   @@index([published, publishedAt])
 }
@@ -146,32 +148,51 @@ model MediaAsset {
 }
 
 model Order {
-  id         String      @id @default(cuid())
-  userId     String
-  status     String      @default("NEW")
-  total      Int
-  name       String
-  phone      String
-  address    String      @db.Text
-  note       String?     @db.Text
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items      OrderItem[]
+  id              String         @id @default(cuid())
+  userId          String
+  status          String         @default("NEW")
+  total           Int
+  name            String
+  phone           String
+  address         String         @db.Text
+  note            String?        @db.Text
+  affiliateUserId String?
+  affiliateSale   AffiliateSale?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items           OrderItem[]
 
   @@index([status, createdAt(sort: Desc)])
   @@index([userId, createdAt(sort: Desc)])
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   orderId   String
   productId String?
   name      String
   unitPrice Int
   quantity  Int
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+}
+
+model AffiliateSale {
+  id              String   @id @default(cuid())
+  affiliateUserId String
+  orderId         String   @unique
+  revenue         Int
+  commissionRate  Float
+  commission      Int
+  status          String   @default("PENDING")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  affiliateUser   User     @relation("AffiliateOwner", fields: [affiliateUserId], references: [id], onDelete: Cascade)
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([affiliateUserId, status, createdAt(sort: Desc)])
+  @@index([status, createdAt(sort: Desc)])
 }
 
 model ContactMessage {
@@ -204,51 +225,51 @@ model PostVote {
 }
 
 model Workshop {
-  id             String                @id @default(cuid())
-  title          String
-  locationId     String
-  startsAt       DateTime
-  capacity       Int
-  registrations  WorkshopRegistration[]
-  createdAt      DateTime              @default(now())
-  updatedAt      DateTime              @updatedAt
+  id            String                 @id @default(cuid())
+  title         String
+  locationId    String
+  startsAt      DateTime
+  capacity      Int
+  registrations WorkshopRegistration[]
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
 }
 
 model WorkshopRegistration {
   workshopId String
   userId     String
-  createdAt  DateTime    @default(now())
-  workshop   Workshop    @relation(fields: [workshopId], references: [id], onDelete: Cascade)
-  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  workshop   Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([workshopId, userId])
   @@index([userId])
 }
 
 model Booking {
-  id         String    @id @default(cuid())
+  id         String   @id @default(cuid())
   userId     String
   locationId String
   type       String
   date       DateTime
   note       String?
-  status     String    @default("NEW")
-  createdAt  DateTime  @default(now())
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status     String   @default("NEW")
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt(sort: Desc)])
 }
 
 model PartnershipLead {
-  id                String   @id @default(cuid())
-  fullName          String
-  phone             String
-  partnershipType   String
-  location          String
-  notes             String?  @db.Text
-  status            String   @default("NEW")
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id              String   @id @default(cuid())
+  fullName        String
+  phone           String
+  partnershipType String
+  location        String
+  notes           String?  @db.Text
+  status          String   @default("NEW")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@index([status, createdAt(sort: Desc)])
 }
@@ -265,7 +286,7 @@ model Account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
-  user              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([provider, providerAccountId])
 }
@@ -286,39 +307,39 @@ model VerificationToken {
 }
 
 model CommunityPost {
-  id        String    @id @default(cuid())
-  title     String
-  content   String    @db.Text
-  image     String?   @db.Text
-  category  String
-  tags      String[]
-  published Boolean   @default(true)
+  id         String     @id @default(cuid())
+  title      String
+  content    String     @db.Text
+  image      String?    @db.Text
+  category   String
+  tags       String[]
+  published  Boolean    @default(true)
   reviewedAt DateTime?
-  solved    Boolean   @default(false)
-  upvotes   Int       @default(0)
-  downvotes Int       @default(0)
-  views     Int       @default(0)
-  authorId  String
-  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  comments  Comment[]
-  votes     PostVote[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  solved     Boolean    @default(false)
+  upvotes    Int        @default(0)
+  downvotes  Int        @default(0)
+  views      Int        @default(0)
+  authorId   String
+  author     User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments   Comment[]
+  votes      PostVote[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 
   @@index([published, createdAt])
 }
 
 model Comment {
-  id         String        @id @default(cuid())
-  content    String        @db.Text
-  image      String?       @db.Text
-  accepted   Boolean       @default(false)
-  authorId   String
-  postId     String
-  parentId   String?
-  author     User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  post       CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  parent     Comment?      @relation("CommentThread", fields: [parentId], references: [id], onDelete: SetNull)
-  replies    Comment[]     @relation("CommentThread")
-  createdAt  DateTime      @default(now())
+  id        String        @id @default(cuid())
+  content   String        @db.Text
+  image     String?       @db.Text
+  accepted  Boolean       @default(false)
+  authorId  String
+  postId    String
+  parentId  String?
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent    Comment?      @relation("CommentThread", fields: [parentId], references: [id], onDelete: SetNull)
+  replies   Comment[]     @relation("CommentThread")
+  createdAt DateTime      @default(now())
 }

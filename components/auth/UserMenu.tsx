@@ -87,6 +87,7 @@ export default function UserMenu({ onLogin }: { onLogin?: () => void }) {
           <div className="space-y-1 py-3 text-sm">
             <Link href="/cong-dong" className="block rounded-lg px-2 py-2 hover:bg-[#F1E9DF]">Bài viết của tôi</Link>
             <Link href="/san-pham" className="block rounded-lg px-2 py-2 hover:bg-[#F1E9DF]">Lịch sử đơn hàng</Link>
+            <Link href="/tai-khoan/affiliate" className="block rounded-lg px-2 py-2 hover:bg-[#F1E9DF]">Affiliate của tôi</Link>
             {user.role === "CAFE_OWNER" && (
               <Link href="/he-thong-quan" className="block rounded-lg px-2 py-2 hover:bg-[#F1E9DF]">Bảng giá sỉ B2B</Link>
             )}

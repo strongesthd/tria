@@ -43,7 +43,10 @@ Roles: `MEMBER`, `CAFE_OWNER`, `TRIA_BARISTA`, `TRIA_TECH`, `ADMIN`.
 - Đăng ký loại `Chủ quán / Doanh nghiệp F&B` sẽ nhận `CAFE_OWNER`.
 - `/admin/*` chỉ cho phép `ADMIN`.
 - Server Actions trong `app/actions` yêu cầu session và kiểm tra role khi cần.
-- OAuth callback cần cấu hình redirect URL `/api/auth/callback/google` và `/api/auth/callback/facebook`.
+- SSO Google/Facebook được bật khi điền đủ `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `AUTH_FACEBOOK_ID`, `AUTH_FACEBOOK_SECRET`; khi đã cấu hình, modal đăng nhập sẽ hiển thị hai nút SSO.
+- Google OAuth Authorized redirect URI: `https://<domain>/api/auth/callback/google` (local: `http://localhost:3000/api/auth/callback/google`).
+- Facebook OAuth Valid OAuth Redirect URI: `https://<domain>/api/auth/callback/facebook` (local: `http://localhost:3000/api/auth/callback/facebook`).
+- Đảm bảo `AUTH_URL` trùng domain đang chạy và không commit các secret OAuth.
 - Trình soạn thảo CMS hỗ trợ định dạng rich text, chỉnh HTML (được lọc thẻ/thuộc tính nguy hiểm), chèn ảnh và đính kèm PDF/DOCX/XLSX/TXT/CSV tối đa 10MB mỗi tệp. Media được lưu trong bảng `MediaAsset`.
 - Mỗi production build dùng commit SHA làm deployment ID để tránh browser/CDN dùng lẫn client bundle và Server Actions từ các bản deploy khác nhau.
 

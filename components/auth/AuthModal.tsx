@@ -4,7 +4,7 @@ import React, { useActionState, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { signIn } from "next-auth/react";
 import { useFormStatus } from "react-dom";
-import { Facebook, LockKeyhole, Mail, UserRound, X } from "lucide-react";
+import { Facebook, LockKeyhole, UserRound, X } from "lucide-react";
 import { loginAction, registerAction } from "../../app/actions/auth";
 
 type AuthModalProps = { open: boolean; onClose: () => void; oauthEnabled: { google: boolean; facebook: boolean } };
@@ -106,7 +106,7 @@ export default function AuthModal({ open, onClose, oauthEnabled }: AuthModalProp
             <div className="mt-5 grid grid-cols-2 gap-2">
               {oauthEnabled.google && (
                 <button type="button" onClick={() => signIn("google", { callbackUrl: "/" })} className="flex items-center justify-center gap-2 rounded-xl border border-[#D8CDC2] py-2.5 text-xs font-bold transition hover:bg-[#F1E9DF]">
-                  <Mail className="h-4 w-4 text-[#D97706]" aria-hidden /> Google
+                  <span className="text-sm font-extrabold text-[#4285F4]" aria-hidden>G</span> Google
                 </button>
               )}
               {oauthEnabled.facebook && (
