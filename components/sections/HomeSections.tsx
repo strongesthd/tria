@@ -198,32 +198,32 @@ function FeaturedGrid({ products }: { products: Product[] }) {
   return (
     <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {products.slice(0, 4).map((p) => (
-        <li key={p.id} className="group relative overflow-hidden rounded-2xl border border-[#2A2421] bg-[#171412] transition-all hover:border-[#C87D55]/50">
-          <Link href={`/san-pham/${p.slug}`} className="block">
+        <li key={p.id} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[#2A2421] bg-[#171412] transition-all hover:border-[#C87D55]/50">
+          <Link href={`/san-pham/${p.slug}`} className="flex flex-1 flex-col">
           <div className="relative h-48 overflow-hidden bg-[#221D1A]">
             <Image src={p.image} alt={p.name} width={400} height={300} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" sizes="(max-width: 1024px) 50vw, 25vw" />
             <span className={`absolute left-3 top-3 rounded-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${p.target === "b2b" ? "bg-[#C87D55] text-white" : "border border-[#C87D55]/30 bg-[#2A2421] text-[#E2A168]"}`}>
               {p.target === "b2b" ? "Dành cho B2B / Quán" : "Dành cho Home Barista"}
             </span>
           </div>
-          <div className="p-5 space-y-3">
+          <div className="flex flex-1 flex-col space-y-3 p-5 pb-0">
             <div className="flex items-center justify-between text-xs text-[#A69B93]">
               <span className="flex items-center gap-1 text-amber-400"><Star className="h-3.5 w-3.5 fill-current" />{p.rating} ({p.reviews})</span>
               <span>{p.unit}</span>
             </div>
             <h3 className="text-base font-bold leading-snug text-white line-clamp-2 group-hover:text-[#E2A168] transition-colors">{p.name}</h3>
             <p className="text-xs text-[#A69B93] line-clamp-2">{contentToPlainText(p.description)}</p>
-              <div className="border-t border-[#2A2421] pt-2 text-xs leading-5 text-[#E8E2D9]">
+              <div className="h-36 overflow-hidden border-t border-[#2A2421] pt-2 text-xs leading-5 text-[#E8E2D9]">
                 <ul className="m-0 grid list-none gap-1.5 p-0 pt-2">
-                  {contentToListItems(p.notes).map((item) => <li key={item} className="list-none line-clamp-2">{item}</li>)}
+                  {contentToListItems(p.notes).slice(0, 5).map((item, index) => <li key={`${item}-${index}`} className="list-none line-clamp-2">{item}</li>)}
                 </ul>
               </div>
-              <div className="flex min-h-16 items-baseline justify-between pt-1">
+              <div className="mt-auto flex min-h-16 items-baseline justify-between pt-1">
                 <span className="text-lg font-extrabold text-[#E2A168]">{p.price.toLocaleString("vi-VN")} VNĐ</span>
               </div>
             </div>
           </Link>
-          <div className="absolute bottom-5 right-5 z-10">
+          <div className="mt-auto flex justify-end px-5 pb-5 pt-4">
             <button type="button" onClick={() => add(p)} className="rounded-xl bg-[#C87D55] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#A85C38]">Thêm vào giỏ</button>
           </div>
         </li>
