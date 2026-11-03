@@ -3,7 +3,7 @@ import { auth } from "../../../../auth";
 import { ensureAffiliateCode, getAffiliateLink } from "../../../../lib/affiliate";
 import { prisma } from "../../../../lib/prisma";
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Bạn cần đăng nhập." }, { status: 401 });
   const code = await ensureAffiliateCode(session.user.id, session.user.name);
@@ -20,5 +20,14 @@ export async function GET() {
       _count: { _all: true },
     }),
   ]);
-  return NextResponse.json({ code, link: getAffiliateLink(code), sales, summary: { orders: summary._count._all, revenue: summary._sum.revenue || 0, commission: summary._sum.commission || 0 } });
+  return NextResponse.json({
+    code,
+    link: new URL(getAffiliateLink(code), request.url).toString(),
+    sales,
+    summary: {
+      orders: summary._count._all,
+      revenue: summary._sum.revenue || 0,
+      commission: summary._sum.commission || 0,
+    },
+  });
 }

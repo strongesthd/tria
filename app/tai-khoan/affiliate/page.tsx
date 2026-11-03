@@ -13,6 +13,7 @@ type AffiliateData = {
 export default function AffiliatePage() {
   const [data, setData] = useState<AffiliateData | null>(null);
   const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetch("/api/affiliate/me", { cache: "no-store" })
@@ -26,6 +27,13 @@ export default function AffiliatePage() {
 
   if (error) return <main className="mx-auto max-w-3xl px-4 py-16 text-center text-red-400">{error}</main>;
   if (!data) return <main className="mx-auto max-w-3xl px-4 py-16 text-center text-[#A69B93]">Đang tải tài khoản affiliate...</main>;
+  const affiliateLink = data.link;
+
+  async function copyLink() {
+    await navigator.clipboard.writeText(affiliateLink);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 2000);
+  }
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
@@ -34,7 +42,10 @@ export default function AffiliatePage() {
       <p className="mt-2 text-sm text-[#A69B93]">Chia sẻ link này để nhận hoa hồng khi đơn hàng hoàn tất.</p>
       <div className="mt-6 rounded-2xl border border-[#3A302B] bg-[#171412] p-5">
         <p className="text-xs font-bold uppercase tracking-wider text-[#D97706]">Link giới thiệu</p>
-        <div className="mt-2 break-all rounded-xl bg-[#221D1A] p-3 text-sm text-[#E8E2D9]">{data.link}</div>
+        <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+          <input readOnly value={affiliateLink} aria-label="Link affiliate" className="min-w-0 flex-1 rounded-xl bg-[#221D1A] p-3 text-sm text-[#E8E2D9] outline-none" />
+          <button type="button" onClick={() => void copyLink()} className="rounded-xl bg-[#D97706] px-4 py-2 text-sm font-bold text-[#1C1613]">{copied ? "Đã sao chép" : "Sao chép link"}</button>
+        </div>
         <p className="mt-2 text-xs text-[#81746B]">Mã affiliate: {data.code}</p>
       </div>
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
