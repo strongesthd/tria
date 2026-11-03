@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { ChevronDown, LogOut, UserRound } from "lucide-react";
+import { useCart } from "../cart/CartProvider";
 
 export default function UserMenu({ onLogin }: { onLogin?: () => void }) {
   const { data: session, status } = useSession();
+  const { clear } = useCart();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -97,7 +99,10 @@ export default function UserMenu({ onLogin }: { onLogin?: () => void }) {
           </div>
           <button
             type="button"
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={() => {
+              clear();
+              void signOut({ callbackUrl: "/" });
+            }}
             className="flex w-full items-center gap-2 border-t border-[#E8DED2] pt-3 text-sm font-bold text-red-700"
           >
             <LogOut className="h-4 w-4" aria-hidden /> Đăng xuất

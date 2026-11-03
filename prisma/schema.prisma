@@ -40,6 +40,7 @@ model User {
   bookings        Booking[]
   orders          Order[]
   affiliateSales  AffiliateSale[]        @relation("AffiliateOwner")
+  productComments ProductComment[]
   contactMessages ContactMessage[]
   createdAt       DateTime               @default(now())
   updatedAt       DateTime               @updatedAt
@@ -68,6 +69,7 @@ model Product {
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
   orderItems     OrderItem[]
+  comments       ProductComment[]
 
   @@index([category, active])
 }
@@ -327,6 +329,18 @@ model CommunityPost {
   updatedAt  DateTime   @updatedAt
 
   @@index([published, createdAt])
+}
+
+model ProductComment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  authorId  String
+  productId String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([productId, createdAt])
 }
 
 model Comment {

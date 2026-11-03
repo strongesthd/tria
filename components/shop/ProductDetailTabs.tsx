@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight, MessageCircle } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import type { Product } from "../../lib/site-data";
+import ProductComments from "./ProductComments";
 
 type ProductDetailTabsProps = {
   description: string;
@@ -76,10 +77,12 @@ export default function ProductDetailTabs({ description, product, viewedProducts
           )}
         </div>
       ) : (
-        <div className="flex min-h-40 flex-col items-center justify-center py-10 text-center">
-          <MessageCircle className="h-8 w-8 text-[#D97706]" aria-hidden />
-          <p className="mt-3 text-sm font-semibold text-white">Chưa có bình luận nào</p>
-          <p className="mt-1 text-xs text-[#81746B]">Hãy đăng nhập để chia sẻ đánh giá về sản phẩm.</p>
+        <div className="py-8">
+          <div className="mb-5 flex items-center gap-2">
+            <MessageCircle className="h-5 w-5 text-[#D97706]" aria-hidden />
+            <h2 className="text-lg font-bold text-white">Bình luận sản phẩm</h2>
+          </div>
+          <ProductComments productId={product.id} />
         </div>
       )}
     </section>
