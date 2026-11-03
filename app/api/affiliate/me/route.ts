@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { auth } from "../../../../auth";
 import { ensureAffiliateCode, getAffiliateLink } from "../../../../lib/affiliate";
 import { prisma } from "../../../../lib/prisma";
+import { SITE_URL } from "../../../../lib/site-data";
 
-export async function GET(request: Request) {
+export async function GET() {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Bạn cần đăng nhập." }, { status: 401 });
   const code = await ensureAffiliateCode(session.user.id, session.user.name);
@@ -22,7 +23,7 @@ export async function GET(request: Request) {
   ]);
   return NextResponse.json({
     code,
-    link: new URL(getAffiliateLink(code), request.url).toString(),
+    link: new URL(getAffiliateLink(code), SITE_URL).toString(),
     sales,
     summary: {
       orders: summary._count._all,
