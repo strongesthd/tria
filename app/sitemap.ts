@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { prisma } from "../lib/prisma";
 import { getPublicBranches } from "../lib/branch-data";
 import { PRODUCTS, SITE_URL } from "../lib/site-data";
+import { productCategoryPath } from "../lib/product-routes";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -16,7 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const categoryRoutes: MetadataRoute.Sitemap = ["beans", "machines", "accessories"].map(
     (category) => ({
-      url: `${SITE_URL}/san-pham?category=${category}`,
+      url: `${SITE_URL}${productCategoryPath(category as "beans" | "machines" | "accessories")}`,
       changeFrequency: "weekly",
       priority: 0.7,
       lastModified: new Date(),

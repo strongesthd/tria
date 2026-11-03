@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Coffee, Newspaper, Settings, ShieldCheck, Sparkles, Star, Users } from "lucide-react";
 import { PRODUCT_CATEGORIES, PRODUCTS, type Category, type Product } from "../../lib/site-data";
 import { contentToListItems, contentToPlainText } from "../../lib/sanitize-content";
+import { productCategoryPath } from "../../lib/product-routes";
 import { useCart } from "../cart/CartProvider";
 
 export function Hero({ branchCount = 3 }: { branchCount?: number }) {
@@ -84,14 +85,14 @@ export function Hero({ branchCount = 3 }: { branchCount?: number }) {
 export function Pillars() {
   const pillars = [
     {
-      href: "/san-pham?category=beans",
+      href: productCategoryPath("beans"),
       icon: Coffee,
       title: "TRIA Beans",
       body: "Fine Robusta & Arabica phối trộn chuẩn gu, rang tươi theo mẻ nhỏ tại Việt Nam.",
       cta: "Khám phá hạt",
     },
     {
-      href: "/san-pham?category=machines",
+      href: productCategoryPath("machines"),
       icon: Settings,
       title: "TRIA Machines",
       body: "Máy pha chính hãng, setup đúng nhu cầu và dịch vụ kỹ thuật tận tâm cho mọi quy mô.",

@@ -15,6 +15,7 @@ import {
   type Target,
 } from "../../lib/site-data";
 import { contentToListItems, contentToPlainText } from "../../lib/sanitize-content";
+import { productCategoryPath } from "../../lib/product-routes";
 
 type SearchParams = Promise<{ category?: string; target?: string; q?: string }>;
 
@@ -63,10 +64,13 @@ export async function generateMetadata({ searchParams }: { searchParams: SearchP
   const category = params.category || "all";
   const target = params.target || "all";
   const hasSearchQuery = Boolean(params.q?.trim());
+  const canonicalPath = category !== "all"
+    ? `${productCategoryPath(category as ProductCategory)}${target !== "all" ? `?target=${target}` : ""}`
+    : `/san-pham${target !== "all" ? `?target=${target}` : ""}`;
   return {
     title: seoTitle(category, target),
     description: seoDescription(category, target),
-    alternates: { canonical: `/san-pham${category !== "all" ? `?category=${category}` : ""}${target !== "all" ? `${category !== "all" ? "&" : "?"}target=${target}` : ""}` },
+    alternates: { canonical: canonicalPath },
     ...(hasSearchQuery ? { robots: { index: false, follow: true } } : {}),
   };
 }
@@ -106,7 +110,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
 
   const categorySlug = category === "all" ? "" : category;
   const targetSlug = target === "all" ? "" : target;
-  const qSlug = query ? `&q=${encodeURIComponent(query)}` : "";
+  const qSlug = query ? `q=${encodeURIComponent(query)}` : "";
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -134,7 +138,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
         {PRODUCT_CATEGORIES.map((cat) => (
           <Link
             key={cat.id}
-            href={`/san-pham?category=${cat.id}${targetSlug ? `&target=${targetSlug}` : ""}${qSlug}`}
+            href={`${productCategoryPath(cat.id)}?${[targetSlug && `target=${targetSlug}`, qSlug].filter(Boolean).join("&")}`.replace(/\?$/, "")}
             aria-current={category === cat.id ? "page" : undefined}
             className={`group relative min-h-48 overflow-hidden rounded-2xl border text-left transition-all ${category === cat.id ? "border-[#D97706] ring-1 ring-[#D97706]" : "border-[#3A302B] hover:border-[#D97706]/70"}`}
           >
@@ -161,7 +165,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
         <div className="flex flex-wrap gap-3">
           <div className="flex rounded-xl border border-[#332A25] bg-[#221D1A] p-1">
             {TARGETS.map((t) => {
-              const href = `/san-pham?${[categorySlug && `category=${categorySlug}`, t.id !== "all" && `target=${t.id}`, query && `q=${encodeURIComponent(query)}`].filter(Boolean).join("&")}` || "/san-pham";
+              const href = `${categorySlug ? productCategoryPath(category as ProductCategory) : "/san-pham"}?${[t.id !== "all" && `target=${t.id}`, query && `q=${encodeURIComponent(query)}`].filter(Boolean).join("&")}`.replace(/\?$/, "");
               return (
                 <Link key={t.id} href={href} aria-current={target === t.id ? "page" : undefined} className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${target === t.id ? "bg-[#C87D55] text-white" : "text-[#A69B93] hover:text-white"}`}>
                   {t.label}
@@ -174,7 +178,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
               Tất Cả Loại
             </Link>
             {PRODUCT_CATEGORIES.map((cat) => (
-              <Link key={cat.id} href={`/san-pham?category=${cat.id}${targetSlug ? `&target=${targetSlug}` : ""}${qSlug}`} aria-current={category === cat.id ? "page" : undefined} className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${category === cat.id ? "bg-[#3A302B] text-white" : "text-[#A69B93] hover:text-white"}`}>
+              <Link key={cat.id} href={`${productCategoryPath(cat.id)}?${[targetSlug && `target=${targetSlug}`, qSlug].filter(Boolean).join("&")}`.replace(/\?$/, "")} aria-current={category === cat.id ? "page" : undefined} className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${category === cat.id ? "bg-[#3A302B] text-white" : "text-[#A69B93] hover:text-white"}`}>
                 {cat.title}
               </Link>
             ))}
@@ -185,32 +189,32 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
       {/* Products */}
       <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {filtered.map((p) => (
-          <li key={p.id} className="group overflow-hidden rounded-2xl border border-[#2A2421] bg-[#171412] transition-all hover:border-[#C87D55]/50">
-            <Link href={`/san-pham/${p.slug}`} className="block">
+          <li key={p.id} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[#2A2421] bg-[#171412] transition-all hover:border-[#C87D55]/50">
+            <Link href={`/san-pham/${p.slug}`} className="flex flex-1 flex-col">
             <div className="relative h-48 overflow-hidden bg-[#221D1A]">
               <Image src={p.image} alt={p.name} width={400} height={300} loading="lazy" sizes="(max-width: 1024px) 50vw, 25vw" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
               <span className={`absolute left-3 top-3 rounded-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${p.target === "b2b" ? "bg-[#C87D55] text-white" : "border border-[#C87D55]/30 bg-[#2A2421] text-[#E2A168]"}`}>
                 {p.target === "b2b" ? "Dành cho B2B / Quán" : "Dành cho Home Barista"}
               </span>
             </div>
-            <div className="space-y-3 p-5 pb-0">
+            <div className="flex flex-1 flex-col space-y-3 p-5 pb-0">
               <div className="flex items-center justify-between text-xs text-[#A69B93]">
                 <span className="flex items-center gap-1 text-amber-400"><Star className="h-3.5 w-3.5 fill-current" /> {p.rating} ({p.reviews})</span>
                 <span>{p.unit}</span>
               </div>
               <h3 className="text-base font-bold leading-snug text-white line-clamp-2 group-hover:text-[#E2A168] transition-colors">{p.name}</h3>
               <p className="text-xs text-[#A69B93] line-clamp-2">{contentToPlainText(p.description)}</p>
-              <div className="border-t border-[#2A2421] pt-2 text-xs leading-5 text-[#E8E2D9]">
+              <div className="h-36 overflow-hidden border-t border-[#2A2421] pt-2 text-xs leading-5 text-[#E8E2D9]">
                 <ul className="m-0 grid list-none gap-1.5 p-0 pt-2">
-                  {contentToListItems(p.notes).map((item) => <li key={item} className="list-none line-clamp-2">{item}</li>)}
+                  {contentToListItems(p.notes).slice(0, 5).map((item, index) => <li key={`${item}-${index}`} className="list-none line-clamp-2">{item}</li>)}
                 </ul>
               </div>
-              <div className="flex items-baseline justify-between pt-1">
+              <div className="mt-auto flex items-baseline justify-between pt-1">
                 <span className="text-lg font-extrabold text-[#E2A168]">{p.price.toLocaleString("vi-VN")} VNĐ</span>
               </div>
             </div>
             </Link>
-            <div className="px-5 pb-5 pt-3">
+            <div className="mt-auto px-5 pb-5 pt-4">
               <AddToCartButton product={p} />
             </div>
           </li>
