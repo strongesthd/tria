@@ -204,7 +204,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
               </div>
               <h3 className="text-base font-bold leading-snug text-white line-clamp-2 group-hover:text-[#E2A168] transition-colors">{p.name}</h3>
               <p className="text-xs text-[#A69B93] line-clamp-2">{contentToPlainText(p.description)}</p>
-              <div className="h-36 overflow-hidden border-t border-[#2A2421] pt-2 text-xs leading-5 text-[#E8E2D9]">
+              <div className="h-60 overflow-hidden border-t border-[#2A2421] pt-2 text-xs leading-5 text-[#E8E2D9]">
                 <ul className="m-0 grid list-none gap-1.5 p-0 pt-2">
                   {contentToListItems(p.notes).slice(0, 5).map((item, index) => <li key={`${item}-${index}`} className="list-none line-clamp-2">{item}</li>)}
                 </ul>
