@@ -40,10 +40,11 @@ export default function Header({
           <Image
             src="/images/tria_logo.png"
             alt="TRIA CAFE"
-            width={210}
-            height={47}
+            width={1004}
+            height={826}
             priority
-            className="h-auto w-[118px] object-contain sm:w-[170px] lg:w-[185px]"
+            sizes="(max-width: 639px) 49px, 57px"
+            className="h-10 w-auto object-contain sm:h-14"
           />
           <span className="mt-1 hidden text-center text-[8px] font-medium uppercase tracking-[0.12em] text-[#B9A99B] sm:block">
             Cà Phê Việt &amp; Giải Pháp Pha Chế
