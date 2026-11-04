@@ -13,6 +13,7 @@ const authorSelect = {
   image: true,
   role: true,
   badge: true,
+  triaPoints: true,
 } as const;
 
 const DEFAULT_PAGE_SIZE = 10;

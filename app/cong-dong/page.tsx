@@ -1,8 +1,10 @@
 import { Metadata } from "next";
 import { MessageSquare, Users, BookOpen } from "lucide-react";
+import { Role } from "@prisma/client";
 import { JsonLdScript } from "../../components/seo/JsonLdScript";
 import CommunityHub from "../../components/community/CommunityHub";
 import { buildBreadcrumbJsonLd } from "../../lib/site-data";
+import { prisma } from "../../lib/prisma";
 
 export const metadata: Metadata = {
   title: "TRIA Community - Cộng đồng cà phê Việt",
@@ -12,7 +14,30 @@ export const metadata: Metadata = {
   alternates: { canonical: "/cong-dong" },
 };
 
-export default function CommunityPage() {
+export const dynamic = "force-dynamic";
+
+export default async function CommunityPage() {
+  let workshopUnavailable = false;
+  const [memberCount, postCount, workshop] = await Promise.all([
+    prisma.user.count({ where: { role: { not: Role.ADMIN } } }).catch(() => null),
+    prisma.communityPost.count({ where: { published: true } }).catch(() => null),
+    prisma.workshop.findFirst({
+      where: { startsAt: { gte: new Date() } },
+      orderBy: { startsAt: "asc" },
+      select: {
+        id: true,
+        title: true,
+        locationId: true,
+        startsAt: true,
+        capacity: true,
+        _count: { select: { registrations: true } },
+      },
+    }).catch(() => { workshopUnavailable = true; return null; }),
+  ]);
+  const workshopLocation = workshop
+    ? await prisma.branch.findFirst({ where: { OR: [{ id: workshop.locationId }, { slug: workshop.locationId }] }, select: { name: true } }).catch(() => null)
+    : null;
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <JsonLdScript
@@ -39,19 +64,26 @@ export default function CommunityPage() {
           <div className="flex shrink-0 gap-3">
             <div className="rounded-xl border border-[#3A302B] bg-[#171412] px-4 py-3">
               <Users className="h-4 w-4 text-[#D97706]" aria-hidden />
-              <p className="mt-1 text-lg font-bold text-white">2.8k</p>
+              <p className="mt-1 text-lg font-bold text-white">{memberCount?.toLocaleString("vi-VN") ?? "—"}</p>
               <p className="text-[10px] text-[#A69B93]">thành viên</p>
             </div>
             <div className="rounded-xl border border-[#3A302B] bg-[#171412] px-4 py-3">
               <BookOpen className="h-4 w-4 text-[#D97706]" aria-hidden />
-              <p className="mt-1 text-lg font-bold text-white">428</p>
+              <p className="mt-1 text-lg font-bold text-white">{postCount?.toLocaleString("vi-VN") ?? "—"}</p>
               <p className="text-[10px] text-[#A69B93]">bài chuyên môn</p>
             </div>
           </div>
         </div>
       </header>
 
-      <CommunityHub />
+      <CommunityHub upcomingWorkshop={workshop ? {
+        id: workshop.id,
+        title: workshop.title,
+        location: workshopLocation?.name || workshop.locationId,
+        startsAt: workshop.startsAt.toISOString(),
+        capacity: workshop.capacity,
+        registrations: workshop._count.registrations,
+      } : null} workshopUnavailable={workshopUnavailable} />
     </div>
   );
 }

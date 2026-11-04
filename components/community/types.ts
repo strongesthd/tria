@@ -39,6 +39,7 @@ export type PostAuthor = {
   image: string | null;
   role: "MEMBER" | "CAFE_OWNER" | "TRIA_BARISTA" | "TRIA_TECH" | "ADMIN";
   badge: string;
+  triaPoints: number;
 };
 
 export type CommunityPost = {
@@ -54,7 +55,6 @@ export type CommunityPost = {
   downvotes: number;
   comments: number;
   views: number;
-  points: number;
   image?: string | null;
   author: PostAuthor;
   commentsData: Comment[];

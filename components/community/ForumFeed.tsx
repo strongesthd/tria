@@ -15,6 +15,9 @@ const categories: { id: CommunityCategory; label: string }[] = [
 
 type ForumFeedProps = {
   posts: CommunityPost[];
+  totalCount: number;
+  loading: boolean;
+  error: string;
   category: CommunityCategory;
   search: string;
   saved: string[];
@@ -28,7 +31,7 @@ type ForumFeedProps = {
   onSort: (sort: string) => void;
 };
 
-export function ForumFeed({ posts, category, search, saved, sort, onCategory, onSearch, onOpen, onVote, onSave, onCreate, onSort }: ForumFeedProps) {
+export function ForumFeed({ posts, totalCount, loading, error, category, search, saved, sort, onCategory, onSearch, onOpen, onVote, onSave, onCreate, onSort }: ForumFeedProps) {
   const sortLabels: [string, string][] = [["latest", "Mới nhất"], ["views", "Nhiều lượt xem"], ["comments", "Nhiều bình luận"], ["engagement", "Nhiều upvote"]];
   return (
     <section className="min-w-0">
@@ -75,19 +78,21 @@ export function ForumFeed({ posts, category, search, saved, sort, onCategory, on
       </div>
 
       <div className="mt-5 flex items-center justify-between text-xs text-[#81746B]">
-        <span>{posts.length} bài viết trong cộng đồng</span>
+        <span>{totalCount.toLocaleString("vi-VN")} bài viết trong cộng đồng</span>
         <div className="flex items-center gap-1 text-[11px]"><SlidersHorizontal className="h-3.5 w-3.5" aria-hidden /> {sortLabels.map(([key, label]) => <button key={key} type="button" onClick={() => onSort(key)} className={`rounded-md px-1.5 py-0.5 transition-colors ${sort === key ? "bg-[#D97706]/20 text-[#F0B429] font-bold" : "text-[#81746B] hover:text-white"}`}>{label}</button>)}</div>
       </div>
 
       <div className="mt-3 space-y-4">
-        {posts.length ? (
+        {loading ? <p className="rounded-2xl border border-[#3A302B] p-8 text-center text-sm text-[#A69B93]">Đang tải bài viết...</p> : error ? (
+          <p role="alert" className="rounded-2xl border border-red-900/50 bg-red-950/30 p-8 text-center text-sm text-red-300">{error}</p>
+        ) : posts.length ? (
           posts.map((post) => (
             <PostCard key={post.id} post={post} onOpen={onOpen} onVote={onVote} saved={saved.includes(post.id)} onSave={onSave} />
           ))
         ) : (
           <div className="rounded-2xl border border-dashed border-[#4A3B31] p-10 text-center text-sm text-[#A69B93]">
             <Filter className="mx-auto mb-3 h-6 w-6 text-[#D97706]" aria-hidden />
-            Không tìm thấy thảo luận phù hợp.
+            Chưa có thảo luận phù hợp.
           </div>
         )}
       </div>

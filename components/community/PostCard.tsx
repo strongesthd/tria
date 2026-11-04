@@ -49,7 +49,7 @@ export function PostCard({ post, onOpen, onVote, saved, onSave }: PostCardProps)
                 <span className="text-sm font-bold text-white">{authorName}</span>
                 <span className={`text-xs font-semibold ${badge.tone}`}>{badge.icon} {badge.label}</span>
               </div>
-              <p className="text-xs text-[#A69B93]">{post.time} · +{post.points} TRIA Points</p>
+              <p className="text-xs text-[#A69B93]">{post.time} · {post.author.triaPoints.toLocaleString("vi-VN")} TRIA Points</p>
             </div>
           </div>
           <button

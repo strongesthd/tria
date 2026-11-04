@@ -1,18 +1,20 @@
 "use client";
 
-import { startTransition, useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
-import { COMMUNITY_POSTS } from "./mockData";
+import { startTransition, useCallback, useDeferredValue, useEffect, useState } from "react";
 import { CreatePostModal } from "./CreatePostModal";
 import { ForumFeed } from "./ForumFeed";
 import { PostDetailModal } from "./PostDetailModal";
 import { SidebarWidgets } from "./SidebarWidgets";
 import { CommunityCategory, CommunityPost, PostAuthor, badgeFor } from "./types";
 
-export default function CommunityHub() {
-  // Start with the bundled sample content so the page is useful before login.
-  // Render useful content immediately; refresh it from the API in the
-  // background instead of making the first interaction wait for PostgreSQL.
-  const [posts, setPosts] = useState<CommunityPost[]>(COMMUNITY_POSTS);
+type UpcomingWorkshop = { id: string; title: string; location: string; startsAt: string; capacity: number; registrations: number };
+
+export default function CommunityHub({ upcomingWorkshop, workshopUnavailable }: { upcomingWorkshop: UpcomingWorkshop | null; workshopUnavailable: boolean }) {
+  const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const [popularPosts, setPopularPosts] = useState<CommunityPost[]>([]);
+  const [postTotal, setPostTotal] = useState(0);
+  const [loadingPosts, setLoadingPosts] = useState(true);
+  const [postsError, setPostsError] = useState("");
   const [category, setCategory] = useState<CommunityCategory>("all");
   const [search, setSearch] = useState("");
   const [saved, setSaved] = useState<string[]>([]);
@@ -22,36 +24,36 @@ export default function CommunityHub() {
   const [sort, setSort] = useState("latest");
   const deferredSearch = useDeferredValue(search);
 
-  // Load posts from the API, falling back to sample data on error.
   const loadPosts = useCallback(async () => {
+    setLoadingPosts(true);
+    setPostsError("");
     try {
-      const res = await fetch(`/api/community/posts?pageSize=20&sort=${sort}`);
-      if (!res.ok) throw new Error("fetch failed");
-      const data = await res.json();
-      if (Array.isArray(data?.items) && data.items.length) {
-        setPosts(data.items.map(normalizePost));
-      } else {
-        setPosts(COMMUNITY_POSTS);
-      }
-    } catch {
-      setPosts(COMMUNITY_POSTS);
+      const params = new URLSearchParams({ pageSize: "20", sort });
+      if (category !== "all") params.set("category", category);
+      if (deferredSearch.trim()) params.set("q", deferredSearch.trim());
+      const [response, popularResponse] = await Promise.all([
+        fetch(`/api/community/posts?${params}`, { cache: "no-store" }),
+        fetch("/api/community/posts?pageSize=3&sort=engagement", { cache: "no-store" }),
+      ]);
+      if (!response.ok) throw new Error("Không thể tải bài viết cộng đồng.");
+      const [data, popularData] = await Promise.all([response.json(), popularResponse.ok ? popularResponse.json() : Promise.resolve({ items: [] })]);
+      const rows = Array.isArray(data?.items) ? data.items : [];
+      setPosts(rows.map(normalizePost));
+      setPostTotal(typeof data?.total === "number" ? data.total : rows.length);
+      setPopularPosts(Array.isArray(popularData?.items) ? popularData.items.map(normalizePost) : []);
+    } catch (cause) {
+      setPosts([]);
+      setPopularPosts([]);
+      setPostTotal(0);
+      setPostsError(cause instanceof Error ? cause.message : "Không thể tải bài viết cộng đồng.");
+    } finally {
+      setLoadingPosts(false);
     }
-  }, [sort]);
+  }, [category, deferredSearch, sort]);
 
   useEffect(() => {
     void loadPosts();
   }, [loadPosts]);
-
-  const filteredPosts = useMemo(
-    () =>
-      posts.filter((post) => {
-        const matchesCategory = category === "all" || post.category === category;
-        const haystack = `${post.title} ${post.content} ${post.tags.join(" ")}`.toLowerCase();
-        const query = deferredSearch.trim().toLowerCase();
-        return matchesCategory && (!query || haystack.includes(query));
-      }),
-    [category, deferredSearch, posts]
-  );
 
   const vote = async (id: string, direction: "up" | "down") => {
     try {
@@ -130,6 +132,7 @@ export default function CommunityHub() {
   const createPost = () => {
     setCreateOpen(false);
     setSubmissionNotice("Bài viết đã gửi và đang chờ quản trị viên xét duyệt.");
+    void loadPosts();
   };
 
   return (
@@ -137,7 +140,10 @@ export default function CommunityHub() {
       {submissionNotice && <p role="status" className="mb-6 rounded-xl border border-emerald-900/50 bg-emerald-950/30 p-4 text-sm text-emerald-300">{submissionNotice}</p>}
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
         <ForumFeed
-          posts={filteredPosts}
+          posts={posts}
+          totalCount={postTotal}
+          loading={loadingPosts}
+          error={postsError}
           category={category}
           search={search}
           saved={saved}
@@ -150,7 +156,7 @@ export default function CommunityHub() {
           sort={sort}
           onSort={setSort}
         />
-        <SidebarWidgets onOpenEvents={() => setCategory("events")} posts={posts} />
+        <SidebarWidgets onOpenEvents={() => setCategory("events")} posts={popularPosts} upcomingWorkshop={upcomingWorkshop} workshopUnavailable={workshopUnavailable} />
       </div>
       <PostDetailModal post={selectedPost} onClose={() => setSelectedPost(null)} onAddComment={addComment} />
       <CreatePostModal open={createOpen} onClose={() => setCreateOpen(false)} onCreate={createPost} />
@@ -190,7 +196,6 @@ function normalizePost(row: ApiPostRow): CommunityPost {
     downvotes: row.downvotes ?? 0,
     comments: row.commentCount ?? 0,
     views: row.views ?? 0,
-    points: (row.upvotes ?? 0) * 10,
     image: row.image ?? undefined,
     author: {
       id: row.author.id,
@@ -198,6 +203,7 @@ function normalizePost(row: ApiPostRow): CommunityPost {
       image: row.author.image,
       role: row.author.role,
       badge: row.author.badge,
+      triaPoints: row.author.triaPoints ?? 0,
     },
     commentsData: [],
   };
