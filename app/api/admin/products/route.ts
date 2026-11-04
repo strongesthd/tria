@@ -33,6 +33,9 @@ async function validatePayload(data: ProductPayload) {
   if (!slug || !data.name || !data.category || !data.target || !Number.isSafeInteger(data.price) || data.price < 1 || !data.unit || !data.image) {
     throw new Error("Vui lòng nhập đầy đủ thông tin sản phẩm.");
   }
+  if (data.category === "beans" && !["Rang nhạt", "Rang vừa", "Rang đậm"].includes(data.roastLevel)) {
+    throw new Error("Vui lòng chọn mức rang hợp lệ.");
+  }
   const accessoryIds = data.category === "machines" ? [...new Set(data.accessoryIds || [])] : [];
   if (accessoryIds.length > 12 || accessoryIds.some((id) => typeof id !== "string" || !id)) throw new Error("Danh sách phụ kiện không hợp lệ.");
   if (accessoryIds.length) {
