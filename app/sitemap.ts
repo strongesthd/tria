@@ -4,6 +4,8 @@ import { getPublicBranches } from "../lib/branch-data";
 import { PRODUCTS, SITE_URL } from "../lib/site-data";
 import { productCategoryPath } from "../lib/product-routes";
 
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${SITE_URL}/`, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
@@ -24,9 +26,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
   );
 
-  const productRoutes: MetadataRoute.Sitemap = PRODUCTS.map((product) => ({
-    url: `${SITE_URL}/san-pham/${product.slug}`,
-    lastModified: new Date(),
+  const productLastModifiedBySlug = new Map(PRODUCTS.map((product) => [product.slug, new Date()]));
+  try {
+    const databaseProducts = await prisma.product.findMany({
+      where: { active: true },
+      select: { slug: true, updatedAt: true },
+    });
+    for (const product of databaseProducts) productLastModifiedBySlug.set(product.slug, product.updatedAt);
+  } catch {
+    // Keep static products in the sitemap when the database is unavailable.
+  }
+  const productRoutes: MetadataRoute.Sitemap = [...productLastModifiedBySlug].map(([slug, lastModified]) => ({
+    url: `${SITE_URL}/san-pham/${slug}`,
+    lastModified,
     changeFrequency: "weekly",
     priority: 0.8,
   }));

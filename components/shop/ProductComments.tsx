@@ -10,18 +10,30 @@ type ProductComment = {
   author: { name: string | null; image: string | null };
 };
 
-export default function ProductComments({ productId }: { productId: string }) {
+type CommentsResponse = { comments: ProductComment[]; total: number };
+
+export default function ProductComments({ productId, onCountChange }: { productId: string; onCountChange?: (count: number) => void }) {
   const { status } = useSession();
   const [comments, setComments] = useState<ProductComment[]>([]);
+  const [total, setTotal] = useState(0);
   const [content, setContent] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    const response = await fetch(`/api/products/${encodeURIComponent(productId)}/comments`, { cache: "no-store" });
-    if (!response.ok) throw new Error("Không tải được bình luận.");
-    setComments(await response.json() as ProductComment[]);
-  }, [productId]);
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/products/${encodeURIComponent(productId)}/comments`, { cache: "no-store" });
+      if (!response.ok) throw new Error("Không tải được bình luận.");
+      const payload = await response.json() as CommentsResponse;
+      setComments(payload.comments);
+      setTotal(payload.total);
+      onCountChange?.(payload.total);
+    } finally {
+      setLoading(false);
+    }
+  }, [onCountChange, productId]);
 
   useEffect(() => { void load().catch((cause) => setError(cause instanceof Error ? cause.message : "Không tải được bình luận.")); }, [load]);
 
@@ -38,6 +50,8 @@ export default function ProductComments({ productId }: { productId: string }) {
       const payload = await response.json() as ProductComment | { error?: string };
       if (!response.ok) throw new Error("error" in payload ? payload.error || "Không thể gửi bình luận." : "Không thể gửi bình luận.");
       setComments((current) => [payload as ProductComment, ...current]);
+      setTotal(total + 1);
+      onCountChange?.(total + 1);
       setContent("");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Không thể gửi bình luận.");
@@ -52,7 +66,7 @@ export default function ProductComments({ productId }: { productId: string }) {
         <form onSubmit={(event) => void submit(event)} className="space-y-3">
           <textarea value={content} onChange={(event) => setContent(event.target.value)} maxLength={5000} required rows={4} placeholder="Chia sẻ trải nghiệm hoặc câu hỏi của bạn..." className="w-full rounded-xl border border-[#3A302B] bg-[#221D1A] p-3 text-sm text-white outline-none focus:border-[#D97706]" />
           {error && <p role="alert" className="text-xs text-red-400">{error}</p>}
-          <button type="submit" disabled={busy} className="rounded-xl bg-[#D97706] px-4 py-2 text-sm font-bold text-[#1C1613] disabled:opacity-50">{busy ? "Đang gửi..." : "Gửi bình luận"}</button>
+          <button type="submit" disabled={busy || loading} className="rounded-xl bg-[#D97706] px-4 py-2 text-sm font-bold text-[#1C1613] disabled:opacity-50">{busy ? "Đang gửi..." : loading ? "Đang tải..." : "Gửi bình luận"}</button>
         </form>
       ) : (
         <p className="text-sm text-[#A69B93]">Vui lòng đăng nhập để bình luận sản phẩm.</p>

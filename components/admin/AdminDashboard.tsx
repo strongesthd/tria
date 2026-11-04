@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
-import { BarChart3, CalendarDays, CheckCircle2, Eye, ExternalLink, Inbox, MapPin, MessageSquare, RefreshCw, Shield, ShoppingBag, Store, Trash2, Users, X } from "lucide-react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { BarChart3, CalendarDays, CheckCircle2, Eye, ExternalLink, Inbox, MapPin, MessageCircle, MessageSquare, RefreshCw, Shield, ShoppingBag, Store, Trash2, Users, X } from "lucide-react";
 import Link from "next/link";
 import { deleteLead, deleteMessage, deleteOrder, updateBookingStatus, updateLeadStatus, updateMessageStatus, updateOrderStatus } from "../../app/actions/admin";
 import { BranchManager, ProductManager } from "./CatalogManager";
@@ -10,6 +10,7 @@ import FooterPageManager from "./FooterPageManager";
 import ContentManager from "./ContentManager";
 import UserManager from "./UserManager";
 import AffiliateManager from "./AffiliateManager";
+import ProductCommentManager, { type ProductComment } from "./ProductCommentManager";
 
 type Dashboard = {
   stats: Record<string, number>;
@@ -39,7 +40,7 @@ type AdminRow = {
   items?: { id: string; name: string; unitPrice: number; quantity: number }[];
 };
 
-type Tab = "overview" | "products" | "branches" | "footer" | "content" | "points" | "users" | "bookings" | "orders" | "affiliate" | "messages";
+type Tab = "overview" | "products" | "branches" | "footer" | "content" | "points" | "users" | "bookings" | "orders" | "affiliate" | "messages" | "productComments";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Tổng quan" },
@@ -53,6 +54,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "orders", label: "Đơn hàng" },
   { id: "affiliate", label: "Affiliate" },
   { id: "messages", label: "Tin nhắn" },
+  { id: "productComments", label: "Bình luận" },
 ];
 
 export default function AdminDashboard() {
@@ -60,6 +62,14 @@ export default function AdminDashboard() {
   const [data, setData] = useState<Dashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [unreadProductComments, setUnreadProductComments] = useState(0);
+  const [commentNotification, setCommentNotification] = useState<ProductComment | null>(null);
+
+  const handleNewProductComments = useCallback((comments: ProductComment[]) => {
+    if (!comments.length) return;
+    setUnreadProductComments((count) => count + comments.length);
+    setCommentNotification(comments[0]);
+  }, []);
 
   const load = () => {
     setLoading(true);
@@ -75,6 +85,14 @@ export default function AdminDashboard() {
   };
 
   useEffect(load, []);
+
+  const selectTab = (nextTab: Tab) => {
+    setTab(nextTab);
+    if (nextTab === "productComments") {
+      setUnreadProductComments(0);
+      setCommentNotification(null);
+    }
+  };
 
   if (loading && !data) {
     return <div className="flex min-h-[70vh] items-center justify-center text-[#A69B93]">Đang tải dashboard...</div>;
@@ -106,10 +124,27 @@ export default function AdminDashboard() {
 
         {error && <p role="alert" className="mb-6 rounded-xl border border-red-900/50 bg-red-950/30 p-4 text-sm text-red-400">{error}</p>}
 
+        {commentNotification && tab !== "productComments" && (
+          <aside role="status" className="fixed right-4 top-4 z-50 w-[min(24rem,calc(100vw-2rem))] rounded-xl border border-[#6B452A] bg-[#211A16] p-4 shadow-2xl">
+            <div className="flex items-start gap-3">
+              <MessageCircle className="mt-0.5 h-5 w-5 shrink-0 text-[#D97706]" aria-hidden />
+              <div className="min-w-0 flex-1">
+                <p className="font-bold text-white">Có bình luận sản phẩm mới</p>
+                <p className="mt-1 text-xs text-[#CDBBAA]">{commentNotification.author.name || commentNotification.author.email} · {commentNotification.product.name}</p>
+                <p className="mt-2 line-clamp-2 text-sm text-[#A69B93]">{commentNotification.content}</p>
+                <button type="button" onClick={() => selectTab("productComments")} className="mt-3 text-sm font-bold text-[#E2A168] hover:text-white">Xem bình luận</button>
+              </div>
+              <button type="button" aria-label="Đóng thông báo" onClick={() => setCommentNotification(null)} className="rounded-md p-1 text-[#A69B93] hover:bg-[#2A2421] hover:text-white">
+                <X className="h-4 w-4" aria-hidden />
+              </button>
+            </div>
+          </aside>
+        )}
+
         <nav className="mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-[#2A2421] bg-[#171412] p-2 sm:grid-cols-4 lg:grid-cols-10" aria-label="Admin sections">
           {TABS.map((item) => (
-            <button key={item.id} type="button" onClick={() => setTab(item.id)} aria-current={tab === item.id} className={`rounded-xl px-2 py-3 text-xs font-bold transition ${tab === item.id ? "bg-[#D97706] text-[#1C1613]" : "text-[#A69B93] hover:bg-[#2A2421] hover:text-white"}`}>
-              {item.label}
+            <button key={item.id} type="button" onClick={() => selectTab(item.id)} aria-current={tab === item.id} className={`rounded-xl px-2 py-3 text-xs font-bold transition ${tab === item.id ? "bg-[#D97706] text-[#1C1613]" : "text-[#A69B93] hover:bg-[#2A2421] hover:text-white"}`}>
+              {item.label}{item.id === "productComments" && unreadProductComments > 0 && <span className="ml-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] text-white">{unreadProductComments}</span>}
             </button>
           ))}
         </nav>
@@ -127,6 +162,9 @@ export default function AdminDashboard() {
             {tab === "orders" && <DataTable title="Đơn đặt hàng gần đây" rows={data.recentOrders} empty="Chưa có đơn hàng." onStatus={updateOrderStatus} onDelete={deleteOrder} onView />}
             {tab === "affiliate" && <AffiliateManager />}
             {tab === "messages" && <DataTable title="Tin nhắn liên hệ" rows={data.recentMessages} empty="Chưa có tin nhắn." onStatus={updateMessageStatus} onDelete={deleteMessage} />}
+            <div hidden={tab !== "productComments"}>
+              <ProductCommentManager onNewComments={handleNewProductComments} />
+            </div>
           </>
         )}
       </div>

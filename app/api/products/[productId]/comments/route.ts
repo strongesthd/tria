@@ -12,18 +12,21 @@ const commentSchema = z.object({
 
 export async function GET(_request: Request, { params }: { params: Params }) {
   const { productId } = await params;
-  const comments = await prisma.productComment.findMany({
-    where: { productId },
-    orderBy: { createdAt: "desc" },
-    take: 100,
-    select: {
-      id: true,
-      content: true,
-      createdAt: true,
-      author: { select: { name: true, image: true } },
-    },
-  });
-  return NextResponse.json(comments, { headers: { "Cache-Control": "private, max-age=15, stale-while-revalidate=60" } });
+  const [comments, total] = await Promise.all([
+    prisma.productComment.findMany({
+      where: { productId },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+      select: {
+        id: true,
+        content: true,
+        createdAt: true,
+        author: { select: { name: true, image: true } },
+      },
+    }),
+    prisma.productComment.count({ where: { productId } }),
+  ]);
+  return NextResponse.json({ comments, total }, { headers: { "Cache-Control": "no-store" } });
 }
 
 export async function POST(request: Request, { params }: { params: Params }) {

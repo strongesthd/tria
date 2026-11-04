@@ -277,7 +277,7 @@ export function buildProductJsonLd(product: Product) {
   return {
     "@context": "https://schema.org",
     "@type": "Product",
-    "@id": `${SITE_URL}/san-pham/${product.slug}/`,
+    "@id": `${SITE_URL}/san-pham/${product.slug}`,
     name: product.name,
     image: product.image,
     description: product.description,
@@ -295,7 +295,7 @@ export function buildProductJsonLd(product: Product) {
         : undefined,
     offers: {
       "@type": "Offer",
-      url: `${SITE_URL}/san-pham/${product.slug}/`,
+      url: `${SITE_URL}/san-pham/${product.slug}`,
       priceCurrency: "VND",
       price: product.price,
       availability: "https://schema.org/InStock",

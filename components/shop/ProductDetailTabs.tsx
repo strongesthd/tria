@@ -15,12 +15,12 @@ type ProductDetailTabsProps = {
 
 export default function ProductDetailTabs({ description, product, viewedProducts }: ProductDetailTabsProps) {
   const [tab, setTab] = useState<"details" | "comments">("details");
+  const [commentsCount, setCommentsCount] = useState(0);
   const similarProductsRef = useRef<HTMLDivElement>(null);
   const similarProducts = useMemo(
     () => viewedProducts.filter((item) => item.slug !== product.slug && item.category === product.category),
     [product.category, product.slug, viewedProducts],
   );
-
   const slideSimilarProducts = (direction: "previous" | "next") => {
     similarProductsRef.current?.scrollBy({
       left: direction === "next" ? similarProductsRef.current.clientWidth : -similarProductsRef.current.clientWidth,
@@ -35,11 +35,11 @@ export default function ProductDetailTabs({ description, product, viewedProducts
           Chi tiết sản phẩm
         </button>
         <button type="button" role="tab" aria-selected={tab === "comments"} onClick={() => setTab("comments")} className={`border-b-2 px-1 pb-3 text-sm font-bold ${tab === "comments" ? "border-[#D97706] text-white" : "border-transparent text-[#81746B] hover:text-[#CDBBAA]"}`}>
-          Bình luận ({0})
+          Bình luận ({commentsCount})
         </button>
       </div>
 
-      {tab === "details" ? (
+      <div hidden={tab !== "details"}>
         <div className="grid gap-8 py-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
           <div className="cms-rich-editor text-sm leading-7 text-[#D8CDC2]" dangerouslySetInnerHTML={{ __html: description }} />
           <div className="h-fit">
@@ -78,15 +78,14 @@ export default function ProductDetailTabs({ description, product, viewedProducts
             </section>
           )}
         </div>
-      ) : (
-        <div className="py-8">
-          <div className="mb-5 flex items-center gap-2">
-            <MessageCircle className="h-5 w-5 text-[#D97706]" aria-hidden />
-            <h2 className="text-lg font-bold text-white">Bình luận sản phẩm</h2>
-          </div>
-          <ProductComments productId={product.id} />
+      </div>
+      <div hidden={tab !== "comments"} className="py-8">
+        <div className="mb-5 flex items-center gap-2">
+          <MessageCircle className="h-5 w-5 text-[#D97706]" aria-hidden />
+          <h2 className="text-lg font-bold text-white">Bình luận sản phẩm</h2>
         </div>
-      )}
+        <ProductComments productId={product.id} onCountChange={setCommentsCount} />
+      </div>
     </section>
   );
 }
