@@ -20,59 +20,50 @@ const emptyFooterData: FooterData = {
   supportLinks: [],
 };
 
-async function queryOrFallback<T>(label: string, query: Promise<T>, fallback: T): Promise<T> {
-  try {
-    return await query;
-  } catch (error) {
-    console.error(`[footer-data] Could not load ${label}.`, error);
-    return fallback;
-  }
-}
-
 async function queryFooterData(): Promise<FooterData> {
   const [branches, products, newsArticles, communityPosts, cmsPages, policyLinks, supportLinks] = await Promise.all([
-      queryOrFallback("branches", prisma.branch.findMany({
+      prisma.branch.findMany({
         where: { active: true },
         orderBy: [{ name: "asc" }, { createdAt: "asc" }],
         take: 5,
         select: { id: true, name: true, address: true, hours: true, image: true },
-      }), []),
-      queryOrFallback("product categories", prisma.product.findMany({
+      }),
+      prisma.product.findMany({
         where: { active: true },
         distinct: ["category"],
         orderBy: { category: "asc" },
         take: 12,
         select: { category: true },
-      }), []),
-      queryOrFallback("news articles", prisma.newsArticle.findMany({
+      }),
+      prisma.newsArticle.findMany({
           where: { published: true },
           orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
           take: 4,
           select: { id: true, slug: true, title: true, publishedAt: true, createdAt: true },
-      }), []),
-      queryOrFallback("community posts", prisma.communityPost.findMany({
+      }),
+      prisma.communityPost.findMany({
           where: { published: true },
           orderBy: { createdAt: "desc" },
           take: 4,
           select: { id: true, title: true, createdAt: true },
-      }), []),
-      queryOrFallback("CMS pages", prisma.cmsPage.findMany({
+      }),
+      prisma.cmsPage.findMany({
         orderBy: [{ sortOrder: "asc" }, { updatedAt: "asc" }],
         take: 500,
         select: { id: true, title: true, slug: true, sortOrder: true, footerSection: true, published: true },
-      }), []),
-      queryOrFallback("policy footer links", prisma.footerLink.findMany({
+      }),
+      prisma.footerLink.findMany({
         where: { section: "POLICY", active: true },
         orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
         take: 8,
         select: { id: true, label: true, href: true, sortOrder: true },
-      }), []),
-      queryOrFallback("support footer links", prisma.footerLink.findMany({
+      }),
+      prisma.footerLink.findMany({
         where: { section: "SUPPORT", active: true },
         orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
         take: 8,
         select: { id: true, label: true, href: true, sortOrder: true },
-      }), []),
+      }),
     ]);
 
     const latestArticles = [
@@ -111,15 +102,15 @@ async function queryFooterData(): Promise<FooterData> {
 }
 
 const getCachedFooterData = unstable_cache(queryFooterData, ["tria-footer-data-v3"], {
-  revalidate: 300,
+  revalidate: 60,
   tags: ["site-footer"],
 });
 
 export async function getFooterData(): Promise<FooterData> {
   try {
     return await getCachedFooterData();
-  } catch {
-    console.error("[footer-data] Cached footer content is unavailable.");
+  } catch (error) {
+    console.error("[footer-data] Footer content is unavailable; returning an uncached fallback.", error);
     return emptyFooterData;
   }
 }

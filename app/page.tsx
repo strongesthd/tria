@@ -4,6 +4,8 @@ import { PRODUCT_CATEGORIES, PRODUCTS, SITE_NAME, type Product } from "../lib/si
 import { toSiteProduct } from "../lib/product-data";
 import { Hero, Pillars, ProductCategoryCards, FeaturedProducts, TrustBanner, CoffeeStories } from "../components/sections/HomeSections";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Hệ sinh thái cà phê Việt - Beans · Machines · Community",
   description: "TRIA CAFE: hạt cà phê Việt rang tươi, máy pha espresso B2C/B2B và cộng đồng tri thức. Khám phá tại TP.HCM.",
