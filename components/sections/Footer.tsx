@@ -87,7 +87,7 @@ export default async function Footer() {
             width={1004}
             height={826}
             sizes="80px"
-            className="h-20 w-auto object-contain"
+            className="mx-auto h-20 w-auto object-contain"
           />
           <p className="mt-4 max-w-sm text-[13px] leading-6 text-[#5B4D42]">
             Cà phê Việt, thiết bị pha chế và những trải nghiệm thật dành cho người yêu cà phê.

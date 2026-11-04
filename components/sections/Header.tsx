@@ -44,7 +44,7 @@ export default function Header({
             height={826}
             priority
             sizes="(max-width: 639px) 49px, 57px"
-            className="h-10 w-auto object-contain sm:h-14"
+            className="h-10 w-auto object-contain brightness-0 invert sm:h-14"
           />
           <span className="mt-1 hidden text-center text-[8px] font-medium uppercase tracking-[0.12em] text-[#B9A99B] sm:block">
             Cà Phê Việt &amp; Giải Pháp Pha Chế
