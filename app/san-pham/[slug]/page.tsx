@@ -10,7 +10,7 @@ import ProductGallery from "../../../components/shop/ProductGallery";
 import ProductDetailTabs from "../../../components/shop/ProductDetailTabs";
 import { HOTLINE, PRODUCTS, buildProductJsonLd, buildBreadcrumbJsonLd } from "../../../lib/site-data";
 import { prisma } from "../../../lib/prisma";
-import { toSiteProduct } from "../../../lib/product-data";
+import { getProductReviewSummaries, toSiteProduct } from "../../../lib/product-data";
 import { contentToPlainText, sanitizeContentHtml } from "../../../lib/sanitize-content";
 
 type Params = Promise<{ slug: string }>;
@@ -20,7 +20,10 @@ export const dynamic = "force-dynamic";
 async function getProduct(slug: string) {
   try {
     const record = await prisma.product.findUnique({ where: { slug, active: true } });
-    if (record) return toSiteProduct(record);
+    if (record) {
+      const summaries = await getProductReviewSummaries([record.id]);
+      return toSiteProduct(record, summaries.get(record.id));
+    }
   } catch (error) {
     console.error(`[product-detail] Could not load product "${slug}" from the database.`, error);
   }
@@ -52,12 +55,15 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
   let viewedProducts = PRODUCTS;
   try {
     const records = await prisma.product.findMany({ where: { active: true }, orderBy: { createdAt: "desc" } });
-    if (records.length) viewedProducts = records.map(toSiteProduct);
+    if (records.length) {
+      const summaries = await getProductReviewSummaries(records.map((record) => record.id));
+      viewedProducts = records.map((record) => toSiteProduct(record, summaries.get(record.id)));
+    }
   } catch (error) {
     console.error("[product-detail] Could not load viewed product candidates.", error);
   }
   const accessories = product.category === "machines" && product.accessoryIds?.length
-    ? await prisma.product.findMany({ where: { id: { in: product.accessoryIds }, category: "accessories", active: true } }).then((records) => records.map(toSiteProduct))
+    ? await prisma.product.findMany({ where: { id: { in: product.accessoryIds }, category: "accessories", active: true } }).then((records) => records.map((record) => toSiteProduct(record)))
     : [];
 
   return (
@@ -92,10 +98,11 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
             </p>
             <h1 className="mt-2 text-3xl font-extrabold text-white md:text-4xl">{product.name}</h1>
             <div className="mt-3 flex items-center gap-4 text-sm">
-              <span className="flex items-center gap-1 font-bold text-amber-400">
-                <Star className="h-4 w-4 fill-current" aria-hidden /> {product.rating.toFixed(1)}
-              </span>
-              <span className="text-[#A69B93]">{product.reviews} đánh giá</span>
+              {product.reviews > 0 ? (
+                <span className="flex items-center gap-1 font-bold text-amber-400">
+                  <Star className="h-4 w-4 fill-current" aria-hidden /> {product.rating.toFixed(1)} · {product.reviews} đánh giá
+                </span>
+              ) : <span className="text-[#A69B93]">Chưa có đánh giá</span>}
               <span className="text-[#A69B93]">{product.unit}</span>
             </div>
           </div>

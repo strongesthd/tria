@@ -208,7 +208,7 @@ function FeaturedGrid({ products }: { products: Product[] }) {
           </div>
           <div className="flex flex-1 flex-col space-y-3 p-5 pb-0">
             <div className="flex items-center justify-between text-xs text-[#A69B93]">
-              <span className="flex items-center gap-1 text-amber-400"><Star className="h-3.5 w-3.5 fill-current" />{p.rating} ({p.reviews})</span>
+              {p.reviews > 0 ? <span className="flex items-center gap-1 text-amber-400"><Star className="h-3.5 w-3.5 fill-current" />{p.rating.toFixed(1)} ({p.reviews})</span> : <span className="text-[#81746B]">Chưa có đánh giá</span>}
               <span>{p.unit}</span>
             </div>
             <h3 className="text-base font-bold leading-snug text-white line-clamp-2 group-hover:text-[#E2A168] transition-colors">{p.name}</h3>

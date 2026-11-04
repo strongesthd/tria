@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { MessageCircle, RefreshCw } from "lucide-react";
 
-export type ProductComment = {
+type ProductComment = {
   id: string;
   content: string;
   createdAt: string;
@@ -13,46 +13,28 @@ export type ProductComment = {
 
 type CommentsResponse = { comments: ProductComment[]; total: number; error?: string };
 
-export default function ProductCommentManager({ onNewComments }: { onNewComments: (comments: ProductComment[]) => void }) {
+export default function ProductCommentManager() {
   const [comments, setComments] = useState<ProductComment[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const previousCommentIds = useRef<Set<string> | null>(null);
-  const requestInFlight = useRef(false);
-
-  const load = useCallback(async (silent = false) => {
-    if (requestInFlight.current) return;
-    requestInFlight.current = true;
-    if (!silent) {
-      setLoading(true);
-      setError("");
-    }
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
     try {
       const response = await fetch("/api/admin/product-comments", { cache: "no-store" });
       const payload = await response.json() as CommentsResponse;
       if (!response.ok) throw new Error(payload.error || "Không tải được bình luận sản phẩm.");
-      const currentIds = new Set(payload.comments.map((comment) => comment.id));
-      if (previousCommentIds.current) {
-        const newComments = payload.comments.filter((comment) => !previousCommentIds.current?.has(comment.id));
-        if (newComments.length) onNewComments(newComments);
-      }
-      previousCommentIds.current = currentIds;
       setComments(payload.comments);
       setTotal(payload.total);
     } catch (cause) {
-      if (!silent) setError(cause instanceof Error ? cause.message : "Không tải được bình luận sản phẩm.");
+      setError(cause instanceof Error ? cause.message : "Không tải được bình luận sản phẩm.");
     } finally {
-      requestInFlight.current = false;
-      if (!silent) setLoading(false);
+      setLoading(false);
     }
-  }, [onNewComments]);
+  }, []);
 
-  useEffect(() => {
-    void load();
-    const intervalId = window.setInterval(() => { void load(true); }, 5000);
-    return () => window.clearInterval(intervalId);
-  }, [load]);
+  useEffect(() => { void load(); }, [load]);
 
   return (
     <section className="overflow-hidden rounded-2xl border border-[#3A302B] bg-[#171412]">

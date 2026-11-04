@@ -49,8 +49,8 @@ export const PRODUCTS: Product[] = [
     image: img("photo-1559056199-641a0ac8b55e", 600),
     description:
       "100% Robusta Chế biến Ẩm (Wet Process) từ Bảo Lộc. Thích hợp pha Espresso và Phin hiện đại.",
-    rating: 4.9,
-    reviews: 128,
+    rating: 0,
+    reviews: 0,
   },
   {
     id: "p2",
@@ -65,8 +65,8 @@ export const PRODUCTS: Product[] = [
     image: img("photo-1587734195503-904fca47e0e9", 600),
     description:
       "Dòng hạt tiêu chuẩn tối ưu chi phí cho các quán Espresso & Bistro. Chiết xuất ổn định, đậm gu Việt.",
-    rating: 5.0,
-    reviews: 310,
+    rating: 0,
+    reviews: 0,
   },
   {
     id: "p3",
@@ -81,8 +81,8 @@ export const PRODUCTS: Product[] = [
     image: img("photo-1517668808822-9ebb02f2a0e6", 600),
     description:
       "Thiết kế nhỏ gọn, khung kim loại cao cấp. Dành riêng cho trải nghiệm pha cà phê chuẩn Barista tại nhà.",
-    rating: 4.8,
-    reviews: 64,
+    rating: 0,
+    reviews: 0,
   },
   {
     id: "p4",
@@ -97,8 +97,8 @@ export const PRODUCTS: Product[] = [
     image: img("photo-1514432324607-a09d9b4aefdd", 600),
     description:
       "Dòng máy pha công nghiệp chịu tải cao cho giờ cao điểm. Tích hợp công nghệ kiểm soát nhiệt độ độ chính xác cao.",
-    rating: 4.9,
-    reviews: 42,
+    rating: 0,
+    reviews: 0,
   },
   {
     id: "p5",
@@ -113,8 +113,8 @@ export const PRODUCTS: Product[] = [
     image: img("photo-1514432324607-a09d9b4aefdd", 600),
     description:
       "Bộ dụng cụ nền tảng cho Home Barista, hoàn thiện góc pha chế tại nhà gọn gàng và chuyên nghiệp.",
-    rating: 4.8,
-    reviews: 37,
+    rating: 0,
+    reviews: 0,
   },
 ];
 

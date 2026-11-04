@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { BarChart3, CalendarDays, CheckCircle2, Eye, ExternalLink, Inbox, MapPin, MessageCircle, MessageSquare, RefreshCw, Shield, ShoppingBag, Store, Trash2, Users, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { BarChart3, Bell, CalendarDays, CheckCircle2, Eye, ExternalLink, Inbox, MapPin, MessageSquare, RefreshCw, Shield, ShoppingBag, Store, Trash2, Users, X } from "lucide-react";
 import Link from "next/link";
 import { deleteLead, deleteMessage, deleteOrder, updateBookingStatus, updateLeadStatus, updateMessageStatus, updateOrderStatus } from "../../app/actions/admin";
 import { BranchManager, ProductManager } from "./CatalogManager";
@@ -10,7 +10,8 @@ import FooterPageManager from "./FooterPageManager";
 import ContentManager from "./ContentManager";
 import UserManager from "./UserManager";
 import AffiliateManager from "./AffiliateManager";
-import ProductCommentManager, { type ProductComment } from "./ProductCommentManager";
+import ProductCommentManager from "./ProductCommentManager";
+import ProductReviewManager from "./ProductReviewManager";
 
 type Dashboard = {
   stats: Record<string, number>;
@@ -40,10 +41,12 @@ type AdminRow = {
   items?: { id: string; name: string; unitPrice: number; quantity: number }[];
 };
 
-type Tab = "overview" | "products" | "branches" | "footer" | "content" | "points" | "users" | "bookings" | "orders" | "affiliate" | "messages" | "productComments";
+type AdminActivity = { id: string; kind: string; title: string; detail: string; actor: string; createdAt: string; tab: Tab };
+type Tab = "overview" | "notifications" | "products" | "branches" | "footer" | "content" | "points" | "users" | "bookings" | "orders" | "affiliate" | "messages" | "productComments" | "productReviews";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Tổng quan" },
+  { id: "notifications", label: "Thông báo" },
   { id: "products", label: "Sản phẩm" },
   { id: "branches", label: "Hệ thống quán" },
   { id: "footer", label: "Footer" },
@@ -55,6 +58,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "affiliate", label: "Affiliate" },
   { id: "messages", label: "Tin nhắn" },
   { id: "productComments", label: "Bình luận" },
+  { id: "productReviews", label: "Đánh giá" },
 ];
 
 export default function AdminDashboard() {
@@ -62,14 +66,12 @@ export default function AdminDashboard() {
   const [data, setData] = useState<Dashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [unreadProductComments, setUnreadProductComments] = useState(0);
-  const [commentNotification, setCommentNotification] = useState<ProductComment | null>(null);
-
-  const handleNewProductComments = useCallback((comments: ProductComment[]) => {
-    if (!comments.length) return;
-    setUnreadProductComments((count) => count + comments.length);
-    setCommentNotification(comments[0]);
-  }, []);
+  const [activities, setActivities] = useState<AdminActivity[]>([]);
+  const [unreadActivities, setUnreadActivities] = useState(0);
+  const [activityNotification, setActivityNotification] = useState<AdminActivity | null>(null);
+  const activityCursor = useRef<string | null>(null);
+  const seenActivityIds = useRef(new Set<string>());
+  const activityRequestInFlight = useRef(false);
 
   const load = () => {
     setLoading(true);
@@ -86,12 +88,50 @@ export default function AdminDashboard() {
 
   useEffect(load, []);
 
+  const pollActivities = useCallback(async () => {
+    if (activityRequestInFlight.current) return;
+    activityRequestInFlight.current = true;
+    try {
+      const since = activityCursor.current;
+      const query = since ? `?since=${encodeURIComponent(since)}` : "";
+      const response = await fetch(`/api/admin/notifications${query}`, { cache: "no-store" });
+      if (!response.ok) return;
+      const payload = await response.json() as { activities: AdminActivity[]; checkedAt: string };
+      const freshActivities = payload.activities.filter((activity) => !seenActivityIds.current.has(activity.id));
+      for (const activity of payload.activities) seenActivityIds.current.add(activity.id);
+      if (!since) {
+        setActivities(payload.activities);
+      } else if (freshActivities.length) {
+        setActivities((current) => [...freshActivities, ...current].filter((activity, index, all) => all.findIndex((item) => item.id === activity.id) === index).slice(0, 100));
+        setUnreadActivities((count) => count + freshActivities.length);
+        setActivityNotification(freshActivities[0]);
+      }
+      activityCursor.current = payload.checkedAt;
+    } catch {
+      // Keep the dashboard usable if a single polling request fails.
+    } finally {
+      activityRequestInFlight.current = false;
+    }
+  }, []);
+
+  useEffect(() => {
+    void pollActivities();
+    const intervalId = window.setInterval(() => { void pollActivities(); }, 5000);
+    return () => window.clearInterval(intervalId);
+  }, [pollActivities]);
+
   const selectTab = (nextTab: Tab) => {
     setTab(nextTab);
-    if (nextTab === "productComments") {
-      setUnreadProductComments(0);
-      setCommentNotification(null);
+    if (nextTab === "notifications") {
+      setUnreadActivities(0);
+      setActivityNotification(null);
     }
+  };
+
+  const openActivity = (activity: AdminActivity) => {
+    selectTab(activity.tab);
+    setActivityNotification(null);
+    void load();
   };
 
   if (loading && !data) {
@@ -124,17 +164,17 @@ export default function AdminDashboard() {
 
         {error && <p role="alert" className="mb-6 rounded-xl border border-red-900/50 bg-red-950/30 p-4 text-sm text-red-400">{error}</p>}
 
-        {commentNotification && tab !== "productComments" && (
+        {activityNotification && (
           <aside role="status" className="fixed right-4 top-4 z-50 w-[min(24rem,calc(100vw-2rem))] rounded-xl border border-[#6B452A] bg-[#211A16] p-4 shadow-2xl">
             <div className="flex items-start gap-3">
-              <MessageCircle className="mt-0.5 h-5 w-5 shrink-0 text-[#D97706]" aria-hidden />
+              <Bell className="mt-0.5 h-5 w-5 shrink-0 text-[#D97706]" aria-hidden />
               <div className="min-w-0 flex-1">
-                <p className="font-bold text-white">Có bình luận sản phẩm mới</p>
-                <p className="mt-1 text-xs text-[#CDBBAA]">{commentNotification.author.name || commentNotification.author.email} · {commentNotification.product.name}</p>
-                <p className="mt-2 line-clamp-2 text-sm text-[#A69B93]">{commentNotification.content}</p>
-                <button type="button" onClick={() => selectTab("productComments")} className="mt-3 text-sm font-bold text-[#E2A168] hover:text-white">Xem bình luận</button>
+                <p className="font-bold text-white">{activityNotification.title}</p>
+                <p className="mt-1 text-xs text-[#CDBBAA]">{activityNotification.actor}</p>
+                <p className="mt-2 line-clamp-2 text-sm text-[#A69B93]">{activityNotification.detail}</p>
+                <button type="button" onClick={() => openActivity(activityNotification)} className="mt-3 text-sm font-bold text-[#E2A168] hover:text-white">Mở để xử lý</button>
               </div>
-              <button type="button" aria-label="Đóng thông báo" onClick={() => setCommentNotification(null)} className="rounded-md p-1 text-[#A69B93] hover:bg-[#2A2421] hover:text-white">
+              <button type="button" aria-label="Đóng thông báo" onClick={() => setActivityNotification(null)} className="rounded-md p-1 text-[#A69B93] hover:bg-[#2A2421] hover:text-white">
                 <X className="h-4 w-4" aria-hidden />
               </button>
             </div>
@@ -144,7 +184,7 @@ export default function AdminDashboard() {
         <nav className="mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-[#2A2421] bg-[#171412] p-2 sm:grid-cols-4 lg:grid-cols-10" aria-label="Admin sections">
           {TABS.map((item) => (
             <button key={item.id} type="button" onClick={() => selectTab(item.id)} aria-current={tab === item.id} className={`rounded-xl px-2 py-3 text-xs font-bold transition ${tab === item.id ? "bg-[#D97706] text-[#1C1613]" : "text-[#A69B93] hover:bg-[#2A2421] hover:text-white"}`}>
-              {item.label}{item.id === "productComments" && unreadProductComments > 0 && <span className="ml-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] text-white">{unreadProductComments}</span>}
+              {item.label}{item.id === "notifications" && unreadActivities > 0 && <span className="ml-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] text-white">{unreadActivities}</span>}
             </button>
           ))}
         </nav>
@@ -152,6 +192,7 @@ export default function AdminDashboard() {
         {!data ? <div className="rounded-2xl border border-[#3A302B] bg-[#171412] p-8 text-sm text-[#81746B]">Không có dữ liệu.</div> : (
           <>
             {tab === "overview" && <Overview stats={data.stats} orders={data.recentOrders} bookings={data.recentBookings} messages={data.recentMessages} />}
+            {tab === "notifications" && <ActivityCenter activities={activities} onOpen={openActivity} />}
             {tab === "products" && <ProductManager />}
             {tab === "branches" && <BranchManager />}
             {tab === "footer" && <div className="space-y-6"><FooterPageManager /><FooterLinkManager /></div>}
@@ -162,9 +203,8 @@ export default function AdminDashboard() {
             {tab === "orders" && <DataTable title="Đơn đặt hàng gần đây" rows={data.recentOrders} empty="Chưa có đơn hàng." onStatus={updateOrderStatus} onDelete={deleteOrder} onView />}
             {tab === "affiliate" && <AffiliateManager />}
             {tab === "messages" && <DataTable title="Tin nhắn liên hệ" rows={data.recentMessages} empty="Chưa có tin nhắn." onStatus={updateMessageStatus} onDelete={deleteMessage} />}
-            <div hidden={tab !== "productComments"}>
-              <ProductCommentManager onNewComments={handleNewProductComments} />
-            </div>
+            <div hidden={tab !== "productComments"}><ProductCommentManager /></div>
+            <div hidden={tab !== "productReviews"}><ProductReviewManager /></div>
           </>
         )}
       </div>
@@ -200,6 +240,35 @@ function Overview({ stats, orders, bookings, messages }: { stats: Record<string,
         <MiniList title="Tin nhắn mới" rows={messages} />
       </div>
     </div>
+  );
+}
+
+function ActivityCenter({ activities, onOpen }: { activities: AdminActivity[]; onOpen: (activity: AdminActivity) => void }) {
+  return (
+    <section className="overflow-hidden rounded-2xl border border-[#3A302B] bg-[#171412]">
+      <div className="flex items-center justify-between gap-3 border-b border-[#2A2421] p-5">
+        <div>
+          <h2 className="text-xl font-bold text-white">Hoạt động gần đây</h2>
+          <p className="mt-1 text-xs text-[#81746B]">Cập nhật tự động mỗi 5 giây khi trang quản trị đang mở</p>
+        </div>
+        <Bell className="h-5 w-5 text-[#D97706]" aria-hidden />
+      </div>
+      {activities.length ? (
+        <ul className="divide-y divide-[#2A2421]">
+          {activities.map((activity) => (
+            <li key={activity.id}>
+              <button type="button" onClick={() => onOpen(activity)} className="grid w-full gap-2 p-5 text-left transition hover:bg-[#221D1A] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                <span className="min-w-0">
+                  <span className="block text-sm font-bold text-white">{activity.title}</span>
+                  <span className="mt-1 block truncate text-xs text-[#A69B93]">{activity.actor} · {activity.detail}</span>
+                </span>
+                <time className="text-xs text-[#81746B]" dateTime={activity.createdAt}>{new Date(activity.createdAt).toLocaleString("vi-VN")}</time>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : <p className="p-8 text-sm text-[#81746B]">Chưa có hoạt động mới.</p>}
+    </section>
   );
 }
 

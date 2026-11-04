@@ -2,10 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, MessageCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, MessageCircle, Star } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import type { Product } from "../../lib/site-data";
 import ProductComments from "./ProductComments";
+import ProductReviews from "./ProductReviews";
 
 type ProductDetailTabsProps = {
   description: string;
@@ -14,7 +15,8 @@ type ProductDetailTabsProps = {
 };
 
 export default function ProductDetailTabs({ description, product, viewedProducts }: ProductDetailTabsProps) {
-  const [tab, setTab] = useState<"details" | "comments">("details");
+  const [tab, setTab] = useState<"details" | "reviews" | "comments">("details");
+  const [reviewsCount, setReviewsCount] = useState(product.reviews);
   const [commentsCount, setCommentsCount] = useState(0);
   const similarProductsRef = useRef<HTMLDivElement>(null);
   const similarProducts = useMemo(
@@ -33,6 +35,9 @@ export default function ProductDetailTabs({ description, product, viewedProducts
       <div className="flex gap-6 border-b border-[#2A2421]" role="tablist" aria-label="Thông tin sản phẩm">
         <button type="button" role="tab" aria-selected={tab === "details"} onClick={() => setTab("details")} className={`border-b-2 px-1 pb-3 text-sm font-bold ${tab === "details" ? "border-[#D97706] text-white" : "border-transparent text-[#81746B] hover:text-[#CDBBAA]"}`}>
           Chi tiết sản phẩm
+        </button>
+        <button type="button" role="tab" aria-selected={tab === "reviews"} onClick={() => setTab("reviews")} className={`flex items-center gap-1 border-b-2 px-1 pb-3 text-sm font-bold ${tab === "reviews" ? "border-[#D97706] text-white" : "border-transparent text-[#81746B] hover:text-[#CDBBAA]"}`}>
+          <Star className="h-3.5 w-3.5" aria-hidden /> Đánh giá ({reviewsCount})
         </button>
         <button type="button" role="tab" aria-selected={tab === "comments"} onClick={() => setTab("comments")} className={`border-b-2 px-1 pb-3 text-sm font-bold ${tab === "comments" ? "border-[#D97706] text-white" : "border-transparent text-[#81746B] hover:text-[#CDBBAA]"}`}>
           Bình luận ({commentsCount})
@@ -85,6 +90,13 @@ export default function ProductDetailTabs({ description, product, viewedProducts
           <h2 className="text-lg font-bold text-white">Bình luận sản phẩm</h2>
         </div>
         <ProductComments productId={product.id} onCountChange={setCommentsCount} />
+      </div>
+      <div hidden={tab !== "reviews"} className="py-8">
+        <div className="mb-5 flex items-center gap-2">
+          <Star className="h-5 w-5 fill-current text-amber-400" aria-hidden />
+          <h2 className="text-lg font-bold text-white">Đánh giá sản phẩm</h2>
+        </div>
+        <ProductReviews productId={product.id} initialCount={reviewsCount} onCountChange={setReviewsCount} />
       </div>
     </section>
   );

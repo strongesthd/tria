@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { prisma } from "../lib/prisma";
 import { PRODUCT_CATEGORIES, PRODUCTS, SITE_NAME, type Product } from "../lib/site-data";
-import { toSiteProduct } from "../lib/product-data";
+import { getProductReviewSummaries, toSiteProduct } from "../lib/product-data";
 import { Hero, Pillars, ProductCategoryCards, FeaturedProducts, TrustBanner, CoffeeStories } from "../components/sections/HomeSections";
 
 export const dynamic = "force-dynamic";
@@ -30,7 +30,8 @@ async function getHomepageData(): Promise<{
       }),
     ]);
     if (!dbProducts.length) return { products: PRODUCTS, branchCount, stories };
-    const products: Product[] = dbProducts.map(toSiteProduct);
+    const summaries = await getProductReviewSummaries(dbProducts.map((product) => product.id));
+    const products: Product[] = dbProducts.map((product) => toSiteProduct(product, summaries.get(product.id)));
     return { products, branchCount, stories };
   } catch (error) {
     console.error("[homepage] Could not load homepage data from the database.", error);

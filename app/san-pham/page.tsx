@@ -5,7 +5,7 @@ import { Metadata } from "next";
 import { Coffee, Star } from "lucide-react";
 import { JsonLdScript } from "../../components/seo/JsonLdScript";
 import { prisma } from "../../lib/prisma";
-import { toSiteProduct } from "../../lib/product-data";
+import { getProductReviewSummaries, toSiteProduct } from "../../lib/product-data";
 import AddToCartButton from "../../components/shop/AddToCartButton";
 import {
   PRODUCTS,
@@ -28,7 +28,10 @@ async function getProducts() {
       where: { active: true },
       orderBy: { createdAt: "asc" },
     });
-    if (products.length) return products.map(toSiteProduct);
+    if (products.length) {
+      const summaries = await getProductReviewSummaries(products.map((product) => product.id));
+      return products.map((product) => toSiteProduct(product, summaries.get(product.id)));
+    }
   } catch (error) {
     console.error("[product-list] Could not load products from the database.", error);
   }
@@ -208,7 +211,7 @@ export default async function ProductsPage({ searchParams, redirectLegacy = true
             </div>
             <div className="flex flex-1 flex-col space-y-3 p-5 pb-0">
               <div className="flex items-center justify-between text-xs text-[#A69B93]">
-                <span className="flex items-center gap-1 text-amber-400"><Star className="h-3.5 w-3.5 fill-current" /> {p.rating} ({p.reviews})</span>
+                {p.reviews > 0 ? <span className="flex items-center gap-1 text-amber-400"><Star className="h-3.5 w-3.5 fill-current" /> {p.rating.toFixed(1)} ({p.reviews})</span> : <span className="text-[#81746B]">Chưa có đánh giá</span>}
                 <span>{p.unit}</span>
               </div>
               <h3 className="text-base font-bold leading-snug text-white line-clamp-2 group-hover:text-[#E2A168] transition-colors">{p.name}</h3>

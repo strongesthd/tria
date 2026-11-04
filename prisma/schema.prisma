@@ -41,6 +41,7 @@ model User {
   orders          Order[]
   affiliateSales  AffiliateSale[]        @relation("AffiliateOwner")
   productComments ProductComment[]
+  productReviews ProductReview[]
   contactMessages ContactMessage[]
   createdAt       DateTime               @default(now())
   updatedAt       DateTime               @updatedAt
@@ -70,6 +71,7 @@ model Product {
   updatedAt      DateTime    @updatedAt
   orderItems     OrderItem[]
   comments       ProductComment[]
+  productReviews ProductReview[]
 
   @@index([category, active])
 }
@@ -340,6 +342,21 @@ model ProductComment {
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 
+  @@index([productId, createdAt])
+}
+
+model ProductReview {
+  id        String   @id @default(cuid())
+  rating    Int
+  content   String   @db.Text
+  authorId  String
+  productId String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, authorId])
   @@index([productId, createdAt])
 }
 
