@@ -43,8 +43,10 @@ export default function ProductDetailTabs({ description, product, viewedProducts
         <div className="grid gap-8 py-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
           <div className="cms-rich-editor text-sm leading-7 text-[#D8CDC2]" dangerouslySetInnerHTML={{ __html: description }} />
           <div className="h-fit">
-            <h2 className="mb-3 text-center text-xl font-bold text-white">Thông số kỹ thuật</h2>
-            <div className="cms-rich-editor rounded-2xl border border-[#3A302B] bg-[#171412] p-4 text-sm text-[#E8E2D9]" dangerouslySetInnerHTML={{ __html: product.technicalSpecs || "<p>Thông số kỹ thuật đang được cập nhật.</p>" }} />
+            <div className="rounded-2xl border border-[#3A302B] bg-[#171412] p-4">
+              <h2 className="mb-4 text-center text-xl font-bold text-white">Thông số kỹ thuật</h2>
+              <div className="cms-rich-editor text-sm text-[#E8E2D9]" dangerouslySetInnerHTML={{ __html: product.technicalSpecs || "<p>Thông số kỹ thuật đang được cập nhật.</p>" }} />
+            </div>
           </div>
           {similarProducts.length > 0 && (
             <section className="lg:col-span-2" aria-labelledby="similar-products-title">
