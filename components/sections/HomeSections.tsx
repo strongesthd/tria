@@ -152,7 +152,7 @@ export function ProductCategoryCards({ categories = PRODUCT_CATEGORIES }: { cate
         {categories.map((category) => (
           <Link
             key={category.id}
-            href={`/san-pham?category=${category.id}`}
+            href={productCategoryPath(category.id)}
             className="group relative min-h-48 overflow-hidden rounded-2xl border border-[#3A302B] text-left transition-all hover:border-[#D97706]/70"
           >
             <Image

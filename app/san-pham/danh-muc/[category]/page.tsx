@@ -25,5 +25,5 @@ export default async function ProductCategoryPage({ params, searchParams }: { pa
   const { category: categorySlug } = await params;
   const filters = await searchParams;
   const category = productCategoryFromSlug(categorySlug);
-  return <ProductsPage searchParams={Promise.resolve({ category: category || (categorySlug as ProductCategory), ...filters })} />;
+  return <ProductsPage redirectLegacy={false} searchParams={Promise.resolve({ category: category || (categorySlug as ProductCategory), ...filters })} />;
 }

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Metadata } from "next";
 import { Coffee, Star } from "lucide-react";
 import { JsonLdScript } from "../../components/seo/JsonLdScript";
@@ -90,8 +91,16 @@ function h1Text(category: string, target: string): string {
   return "Danh mục sản phẩm TRIA";
 }
 
-export default async function ProductsPage({ searchParams }: { searchParams: SearchParams }) {
+export default async function ProductsPage({ searchParams, redirectLegacy = true }: { searchParams: SearchParams; redirectLegacy?: boolean }) {
   const params = await searchParams;
+  const legacyCategory = params.category;
+  if (redirectLegacy && legacyCategory && PRODUCT_CATEGORIES.some((item) => item.id === legacyCategory)) {
+    const queryParams = new URLSearchParams();
+    if (params.target && params.target !== "all") queryParams.set("target", params.target);
+    if (params.q?.trim()) queryParams.set("q", params.q.trim());
+    const suffix = queryParams.toString();
+    redirect(`${productCategoryPath(legacyCategory as ProductCategory)}${suffix ? `?${suffix}` : ""}`);
+  }
   const products = await getProducts();
   const category = params.category || "all";
   const target = params.target || "all";

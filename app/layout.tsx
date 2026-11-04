@@ -50,7 +50,13 @@ export function generateMetadata(): Metadata {
       description: "Hạt cà phê Việt rang tươi, máy pha chuyên nghiệp và cộng đồng tri thức.",
       images: ["/images/og-image.png"],
     },
-    icons: { icon: "/images/tria_logo.png", apple: "/images/tria_logo.png" },
+    icons: {
+      icon: [
+        { url: "/images/tria_logo-white.png", media: "(prefers-color-scheme: dark)" },
+        { url: "/images/tria_logo.png", media: "(prefers-color-scheme: light)" },
+      ],
+      apple: "/images/tria_logo.png",
+    },
     other: { "theme-color": "#1c1613" },
   };
 }

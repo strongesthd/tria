@@ -1,3 +1,5 @@
+import { productCategoryPath } from "./product-routes";
+
 export type ProductCategoryRow = { category: string };
 export type FooterCategory = { id: string; title: string; href: string };
 
@@ -23,6 +25,8 @@ export function buildFooterCategories(rows: readonly ProductCategoryRow[]): Foot
     .map((category) => ({
       id: category,
       title: categoryTitle(category),
-      href: `/san-pham?category=${encodeURIComponent(category)}`,
+      href: category in CATEGORY_TITLES && category !== "other"
+        ? productCategoryPath(category as "beans" | "machines" | "accessories")
+        : `/san-pham?category=${encodeURIComponent(category)}`,
     }));
 }
