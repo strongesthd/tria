@@ -41,8 +41,8 @@ export default function ProductDetailTabs({ description, product, viewedProducts
 
       {tab === "details" ? (
         <div className="grid gap-8 py-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-          <div className="cms-rich-editor lg:col-span-2 text-sm leading-7 text-[#D8CDC2]" dangerouslySetInnerHTML={{ __html: description }} />
-          <div className="mx-auto h-fit w-full max-w-4xl lg:col-span-2">
+          <div className="cms-rich-editor text-sm leading-7 text-[#D8CDC2]" dangerouslySetInnerHTML={{ __html: description }} />
+          <div className="h-fit">
             <h2 className="mb-3 text-center text-xl font-bold text-white">Thông số kỹ thuật</h2>
             <div className="cms-rich-editor rounded-2xl border border-[#3A302B] bg-[#171412] p-4 text-sm text-[#E8E2D9]" dangerouslySetInnerHTML={{ __html: product.technicalSpecs || "<p>Thông số kỹ thuật đang được cập nhật.</p>" }} />
           </div>
