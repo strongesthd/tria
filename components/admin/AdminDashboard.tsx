@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { BarChart3, CalendarDays, CheckCircle2, ExternalLink, Inbox, MapPin, MessageSquare, RefreshCw, Shield, ShoppingBag, Store, Trash2, Users } from "lucide-react";
+import { BarChart3, CalendarDays, CheckCircle2, Eye, ExternalLink, Inbox, MapPin, MessageSquare, RefreshCw, Shield, ShoppingBag, Store, Trash2, Users, X } from "lucide-react";
 import Link from "next/link";
 import { deleteLead, deleteMessage, deleteOrder, updateBookingStatus, updateLeadStatus, updateMessageStatus, updateOrderStatus } from "../../app/actions/admin";
 import { BranchManager, ProductManager } from "./CatalogManager";
@@ -25,6 +25,9 @@ type AdminRow = {
   subject?: string | null;
   type?: string | null;
   phone?: string | null;
+  address?: string | null;
+  note?: string | null;
+  createdAt?: string | Date | null;
   locationId?: string | null;
   status?: string | null;
   total?: number | null;
@@ -33,6 +36,7 @@ type AdminRow = {
   partnershipType?: string | null;
   location?: string | null;
   date?: string | Date | null;
+  items?: { id: string; name: string; unitPrice: number; quantity: number }[];
 };
 
 type Tab = "overview" | "products" | "branches" | "footer" | "content" | "points" | "users" | "bookings" | "orders" | "affiliate" | "messages";
@@ -120,7 +124,7 @@ export default function AdminDashboard() {
             {tab === "points" && <DataTable title="Lead hợp tác / điểm bán" rows={data.recentLeads} empty="Chưa có lead hợp tác." onStatus={updateLeadStatus} onDelete={deleteLead} />}
             {tab === "users" && <UserManager />}
             {tab === "bookings" && <DataTable title="Lịch demo / booking gần đây" rows={data.recentBookings} empty="Chưa có booking." onStatus={updateBookingStatus} />}
-            {tab === "orders" && <DataTable title="Đơn đặt hàng gần đây" rows={data.recentOrders} empty="Chưa có đơn hàng." onStatus={updateOrderStatus} onDelete={deleteOrder} />}
+            {tab === "orders" && <DataTable title="Đơn đặt hàng gần đây" rows={data.recentOrders} empty="Chưa có đơn hàng." onStatus={updateOrderStatus} onDelete={deleteOrder} onView />}
             {tab === "affiliate" && <AffiliateManager />}
             {tab === "messages" && <DataTable title="Tin nhắn liên hệ" rows={data.recentMessages} empty="Chưa có tin nhắn." onStatus={updateMessageStatus} onDelete={deleteMessage} />}
           </>
@@ -198,9 +202,12 @@ function InfoPanel({ title, body, stats, icon }: { title: string; body: string; 
   );
 }
 
-function DataTable({ title, rows, empty, onStatus, onDelete }: { title: string; rows: AdminRow[]; empty: string; onStatus?: (id: string, status: string) => Promise<unknown>; onDelete?: (id: string) => Promise<unknown> }) {
+function DataTable({ title, rows, empty, onStatus, onDelete, onView }: { title: string; rows: AdminRow[]; empty: string; onStatus?: (id: string, status: string) => Promise<unknown>; onDelete?: (id: string) => Promise<unknown>; onView?: boolean }) {
+  const [selectedOrder, setSelectedOrder] = useState<AdminRow | null>(null);
+
   return (
-    <section className="overflow-hidden rounded-2xl border border-[#3A302B] bg-[#171412]">
+    <>
+      <section className="overflow-hidden rounded-2xl border border-[#3A302B] bg-[#171412]">
       <div className="border-b border-[#2A2421] p-5"><h2 className="text-xl font-bold text-white">{title}</h2></div>
       {rows.length ? (
         <div className="overflow-x-auto">
@@ -211,6 +218,7 @@ function DataTable({ title, rows, empty, onStatus, onDelete }: { title: string; 
                 <td className="px-5 py-4"><strong className="text-white">{row.name || row.fullName || row.subject || row.user?.email || row.type}</strong><span className="mt-1 block text-xs text-[#81746B]">{row.phone || row.user?.email || row.location || row.locationId || row.partnershipType || (row.date ? new Date(row.date).toLocaleString("vi-VN") : "") || (row.total ? `${row.total.toLocaleString("vi-VN")} VNĐ` : "")}</span></td>
                 <td className="px-5 py-4"><span className="rounded-full bg-[#D97706]/15 px-2 py-1 text-xs text-[#F0B429]">{row.status || "Mới"}</span></td>
                 <td className="px-5 py-4"><div className="flex gap-2">
+                  {onView && <button type="button" aria-label="Xem chi tiết đơn hàng" onClick={() => setSelectedOrder(row)} className="rounded-lg border border-[#3A302B] p-2 hover:border-[#D97706]"><Eye className="h-4 w-4" /></button>}
                   {onStatus && <button type="button" aria-label="Cập nhật trạng thái" onClick={() => void onStatus(row.id, row.status === "NEW" ? "PROCESSING" : "DONE")} className="rounded-lg border border-[#3A302B] p-2 hover:border-[#D97706]"><CheckCircle2 className="h-4 w-4" /></button>}
                   {onDelete && <button type="button" aria-label="Xóa" onClick={() => void onDelete(row.id)} className="rounded-lg border border-red-900/50 p-2 text-red-400"><Trash2 className="h-4 w-4" /></button>}
                 </div></td>
@@ -219,6 +227,44 @@ function DataTable({ title, rows, empty, onStatus, onDelete }: { title: string; 
           </table>
         </div>
       ) : <p className="p-8 text-sm text-[#81746B]">{empty}</p>}
-    </section>
+      </section>
+      {selectedOrder && <OrderDetail order={selectedOrder} onClose={() => setSelectedOrder(null)} />}
+    </>
+  );
+}
+
+function OrderDetail({ order, onClose }: { order: AdminRow; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-label="Chi tiết đơn hàng" onClick={onClose}>
+      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-[#4A3B31] bg-[#171412] p-6 text-[#FDFBF7] shadow-2xl" onClick={(event) => event.stopPropagation()}>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-[#D97706]">Chi tiết đơn hàng</p>
+            <h2 className="mt-1 text-xl font-bold text-white">{order.name || "Khách hàng"}</h2>
+          </div>
+          <button type="button" aria-label="Đóng" onClick={onClose} className="rounded-lg p-2 text-[#A69B93] hover:bg-[#2A2421] hover:text-white"><X className="h-5 w-5" /></button>
+        </div>
+        <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
+          <div><dt className="text-[#81746B]">Số điện thoại</dt><dd className="mt-1 text-[#CDBBAA]">{order.phone || "—"}</dd></div>
+          <div><dt className="text-[#81746B]">Email</dt><dd className="mt-1 break-all text-[#CDBBAA]">{order.user?.email || "—"}</dd></div>
+          <div className="sm:col-span-2"><dt className="text-[#81746B]">Địa chỉ nhận hàng</dt><dd className="mt-1 text-[#CDBBAA]">{order.address || "—"}</dd></div>
+          {order.note && <div className="sm:col-span-2"><dt className="text-[#81746B]">Ghi chú</dt><dd className="mt-1 text-[#CDBBAA]">{order.note}</dd></div>}
+        </dl>
+        <div className="mt-5 border-t border-[#2A2421] pt-4">
+          <h3 className="font-bold text-white">Sản phẩm</h3>
+          <div className="mt-3 space-y-2">
+            {order.items?.map((item) => (
+              <div key={item.id} className="flex justify-between gap-4 rounded-lg bg-[#221D1A] p-3 text-sm">
+                <span className="text-[#CDBBAA]">{item.name} × {item.quantity}</span>
+                <span className="shrink-0 text-[#F0B429]">{(item.unitPrice * item.quantity).toLocaleString("vi-VN")} VNĐ</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 flex justify-between border-t border-[#2A2421] pt-3 font-bold">
+            <span>Tổng cộng</span><span className="text-[#F0B429]">{(order.total || 0).toLocaleString("vi-VN")} VNĐ</span>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

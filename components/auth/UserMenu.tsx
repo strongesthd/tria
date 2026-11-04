@@ -11,7 +11,9 @@ export default function UserMenu({ onLogin }: { onLogin?: () => void }) {
   const { data: session, status } = useSession();
   const { clear } = useCart();
   const [open, setOpen] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const avatarSrc = session?.user?.avatarUrl || session?.user?.image;
 
   // Close on outside click and Escape so keyboard users are not trapped.
   useEffect(() => {
@@ -31,6 +33,10 @@ export default function UserMenu({ onLogin }: { onLogin?: () => void }) {
       document.removeEventListener("keydown", onKey);
     };
   }, [open]);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [avatarSrc]);
 
   if (status === "loading") {
     return <div className="h-9 w-9 animate-pulse rounded-full bg-[#2A2421]" aria-hidden />;
@@ -62,13 +68,14 @@ export default function UserMenu({ onLogin }: { onLogin?: () => void }) {
         aria-label={`Tài khoản: ${displayName}`}
         className="flex items-center gap-2 rounded-full border border-[#3A302B] bg-[#221D1A] py-1 pl-1 pr-2 text-left"
       >
-        {user.avatarUrl ? (
+        {avatarSrc && !avatarError ? (
           <Image
-            src={user.avatarUrl}
-            alt={displayName}
+            src={avatarSrc}
+            alt=""
             width={28}
             height={28}
             className="h-7 w-7 rounded-full object-cover"
+            onError={() => setAvatarError(true)}
           />
         ) : (
           <span aria-hidden className="flex h-7 w-7 items-center justify-center rounded-full bg-[#C87D55] text-xs font-bold text-white">
