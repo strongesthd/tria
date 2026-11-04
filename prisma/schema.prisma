@@ -338,11 +338,14 @@ model ProductComment {
   content   String   @db.Text
   authorId  String
   productId String
+  parentId  String?
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  parent    ProductComment?  @relation("ProductCommentReplies", fields: [parentId], references: [id], onDelete: SetNull)
+  replies   ProductComment[] @relation("ProductCommentReplies")
   createdAt DateTime @default(now())
 
-  @@index([productId, createdAt])
+  @@index([productId, parentId, createdAt])
 }
 
 model ProductReview {

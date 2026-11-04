@@ -20,8 +20,9 @@ export async function GET(_request: Request, { params }: { params: Params }) {
       select: {
         id: true,
         content: true,
+        parentId: true,
         createdAt: true,
-        author: { select: { name: true, image: true } },
+        author: { select: { name: true, image: true, role: true } },
       },
     }),
     prisma.productComment.count({ where: { productId } }),
@@ -49,8 +50,9 @@ export async function POST(request: Request, { params }: { params: Params }) {
     select: {
       id: true,
       content: true,
+      parentId: true,
       createdAt: true,
-      author: { select: { name: true, image: true } },
+      author: { select: { name: true, image: true, role: true } },
     },
   });
   return NextResponse.json(comment, { status: 201 });

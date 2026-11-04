@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { BarChart3, Bell, CalendarDays, CheckCircle2, Eye, ExternalLink, Inbox, MapPin, MessageSquare, RefreshCw, Shield, ShoppingBag, Store, Trash2, Users, X } from "lucide-react";
+import { signOut } from "next-auth/react";
+import { BarChart3, Bell, CalendarDays, CheckCheck, CheckCircle2, Eye, ExternalLink, Inbox, LogOut, MapPin, MessageSquare, RefreshCw, Shield, ShoppingBag, Store, Trash2, Users, X } from "lucide-react";
 import Link from "next/link";
 import { deleteLead, deleteMessage, deleteOrder, updateBookingStatus, updateLeadStatus, updateMessageStatus, updateOrderStatus } from "../../app/actions/admin";
 import { BranchManager, ProductManager } from "./CatalogManager";
@@ -42,11 +43,10 @@ type AdminRow = {
 };
 
 type AdminActivity = { id: string; kind: string; title: string; detail: string; actor: string; createdAt: string; tab: Tab };
-type Tab = "overview" | "notifications" | "products" | "branches" | "footer" | "content" | "points" | "users" | "bookings" | "orders" | "affiliate" | "messages" | "productComments" | "productReviews";
+type Tab = "overview" | "products" | "branches" | "footer" | "content" | "points" | "users" | "bookings" | "orders" | "affiliate" | "messages" | "productComments" | "productReviews";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Tổng quan" },
-  { id: "notifications", label: "Thông báo" },
   { id: "products", label: "Sản phẩm" },
   { id: "branches", label: "Hệ thống quán" },
   { id: "footer", label: "Footer" },
@@ -69,9 +69,12 @@ export default function AdminDashboard() {
   const [activities, setActivities] = useState<AdminActivity[]>([]);
   const [unreadActivities, setUnreadActivities] = useState(0);
   const [activityNotification, setActivityNotification] = useState<AdminActivity | null>(null);
+  const [notificationOpen, setNotificationOpen] = useState(false);
   const activityCursor = useRef<string | null>(null);
   const seenActivityIds = useRef(new Set<string>());
+  const unreadActivityIds = useRef(new Set<string>());
   const activityRequestInFlight = useRef(false);
+  const notificationPanelRef = useRef<HTMLDivElement>(null);
 
   const load = () => {
     setLoading(true);
@@ -103,7 +106,8 @@ export default function AdminDashboard() {
         setActivities(payload.activities);
       } else if (freshActivities.length) {
         setActivities((current) => [...freshActivities, ...current].filter((activity, index, all) => all.findIndex((item) => item.id === activity.id) === index).slice(0, 100));
-        setUnreadActivities((count) => count + freshActivities.length);
+        freshActivities.forEach((activity) => unreadActivityIds.current.add(activity.id));
+        setUnreadActivities(unreadActivityIds.current.size);
         setActivityNotification(freshActivities[0]);
       }
       activityCursor.current = payload.checkedAt;
@@ -120,19 +124,32 @@ export default function AdminDashboard() {
     return () => window.clearInterval(intervalId);
   }, [pollActivities]);
 
-  const selectTab = (nextTab: Tab) => {
-    setTab(nextTab);
-    if (nextTab === "notifications") {
-      setUnreadActivities(0);
-      setActivityNotification(null);
-    }
-  };
+  const selectTab = (nextTab: Tab) => setTab(nextTab);
 
   const openActivity = (activity: AdminActivity) => {
     selectTab(activity.tab);
+    setNotificationOpen(false);
     setActivityNotification(null);
+    unreadActivityIds.current.delete(activity.id);
+    setUnreadActivities(unreadActivityIds.current.size);
     void load();
   };
+
+  useEffect(() => {
+    if (!notificationOpen) return;
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      if (event.target instanceof Node && !notificationPanelRef.current?.contains(event.target)) setNotificationOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setNotificationOpen(false);
+    };
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [notificationOpen]);
 
   if (loading && !data) {
     return <div className="flex min-h-[70vh] items-center justify-center text-[#A69B93]">Đang tải dashboard...</div>;
@@ -148,6 +165,39 @@ export default function AdminDashboard() {
             <p className="mt-1 text-sm text-[#A69B93]">Quản lý sản phẩm, nội dung website, người dùng, booking, đơn hàng và liên hệ.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <div className="relative" ref={notificationPanelRef}>
+              <button type="button" aria-label="Thông báo" aria-expanded={notificationOpen} aria-haspopup="dialog" onClick={() => setNotificationOpen((open) => !open)} className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#3A302B] text-[#CDBBAA] hover:border-[#D97706] hover:text-white">
+                <Bell className="h-4 w-4" aria-hidden />
+                {unreadActivities > 0 && <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-red-500 px-1 text-[10px] font-bold leading-5 text-white">{unreadActivities > 99 ? "99+" : unreadActivities}</span>}
+              </button>
+              {notificationOpen && (
+                <section role="dialog" aria-label="Thông báo mới nhất" className="absolute right-0 top-full z-[60] mt-2 w-[min(26rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-[#3A302B] bg-[#171412] shadow-2xl">
+                  <div className="flex items-center justify-between gap-3 border-b border-[#2A2421] px-4 py-3">
+                    <div>
+                      <h2 className="font-bold text-white">Thông báo</h2>
+                      <p className="mt-0.5 text-xs text-[#81746B]">{unreadActivities ? `${unreadActivities} chưa đọc` : "Hoạt động gần đây"}</p>
+                    </div>
+                    <button type="button" disabled={!unreadActivities} onClick={() => { unreadActivityIds.current.clear(); setUnreadActivities(0); setActivityNotification(null); }} className="inline-flex items-center gap-1 text-xs text-[#CDBBAA] hover:text-white disabled:opacity-40">
+                      <CheckCheck className="h-3.5 w-3.5" aria-hidden /> Đã đọc hết
+                    </button>
+                  </div>
+                  <div className="max-h-[min(70vh,28rem)] overflow-y-auto">
+                    {activities.length ? activities.slice(0, 12).map((activity) => (
+                      <button key={activity.id} type="button" onClick={() => openActivity(activity)} className="block w-full border-b border-[#2A2421] px-4 py-3 text-left transition hover:bg-[#221D1A]">
+                        <span className="flex items-start gap-2">
+                          <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${unreadActivityIds.current.has(activity.id) ? "bg-[#D97706]" : "bg-transparent"}`} aria-hidden />
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-sm font-bold text-white">{activity.title}</span>
+                            <span className="mt-1 block line-clamp-2 text-xs text-[#A69B93]">{activity.actor} · {activity.detail}</span>
+                            <time className="mt-1 block text-[11px] text-[#81746B]" dateTime={activity.createdAt}>{new Date(activity.createdAt).toLocaleString("vi-VN")}</time>
+                          </span>
+                        </span>
+                      </button>
+                    )) : <p className="p-6 text-center text-sm text-[#81746B]">Chưa có hoạt động nào.</p>}
+                  </div>
+                </section>
+              )}
+            </div>
             <Link
               href="/"
               target="_blank"
@@ -159,13 +209,16 @@ export default function AdminDashboard() {
             <button type="button" onClick={load} className="inline-flex w-fit items-center gap-2 rounded-xl border border-[#3A302B] px-4 py-2 text-sm text-[#CDBBAA] hover:border-[#D97706]">
               <RefreshCw className="h-4 w-4" aria-hidden /> Làm mới
             </button>
+            <button type="button" onClick={() => void signOut({ callbackUrl: "/admin" })} className="inline-flex w-fit items-center gap-2 rounded-xl border border-[#3A302B] px-4 py-2 text-sm text-[#CDBBAA] hover:border-red-800 hover:text-red-300">
+              <LogOut className="h-4 w-4" aria-hidden /> Đăng xuất
+            </button>
           </div>
         </header>
 
         {error && <p role="alert" className="mb-6 rounded-xl border border-red-900/50 bg-red-950/30 p-4 text-sm text-red-400">{error}</p>}
 
         {activityNotification && (
-          <aside role="status" className="fixed right-4 top-4 z-50 w-[min(24rem,calc(100vw-2rem))] rounded-xl border border-[#6B452A] bg-[#211A16] p-4 shadow-2xl">
+          <aside role="status" className="fixed bottom-4 right-4 z-50 w-[min(24rem,calc(100vw-2rem))] rounded-xl border border-[#6B452A] bg-[#211A16] p-4 shadow-2xl">
             <div className="flex items-start gap-3">
               <Bell className="mt-0.5 h-5 w-5 shrink-0 text-[#D97706]" aria-hidden />
               <div className="min-w-0 flex-1">
@@ -184,7 +237,7 @@ export default function AdminDashboard() {
         <nav className="mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-[#2A2421] bg-[#171412] p-2 sm:grid-cols-4 lg:grid-cols-10" aria-label="Admin sections">
           {TABS.map((item) => (
             <button key={item.id} type="button" onClick={() => selectTab(item.id)} aria-current={tab === item.id} className={`rounded-xl px-2 py-3 text-xs font-bold transition ${tab === item.id ? "bg-[#D97706] text-[#1C1613]" : "text-[#A69B93] hover:bg-[#2A2421] hover:text-white"}`}>
-              {item.label}{item.id === "notifications" && unreadActivities > 0 && <span className="ml-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] text-white">{unreadActivities}</span>}
+              {item.label}
             </button>
           ))}
         </nav>
@@ -192,7 +245,6 @@ export default function AdminDashboard() {
         {!data ? <div className="rounded-2xl border border-[#3A302B] bg-[#171412] p-8 text-sm text-[#81746B]">Không có dữ liệu.</div> : (
           <>
             {tab === "overview" && <Overview stats={data.stats} orders={data.recentOrders} bookings={data.recentBookings} messages={data.recentMessages} />}
-            {tab === "notifications" && <ActivityCenter activities={activities} onOpen={openActivity} />}
             {tab === "products" && <ProductManager />}
             {tab === "branches" && <BranchManager />}
             {tab === "footer" && <div className="space-y-6"><FooterPageManager /><FooterLinkManager /></div>}
@@ -240,35 +292,6 @@ function Overview({ stats, orders, bookings, messages }: { stats: Record<string,
         <MiniList title="Tin nhắn mới" rows={messages} />
       </div>
     </div>
-  );
-}
-
-function ActivityCenter({ activities, onOpen }: { activities: AdminActivity[]; onOpen: (activity: AdminActivity) => void }) {
-  return (
-    <section className="overflow-hidden rounded-2xl border border-[#3A302B] bg-[#171412]">
-      <div className="flex items-center justify-between gap-3 border-b border-[#2A2421] p-5">
-        <div>
-          <h2 className="text-xl font-bold text-white">Hoạt động gần đây</h2>
-          <p className="mt-1 text-xs text-[#81746B]">Cập nhật tự động mỗi 5 giây khi trang quản trị đang mở</p>
-        </div>
-        <Bell className="h-5 w-5 text-[#D97706]" aria-hidden />
-      </div>
-      {activities.length ? (
-        <ul className="divide-y divide-[#2A2421]">
-          {activities.map((activity) => (
-            <li key={activity.id}>
-              <button type="button" onClick={() => onOpen(activity)} className="grid w-full gap-2 p-5 text-left transition hover:bg-[#221D1A] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-                <span className="min-w-0">
-                  <span className="block text-sm font-bold text-white">{activity.title}</span>
-                  <span className="mt-1 block truncate text-xs text-[#A69B93]">{activity.actor} · {activity.detail}</span>
-                </span>
-                <time className="text-xs text-[#81746B]" dateTime={activity.createdAt}>{new Date(activity.createdAt).toLocaleString("vi-VN")}</time>
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : <p className="p-8 text-sm text-[#81746B]">Chưa có hoạt động mới.</p>}
-    </section>
   );
 }
 

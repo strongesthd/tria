@@ -6,8 +6,9 @@ import { useSession } from "next-auth/react";
 type ProductComment = {
   id: string;
   content: string;
+  parentId: string | null;
   createdAt: string;
-  author: { name: string | null; image: string | null };
+  author: { name: string | null; image: string | null; role: string };
 };
 
 type CommentsResponse = { comments: ProductComment[]; total: number };
@@ -72,11 +73,18 @@ export default function ProductComments({ productId, onCountChange }: { productI
         <p className="text-sm text-[#A69B93]">Vui lòng đăng nhập để bình luận sản phẩm.</p>
       )}
       {status !== "loading" && error && status !== "authenticated" && <p role="alert" className="text-xs text-red-400">{error}</p>}
-      {comments.length ? comments.map((comment) => (
+      {comments.filter((comment) => !comment.parentId).length ? comments.filter((comment) => !comment.parentId).map((comment) => (
         <article key={comment.id} className="border-t border-[#2A2421] pt-4">
-          <p className="text-xs font-bold text-[#E2A168]">{comment.author.name || "Thành viên"}</p>
+          <p className="text-xs font-bold text-[#E2A168]">{comment.author.role === "ADMIN" ? "TRIA Admin" : comment.author.name || "Thành viên"}</p>
           <p className="mt-1 whitespace-pre-wrap text-sm text-[#D8CDC2]">{comment.content}</p>
           <time className="mt-2 block text-[11px] text-[#81746B]" dateTime={comment.createdAt}>{new Date(comment.createdAt).toLocaleDateString("vi-VN")}</time>
+          {comments.filter((reply) => reply.parentId === comment.id).sort((left, right) => left.createdAt.localeCompare(right.createdAt)).map((reply) => (
+            <div key={reply.id} className="ml-4 mt-4 border-l-2 border-[#6B452A] pl-3 sm:ml-6">
+              <p className="text-xs font-bold text-[#E2A168]">{reply.author.role === "ADMIN" ? "TRIA Admin" : reply.author.name || "Thành viên"}</p>
+              <p className="mt-1 whitespace-pre-wrap text-sm text-[#D8CDC2]">{reply.content}</p>
+              <time className="mt-2 block text-[11px] text-[#81746B]" dateTime={reply.createdAt}>{new Date(reply.createdAt).toLocaleDateString("vi-VN")}</time>
+            </div>
+          ))}
         </article>
       )) : <p className="text-sm text-[#81746B]">Chưa có bình luận nào.</p>}
     </div>
