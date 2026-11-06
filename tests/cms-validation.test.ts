@@ -62,11 +62,13 @@ test("News article validation enforces content and uploaded image types", () => 
 
 test("rich content keeps formatting and local media while stripping executable HTML", () => {
   const safe = sanitizeContentHtml(
-    '<h2>Hello</h2><p><strong>Text</strong><img src="/api/media/abc123" onerror="alert(1)"></p><script>alert(1)</script><a href="javascript:alert(1)">bad link</a>'
+    '<h2>Hello</h2><p><strong>Text</strong><img src="https://triacafe.vn/api/media/abc123" alt="Máy pha cà phê" title="Máy pha cà phê Nikita" width="1200" height="800" loading="lazy" decoding="async" onerror="alert(1)"></p><script>alert(1)</script><a href="javascript:alert(1)">bad link</a>'
   );
   assert.match(safe, /<h2>Hello<\/h2>/);
   assert.match(safe, /<strong>Text<\/strong>/);
-  assert.match(safe, /src="\/api\/media\/abc123"/);
+  assert.match(safe, /src="https:\/\/triacafe\.vn\/api\/media\/abc123"/);
+  assert.match(safe, /alt="Máy pha cà phê"/);
+  assert.match(safe, /width="1200" height="800" loading="lazy" decoding="async"/);
   assert.doesNotMatch(safe, /onerror|<script|javascript:/i);
 });
 

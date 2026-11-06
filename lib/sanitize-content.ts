@@ -8,7 +8,7 @@ const contentOptions: sanitizeHtml.IOptions = {
   ],
   allowedAttributes: {
     a: ["href", "name", "target", "rel", "title"],
-    img: ["src", "alt", "title", "width", "height"],
+    img: ["src", "alt", "title", "width", "height", "loading", "decoding"],
     td: ["colspan", "rowspan"],
     th: ["colspan", "rowspan"],
   },

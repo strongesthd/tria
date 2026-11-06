@@ -183,6 +183,19 @@ textarea {
   border-radius: 0.5rem;
 }
 
+.cms-rich-editor figure,
+.cms-content figure {
+  margin: 1rem 0;
+}
+
+.cms-rich-editor figcaption,
+.cms-content figcaption {
+  margin-top: 0.4rem;
+  color: #a69b93;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
 .cms-rich-editor a,
 .cms-content a {
   color: #e2a168;
