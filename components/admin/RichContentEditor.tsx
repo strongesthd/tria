@@ -184,6 +184,28 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
     return editor.innerHTML !== previousHtml;
   }
 
+  function getImageContext(range: Range) {
+    const selectionText = range.toString().trim();
+    const contextNode = range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
+      ? range.commonAncestorContainer as Element
+      : range.commonAncestorContainer.parentElement;
+    const contextBlock = contextNode?.closest("p, h1, h2, h3, h4, h5, h6, li, blockquote");
+    return (selectionText || contextBlock?.textContent || "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 250);
+  }
+
+  function rememberImageContext() {
+    const editor = editorRef.current;
+    const selection = window.getSelection();
+    if (!editor || !selection?.rangeCount) return;
+    const range = selection.getRangeAt(0);
+    if (editor.contains(range.startContainer) && editor.contains(range.endContainer)) {
+      imageContextRef.current = getImageContext(range);
+    }
+  }
+
   function openFilePicker(kind: "image" | "file") {
     if (sourceMode) {
       const source = sourceRef.current;
@@ -198,27 +220,22 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
       const editor = editorRef.current;
       const selection = window.getSelection();
       if (editor) {
-        removeInsertionMarker();
         const selectedRange = selection?.rangeCount ? selection.getRangeAt(0) : null;
         const rangeIsInEditor = Boolean(selectedRange
           && editor.contains(selectedRange.startContainer)
           && editor.contains(selectedRange.endContainer));
-        const selectedText = rangeIsInEditor ? selectedRange?.toString().trim() : "";
-        const contextNode = rangeIsInEditor
-          ? (selectedRange?.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
-            ? selectedRange.commonAncestorContainer as Element
-            : selectedRange?.commonAncestorContainer.parentElement)
-          : null;
-        const contextBlock = contextNode?.closest("p, h1, h2, h3, h4, h5, h6, li, blockquote");
-        imageContextRef.current = (selectedText || contextBlock?.textContent || "")
-          .replace(/\s+/g, " ")
-          .trim()
-          .slice(0, 250);
-        const range = selectedRange
-          && rangeIsInEditor
-          ? selectedRange.cloneRange()
+        if (rangeIsInEditor && selectedRange) imageContextRef.current = getImageContext(selectedRange);
+        removeInsertionMarker();
+        const currentSelection = window.getSelection();
+        const currentRange = currentSelection?.rangeCount ? currentSelection.getRangeAt(0) : null;
+        const currentRangeIsInEditor = Boolean(currentRange
+          && editor.contains(currentRange.startContainer)
+          && editor.contains(currentRange.endContainer));
+        const range = currentRange
+          && currentRangeIsInEditor
+          ? currentRange.cloneRange()
           : document.createRange();
-        if (!selectedRange || !rangeIsInEditor) {
+        if (!currentRange || !currentRangeIsInEditor) {
           range.selectNodeContents(editor);
           range.collapse(false);
         } else {
@@ -517,6 +534,8 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
           suppressContentEditableWarning
           dangerouslySetInnerHTML={{ __html: html }}
           onInput={syncRichValue}
+          onMouseUp={rememberImageContext}
+          onKeyUp={rememberImageContext}
           className={`${editorClass} cms-rich-editor`}
         />
       )}
