@@ -3,26 +3,22 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, MessageCircle, Star } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { Product } from "../../lib/site-data";
 import ProductComments from "./ProductComments";
 import ProductReviews from "./ProductReviews";
 
 type ProductDetailTabsProps = {
   description: string;
-  product: Product;
-  viewedProducts: Product[];
+  product: Pick<Product, "id" | "reviews" | "technicalSpecs">;
+  similarProducts: Pick<Product, "slug" | "name" | "image" | "price">[];
 };
 
-export default function ProductDetailTabs({ description, product, viewedProducts }: ProductDetailTabsProps) {
+export default function ProductDetailTabs({ description, product, similarProducts }: ProductDetailTabsProps) {
   const [tab, setTab] = useState<"details" | "reviews" | "comments">("details");
   const [reviewsCount, setReviewsCount] = useState(product.reviews);
   const [commentsCount, setCommentsCount] = useState(0);
   const similarProductsRef = useRef<HTMLDivElement>(null);
-  const similarProducts = useMemo(
-    () => viewedProducts.filter((item) => item.slug !== product.slug && item.category === product.category),
-    [product.category, product.slug, viewedProducts],
-  );
   const slideSimilarProducts = (direction: "previous" | "next") => {
     similarProductsRef.current?.scrollBy({
       left: direction === "next" ? similarProductsRef.current.clientWidth : -similarProductsRef.current.clientWidth,

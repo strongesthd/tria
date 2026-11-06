@@ -32,6 +32,19 @@ export type Product = {
   reviews: number;
 };
 
+export function getProductImageUrls(product: Pick<Product, "image" | "images">): string[] {
+  const imageUrls = [product.image, ...(product.images ?? [])].flatMap((image) => {
+    if (!image) return [];
+    try {
+      const url = new URL(image, SITE_URL);
+      return url.protocol === "http:" || url.protocol === "https:" ? [url.href] : [];
+    } catch {
+      return [];
+    }
+  });
+  return [...new Set(imageUrls)];
+}
+
 const img = (id: string, width = 800) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&q=80&w=${width}`;
 
@@ -274,12 +287,13 @@ export function buildOrganizationJsonLd() {
 }
 
 export function buildProductJsonLd(product: Product) {
+  const images = getProductImageUrls(product);
   return {
     "@context": "https://schema.org",
     "@type": "Product",
     "@id": `${SITE_URL}/san-pham/${product.slug}`,
     name: product.name,
-    image: product.image,
+    ...(images.length ? { image: images } : {}),
     description: product.description,
     sku: product.id,
     brand: { "@type": "Brand", name: SITE_NAME },

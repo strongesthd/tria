@@ -8,7 +8,7 @@ import BeanPurchaseOptions from "../../../components/shop/BeanPurchaseOptions";
 import MachineBundleOptions from "../../../components/shop/MachineBundleOptions";
 import ProductGallery from "../../../components/shop/ProductGallery";
 import ProductDetailTabs from "../../../components/shop/ProductDetailTabs";
-import { HOTLINE, PRODUCTS, buildProductJsonLd, buildBreadcrumbJsonLd } from "../../../lib/site-data";
+import { HOTLINE, PRODUCTS, buildProductJsonLd, buildBreadcrumbJsonLd, getProductImageUrls } from "../../../lib/site-data";
 import { prisma } from "../../../lib/prisma";
 import { getProductReviewSummaries, toSiteProduct } from "../../../lib/product-data";
 import { contentToPlainText, sanitizeContentHtml } from "../../../lib/sanitize-content";
@@ -35,6 +35,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const product = await getProduct(slug);
   if (!product) return {};
   const metaDescription = contentToPlainText(product.description);
+  const socialImages = getProductImageUrls(product);
   return {
     title: product.name,
     description: metaDescription,
@@ -43,7 +44,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       title: product.name,
       description: metaDescription,
       type: "website",
-      images: [product.image],
+      ...(socialImages.length ? { images: socialImages } : {}),
     },
   };
 }
@@ -52,13 +53,16 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
   const { slug } = await params;
   const product = await getProduct(slug);
   if (!product) notFound();
-  let viewedProducts = PRODUCTS;
+  let similarProducts = PRODUCTS
+    .filter((item) => item.slug !== product.slug && item.category === product.category)
+    .map(({ slug, name, image, price }) => ({ slug, name, image, price }));
   try {
-    const records = await prisma.product.findMany({ where: { active: true }, orderBy: { createdAt: "desc" } });
-    if (records.length) {
-      const summaries = await getProductReviewSummaries(records.map((record) => record.id));
-      viewedProducts = records.map((record) => toSiteProduct(record, summaries.get(record.id)));
-    }
+    const records = await prisma.product.findMany({
+      where: { active: true, category: product.category, slug: { not: product.slug } },
+      select: { slug: true, name: true, image: true, price: true },
+      orderBy: { createdAt: "desc" },
+    });
+    if (records.length) similarProducts = records;
   } catch (error) {
     console.error("[product-detail] Could not load viewed product candidates.", error);
   }
@@ -134,8 +138,12 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
       </div>
       <ProductDetailTabs
         description={sanitizeContentHtml(product.description)}
-        product={{ ...product, technicalSpecs: sanitizeContentHtml(product.technicalSpecs || "") }}
-        viewedProducts={viewedProducts}
+        product={{
+          id: product.id,
+          reviews: product.reviews,
+          technicalSpecs: sanitizeContentHtml(product.technicalSpecs || ""),
+        }}
+        similarProducts={similarProducts}
       />
     </div>
   );

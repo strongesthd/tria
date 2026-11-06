@@ -23,6 +23,7 @@ export async function GET(_request: Request, { params }: { params: Params }) {
       "Content-Disposition": `${disposition}; filename*=UTF-8''${encodeURIComponent(asset.filename)}`,
       "X-Content-Type-Options": "nosniff",
       "Cache-Control": "public, max-age=31536000, immutable",
+      ...(!isImage ? { "X-Robots-Tag": "noindex, nofollow" } : {}),
     },
   });
 }
