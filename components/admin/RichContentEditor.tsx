@@ -58,6 +58,8 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
   const sourceRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const insertionRangeRef = useRef<Range | null>(null);
+  const sourceSelectionRef = useRef<{ start: number; end: number } | null>(null);
 
   function syncRichValue() {
     if (editorRef.current) setHtml(editorRef.current.innerHTML);
@@ -77,8 +79,11 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
         setHtml((current) => `${current}${value}`);
         return;
       }
-      const start = source.selectionStart;
-      const end = source.selectionEnd;
+      const { start, end } = sourceSelectionRef.current ?? {
+        start: source.selectionStart,
+        end: source.selectionEnd,
+      };
+      sourceSelectionRef.current = null;
       const next = `${html.slice(0, start)}${value}${html.slice(end)}`;
       setHtml(next);
       requestAnimationFrame(() => {
@@ -92,7 +97,13 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
     if (!editor) return;
     editor.focus();
     const selection = window.getSelection();
-    if (selection?.rangeCount && editor.contains(selection.anchorNode)) {
+    const savedRange = insertionRangeRef.current;
+    insertionRangeRef.current = null;
+    if (selection && savedRange && editor.contains(savedRange.commonAncestorContainer)) {
+      selection.removeAllRanges();
+      selection.addRange(savedRange);
+      document.execCommand("insertHTML", false, value);
+    } else if (selection?.rangeCount && editor.contains(selection.anchorNode)) {
       document.execCommand("insertHTML", false, value);
     } else {
       editor.insertAdjacentHTML("beforeend", value);
@@ -100,9 +111,36 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
     syncRichValue();
   }
 
+  function openFilePicker(kind: "image" | "file") {
+    if (sourceMode) {
+      const source = sourceRef.current;
+      sourceSelectionRef.current = source
+        ? { start: source.selectionStart, end: source.selectionEnd }
+        : null;
+    } else {
+      const editor = editorRef.current;
+      const selection = window.getSelection();
+      insertionRangeRef.current =
+        editor && selection?.rangeCount && editor.contains(selection.anchorNode)
+          ? selection.getRangeAt(0).cloneRange()
+          : null;
+    }
+
+    (kind === "image" ? imageInputRef : fileInputRef).current?.click();
+  }
+
   async function upload(file: File | undefined, kind: "image" | "file") {
     if (!file) return;
     setError("");
+    const acceptedImageTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (kind === "image" && !acceptedImageTypes.includes(file.type)) {
+      setError("Chỉ hỗ trợ ảnh JPG, PNG, WebP hoặc GIF.");
+      return;
+    }
+    if (kind === "file" && file.type.startsWith("image/") && !acceptedImageTypes.includes(file.type)) {
+      setError("Chỉ hỗ trợ ảnh JPG, PNG, WebP hoặc GIF.");
+      return;
+    }
     if (file.size > 10 * 1024 * 1024) {
       setError("Tệp không được vượt quá 10MB.");
       return;
@@ -168,10 +206,10 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
         }}>
           <Link2 className="h-4 w-4" />
         </button>
-        <button type="button" aria-label="Chèn ảnh" title="Chèn ảnh (tối đa 10MB)" className={toolbarButtonClass} disabled={uploading} onMouseDown={preventToolbarFocus} onClick={() => imageInputRef.current?.click()}>
+        <button type="button" aria-label="Chèn ảnh" title="Chèn ảnh (tối đa 10MB)" className={toolbarButtonClass} disabled={uploading} onMouseDown={preventToolbarFocus} onClick={() => openFilePicker("image")}>
           <ImagePlus className="h-4 w-4" />
         </button>
-        <button type="button" aria-label="Đính kèm tệp" title="Đính kèm PDF, DOCX, XLSX, TXT hoặc CSV (tối đa 10MB)" className={toolbarButtonClass} disabled={uploading} onMouseDown={preventToolbarFocus} onClick={() => fileInputRef.current?.click()}>
+        <button type="button" aria-label="Đính kèm tệp" title="Đính kèm PDF, DOCX, XLSX, TXT hoặc CSV (tối đa 10MB)" className={toolbarButtonClass} disabled={uploading} onMouseDown={preventToolbarFocus} onClick={() => openFilePicker("file")}>
           <FilePlus2 className="h-4 w-4" />
         </button>
         <span className="mx-1 h-6 w-px bg-[#3A302B]" />
