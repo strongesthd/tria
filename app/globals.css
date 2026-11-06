@@ -183,6 +183,11 @@ textarea {
   border-radius: 0.5rem;
 }
 
+.cms-rich-editor img[data-rich-editor-selected-image="true"] {
+  outline: 2px solid #d97706;
+  outline-offset: 2px;
+}
+
 .cms-rich-editor figure,
 .cms-content figure {
   margin: 1rem 0;

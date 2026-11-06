@@ -13,6 +13,7 @@ import {
   Quote,
   RotateCcw,
   RotateCw,
+  Trash2,
   Underline,
 } from "lucide-react";
 
@@ -88,7 +89,9 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
   const [uploadStatus, setUploadStatus] = useState("");
   const [error, setError] = useState("");
   const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);
+  const [hasSelectedImage, setHasSelectedImage] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
+  const selectedImageRef = useRef<HTMLImageElement | null>(null);
   const sourceRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -98,7 +101,44 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
   const cancelFilePickerRef = useRef<() => void>(() => {});
 
   function syncRichValue() {
-    if (editorRef.current) setHtml(editorRef.current.innerHTML);
+    if (editorRef.current) {
+      const cleanEditor = editorRef.current.cloneNode(true) as HTMLDivElement;
+      cleanEditor.querySelectorAll("[data-rich-editor-selected-image]").forEach((image) => {
+        image.removeAttribute("data-rich-editor-selected-image");
+      });
+      setHtml(cleanEditor.innerHTML);
+    }
+    if (selectedImageRef.current && !editorRef.current?.contains(selectedImageRef.current)) {
+      selectedImageRef.current = null;
+      setHasSelectedImage(false);
+    }
+  }
+
+  function selectImage(image: HTMLImageElement | null) {
+    selectedImageRef.current?.removeAttribute("data-rich-editor-selected-image");
+    const editor = editorRef.current;
+    selectedImageRef.current = image && editor?.contains(image) ? image : null;
+    selectedImageRef.current?.setAttribute("data-rich-editor-selected-image", "true");
+    setHasSelectedImage(Boolean(selectedImageRef.current));
+  }
+
+  function deleteSelectedImage() {
+    const image = selectedImageRef.current;
+    if (!image || !editorRef.current?.contains(image)) {
+      selectImage(null);
+      return;
+    }
+    const figure = image.closest("figure");
+    const paragraph = image.parentElement?.tagName === "P" ? image.parentElement : null;
+    const nodeToRemove = figure || image;
+    nodeToRemove.remove();
+    if (!figure && paragraph && !paragraph.textContent?.trim() && !paragraph.querySelector("img, a, video, audio")) {
+      paragraph.remove();
+    }
+    selectedImageRef.current = null;
+    setHasSelectedImage(false);
+    editorRef.current.focus();
+    syncRichValue();
   }
 
   function runCommand(command: string, value?: string) {
@@ -423,6 +463,12 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
         <button type="button" aria-label="Đính kèm tệp" title="Đính kèm PDF, DOCX, XLSX, TXT hoặc CSV (tối đa 10MB)" className={toolbarButtonClass} disabled={Boolean(pendingImage) || uploading} onMouseDown={preventToolbarFocus} onClick={() => openFilePicker("file")}>
           <FilePlus2 className="h-4 w-4" />
         </button>
+        {hasSelectedImage && (
+          <button type="button" aria-label="Xóa ảnh đang chọn" title="Xóa ảnh đang chọn" className={`${toolbarButtonClass} w-auto gap-1 px-2 text-red-400`} disabled={Boolean(pendingImage) || uploading} onMouseDown={preventToolbarFocus} onClick={deleteSelectedImage}>
+            <Trash2 className="h-4 w-4" />
+            <span className="text-xs">Xóa ảnh</span>
+          </button>
+        )}
         <span className="mx-1 h-6 w-px bg-[#3A302B]" />
         <button type="button" aria-label="Hoàn tác" title="Hoàn tác" disabled={Boolean(pendingImage) || uploading} className={toolbarButtonClass} onMouseDown={preventToolbarFocus} onClick={() => runCommand("undo")}>
           <RotateCcw className="h-4 w-4" />
@@ -534,6 +580,16 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
           suppressContentEditableWarning
           dangerouslySetInnerHTML={{ __html: html }}
           onInput={syncRichValue}
+          onClick={(event) => {
+            const target = event.target;
+            selectImage(target instanceof HTMLImageElement ? target : null);
+          }}
+          onKeyDown={(event) => {
+            if ((event.key === "Backspace" || event.key === "Delete") && selectedImageRef.current) {
+              event.preventDefault();
+              deleteSelectedImage();
+            }
+          }}
           onMouseUp={rememberImageContext}
           onKeyUp={rememberImageContext}
           className={`${editorClass} cms-rich-editor`}
