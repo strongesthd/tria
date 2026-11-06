@@ -53,6 +53,7 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
   const [html, setHtml] = useState(() => asInitialHtml(initialContent));
   const [sourceMode, setSourceMode] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState("");
   const [error, setError] = useState("");
   const editorRef = useRef<HTMLDivElement>(null);
   const sourceRef = useRef<HTMLTextAreaElement>(null);
@@ -132,17 +133,21 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
   async function upload(file: File | undefined, kind: "image" | "file") {
     if (!file) return;
     setError("");
+    setUploadStatus(`Đang tải lên: ${file.name}`);
     const acceptedImageTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
     if (kind === "image" && !acceptedImageTypes.includes(file.type)) {
       setError("Chỉ hỗ trợ ảnh JPG, PNG, WebP hoặc GIF.");
+      setUploadStatus("");
       return;
     }
     if (kind === "file" && file.type.startsWith("image/") && !acceptedImageTypes.includes(file.type)) {
       setError("Chỉ hỗ trợ ảnh JPG, PNG, WebP hoặc GIF.");
+      setUploadStatus("");
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
       setError("Tệp không được vượt quá 10MB.");
+      setUploadStatus("");
       return;
     }
     setUploading(true);
@@ -159,8 +164,10 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
         const label = (payload.filename || file.name).replace(/[&<>"']/g, "");
         insertHtml(`<p><a href="${payload.url}" target="_blank" rel="noopener noreferrer">${label}</a></p>`);
       }
+      setUploadStatus(kind === "image" ? "Đã tải ảnh lên và chèn vào nội dung." : "Đã tải tệp lên và chèn vào nội dung.");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Không thể tải tệp lên.");
+      setUploadStatus("");
     } finally {
       setUploading(false);
       if (imageInputRef.current) imageInputRef.current.value = "";
@@ -185,8 +192,8 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
     <div className="grid gap-2">
       <span className="font-semibold">{label}</span>
       <input type="hidden" name={name} value={html} />
-      <input ref={imageInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={(event) => void upload(event.currentTarget.files?.[0], "image")} />
-      <input ref={fileInputRef} type="file" accept={ACCEPTED_FILE_TYPES} className="hidden" onChange={(event) => void upload(event.currentTarget.files?.[0], "file")} />
+      <input ref={imageInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={(event) => { const file = event.currentTarget.files?.[0]; if (file) void upload(file, "image"); }} />
+      <input ref={fileInputRef} type="file" accept={ACCEPTED_FILE_TYPES} className="hidden" onChange={(event) => { const file = event.currentTarget.files?.[0]; if (file) void upload(file, "file"); }} />
       <div className="flex flex-wrap items-center gap-1 rounded-t-lg border border-[#3A302B] bg-[#1D1916] p-2">
         {tools.map((tool) => (
           <button key={tool.label} type="button" aria-label={tool.label} title={tool.label} className={toolbarButtonClass} onMouseDown={preventToolbarFocus} onClick={() => runCommand(tool.command, tool.value)}>
@@ -225,6 +232,9 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
         }}>
           <Code2 className="h-4 w-4" />
         </button>
+        {uploading && <span role="status" aria-live="polite" className="px-2 text-xs text-[#E2A168]">Đang tải tệp lên...</span>}
+        {!uploading && uploadStatus && <span role="status" aria-live="polite" className="px-2 text-xs text-emerald-400">{uploadStatus}</span>}
+        {error && <span role="alert" className="px-2 text-xs text-red-400">{error}</span>}
       </div>
       {sourceMode ? (
         <textarea
@@ -252,7 +262,6 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
       <p className="text-[11px] text-[#81746B]">
         {uploading ? "Đang tải tệp lên..." : "Có thể định dạng nội dung, chỉnh HTML, chèn ảnh và đính kèm PDF/DOCX/XLSX/TXT/CSV (tối đa 10MB/tệp)."}
       </p>
-      {error && <p role="alert" className="text-xs text-red-400">{error}</p>}
     </div>
   );
 }
