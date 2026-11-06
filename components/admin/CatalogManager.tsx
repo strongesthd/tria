@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Pencil, Plus, Power, Search, Trash2, X } from "lucide-react";
 import Image from "next/image";
-import { createBranch, deleteBranch, deleteProduct, updateBranch, updateBranchStatus, updateProductStatus } from "../../app/actions/admin";
+import { deleteProduct, updateProductStatus } from "../../app/actions/admin";
 import ImageUploadButton from "./ImageUploadButton";
 import RichContentEditor from "./RichContentEditor";
 import { formatProductPriceOptions } from "../../lib/product-pricing";
@@ -39,9 +39,71 @@ function CatalogManager({ kind }: { kind: Kind }) {
   const [items, setItems] = useState<(Product | Branch)[]>([]); const [q, setQ] = useState(""); const [sort, setSort] = useState("latest"); const [page, setPage] = useState(1); const [totalPages, setTotalPages] = useState(1); const [modal, setModal] = useState<Product | Branch | "new" | null>(null); const [error, setError] = useState(""); const [busy, setBusy] = useState(false);
   async function load() { const response = await fetch(`/api/admin/${kind}?page=${page}&pageSize=8&q=${encodeURIComponent(q)}&sort=${sort}`, { cache: "no-store" }); const data = await response.json(); if (!response.ok) throw new Error(data.error || "Không thể tải dữ liệu."); setItems(data.items); setTotalPages(data.totalPages); }
   useEffect(() => { void load().catch((cause) => setError(cause instanceof Error ? cause.message : "Không thể tải dữ liệu.")); }, [page, q, sort]); // eslint-disable-line react-hooks/exhaustive-deps
-  async function submit(form: HTMLFormElement) { setBusy(true); setError(""); const data = Object.fromEntries(new FormData(form).entries()); try { if (kind === "products") { const payload = { name: String(data.name), category: String(data.category), target: String(data.target), price: Number(data.price), unit: String(data.unit), priceOptions: String(data.priceOptions || ""), accessoryIds: JSON.parse(String(data.accessoryIds || "[]")) as string[], roastLevel: String(data.category) === "beans" ? String(data.roastLevel || "") : "", technicalSpecs: String(data.technicalSpecs || ""), notes: String(data.notes), description: String(data.description), image: String(data.image), images: String(data.images || "").split("\n").map((v) => v.trim()).filter(Boolean) }; const response = await fetch("/api/admin/products", { method: modal === "new" ? "POST" : "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(modal === "new" ? payload : { ...payload, id: (modal as Product).id }) }); const result = await response.json(); if (!response.ok) throw new Error(result.error || "Không thể lưu sản phẩm."); } else { const payload = { slug: String(data.slug), name: String(data.name), address: String(data.address), hours: String(data.hours), phone: String(data.phone), features: String(data.features).split("\n").map((v) => v.trim()).filter(Boolean), image: String(data.image), images: String(data.images || "").split("\n").map((v) => v.trim()).filter(Boolean) }; if (modal === "new") await createBranch(payload); else await updateBranch((modal as Branch).id, payload); } setModal(null); await load(); } catch (cause) { setError(cause instanceof Error ? cause.message : "Không thể lưu dữ liệu."); } finally { setBusy(false); } }
-  async function remove(item: Product | Branch) { if (!window.confirm(`Xóa ${item.name}?`)) return; if (kind === "products") await deleteProduct(item.id); else await deleteBranch(item.id); await load(); }
-  async function toggle(item: Product | Branch) { if (kind === "products") await updateProductStatus(item.id, !item.active); else await updateBranchStatus(item.id, !item.active); await load(); }
+  async function submit(form: HTMLFormElement) {
+    setBusy(true);
+    setError("");
+    const data = Object.fromEntries(new FormData(form).entries());
+    try {
+      if (kind === "products") {
+        const payload = { name: String(data.name), category: String(data.category), target: String(data.target), price: Number(data.price), unit: String(data.unit), priceOptions: String(data.priceOptions || ""), accessoryIds: JSON.parse(String(data.accessoryIds || "[]")) as string[], roastLevel: String(data.category) === "beans" ? String(data.roastLevel || "") : "", technicalSpecs: String(data.technicalSpecs || ""), notes: String(data.notes), description: String(data.description), image: String(data.image), images: String(data.images || "").split("\n").map((v) => v.trim()).filter(Boolean) };
+        const response = await fetch("/api/admin/products", { method: modal === "new" ? "POST" : "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(modal === "new" ? payload : { ...payload, id: (modal as Product).id }) });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Không thể lưu sản phẩm.");
+      } else {
+        const payload = { slug: String(data.slug), name: String(data.name), address: String(data.address), hours: String(data.hours), phone: String(data.phone), features: String(data.features).split("\n").map((v) => v.trim()).filter(Boolean), image: String(data.image), images: String(data.images || "").split("\n").map((v) => v.trim()).filter(Boolean) };
+        const response = await fetch("/api/admin/branches", {
+          method: modal === "new" ? "POST" : "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(modal === "new" ? payload : { ...payload, id: (modal as Branch).id }),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Không thể lưu cơ sở.");
+      }
+      setModal(null);
+      await load();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Không thể lưu dữ liệu.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function remove(item: Product | Branch) {
+    if (!window.confirm(`Xóa ${item.name}?`)) return;
+    try {
+      if (kind === "products") {
+        await deleteProduct(item.id);
+      } else {
+        const response = await fetch("/api/admin/branches", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: item.id }),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Không thể xóa cơ sở.");
+      }
+      await load();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Không thể xóa dữ liệu.");
+    }
+  }
+  async function toggle(item: Product | Branch) {
+    try {
+      if (kind === "products") {
+        await updateProductStatus(item.id, !item.active);
+      } else {
+        const response = await fetch("/api/admin/branches", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: item.id, active: !item.active }),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Không thể cập nhật trạng thái cơ sở.");
+      }
+      await load();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Không thể cập nhật trạng thái.");
+    }
+  }
   async function openItem(item: Product | Branch) {
     if (kind !== "products") { setModal(item); return; }
     const response = await fetch(`/api/admin/products/${item.id}`, { cache: "no-store" });
