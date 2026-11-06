@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import {
   Bold,
   Code2,
@@ -59,8 +59,9 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
   const sourceRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const insertionRangeRef = useRef<Range | null>(null);
+  const insertionMarkerRef = useRef<string | null>(null);
   const sourceSelectionRef = useRef<{ start: number; end: number } | null>(null);
+  const cancelFilePickerRef = useRef<() => void>(() => {});
 
   function syncRichValue() {
     if (editorRef.current) setHtml(editorRef.current.innerHTML);
@@ -69,6 +70,35 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
   function runCommand(command: string, value?: string) {
     editorRef.current?.focus();
     document.execCommand(command, false, value);
+    syncRichValue();
+  }
+
+  function findInsertionMarker(editor: HTMLElement) {
+    const markerId = insertionMarkerRef.current;
+    if (!markerId) return null;
+    const walker = document.createTreeWalker(editor, NodeFilter.SHOW_COMMENT);
+    let node = walker.nextNode();
+    while (node) {
+      if (node.nodeValue === markerId) return node;
+      node = walker.nextNode();
+    }
+    return null;
+  }
+
+  function removeInsertionMarker(restoreCaret = false) {
+    const editor = editorRef.current;
+    const marker = editor ? findInsertionMarker(editor) : null;
+    insertionMarkerRef.current = null;
+    if (!editor || !marker?.parentNode) return;
+    const range = document.createRange();
+    range.setStartBefore(marker);
+    range.collapse(true);
+    marker.parentNode.removeChild(marker);
+    if (restoreCaret) {
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+    }
     syncRichValue();
   }
 
@@ -97,20 +127,17 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
     const previousHtml = editor.innerHTML;
     editor.focus();
     const selection = window.getSelection();
-    const savedRange = insertionRangeRef.current;
-    insertionRangeRef.current = null;
-    const range = savedRange && editor.contains(savedRange.commonAncestorContainer)
-      ? savedRange
-      : selection?.rangeCount && editor.contains(selection.anchorNode)
-        ? selection.getRangeAt(0)
-        : null;
-    const insertionRange = range ?? document.createRange();
-    if (!range) {
-      insertionRange.selectNodeContents(editor);
-      insertionRange.collapse(false);
+    const marker = findInsertionMarker(editor);
+    if (!marker?.parentNode) {
+      insertionMarkerRef.current = null;
+      setError("Không thể khôi phục vị trí con trỏ. Hãy đặt con trỏ lại và chọn ảnh lần nữa.");
+      return false;
     }
-
+    const insertionRange = document.createRange();
+    insertionRange.setStartBefore(marker);
+    insertionRange.setEndAfter(marker);
     insertionRange.deleteContents();
+    insertionMarkerRef.current = null;
     const fragment = insertionRange.createContextualFragment(value);
     const lastInsertedNode = fragment.lastChild;
     if (!lastInsertedNode) return false;
@@ -132,14 +159,42 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
     } else {
       const editor = editorRef.current;
       const selection = window.getSelection();
-      insertionRangeRef.current =
-        editor && selection?.rangeCount && editor.contains(selection.anchorNode)
-          ? selection.getRangeAt(0).cloneRange()
-          : null;
+      if (editor) {
+        removeInsertionMarker();
+        const selectedRange = selection?.rangeCount ? selection.getRangeAt(0) : null;
+        const range = selectedRange
+          && editor.contains(selectedRange.startContainer)
+          && editor.contains(selectedRange.endContainer)
+          ? selectedRange.cloneRange()
+          : document.createRange();
+        if (!selectedRange || !editor.contains(selectedRange.startContainer) || !editor.contains(selectedRange.endContainer)) {
+          range.selectNodeContents(editor);
+          range.collapse(false);
+        } else {
+          range.collapse(false);
+        }
+        const markerId = `rich-content-insertion:${crypto.randomUUID()}`;
+        insertionMarkerRef.current = markerId;
+        range.insertNode(document.createComment(markerId));
+        syncRichValue();
+      }
     }
 
     (kind === "image" ? imageInputRef : fileInputRef).current?.click();
   }
+
+  function cancelFilePicker() {
+    if (!sourceMode) removeInsertionMarker(true);
+  }
+
+  cancelFilePickerRef.current = cancelFilePicker;
+
+  useEffect(() => {
+    const handleCancel = () => cancelFilePickerRef.current();
+    const inputs = [imageInputRef.current, fileInputRef.current];
+    inputs.forEach((input) => input?.addEventListener("cancel", handleCancel));
+    return () => inputs.forEach((input) => input?.removeEventListener("cancel", handleCancel));
+  }, []);
 
   async function upload(file: File | undefined, kind: "image" | "file") {
     if (!file) return;
@@ -149,16 +204,19 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
     if (kind === "image" && !acceptedImageTypes.includes(file.type)) {
       setError("Chỉ hỗ trợ ảnh JPG, PNG, WebP hoặc GIF.");
       setUploadStatus("");
+      if (!sourceMode) removeInsertionMarker(true);
       return;
     }
     if (kind === "file" && file.type.startsWith("image/") && !acceptedImageTypes.includes(file.type)) {
       setError("Chỉ hỗ trợ ảnh JPG, PNG, WebP hoặc GIF.");
       setUploadStatus("");
+      if (!sourceMode) removeInsertionMarker(true);
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
       setError("Tệp không được vượt quá 10MB.");
       setUploadStatus("");
+      if (!sourceMode) removeInsertionMarker(true);
       return;
     }
     setUploading(true);
@@ -183,6 +241,7 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Không thể tải tệp lên.");
       setUploadStatus("");
+      if (!sourceMode) removeInsertionMarker(true);
     } finally {
       setUploading(false);
       if (imageInputRef.current) imageInputRef.current.value = "";
@@ -206,7 +265,7 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
   return (
     <div className="grid gap-2">
       <span className="font-semibold">{label}</span>
-      <input type="hidden" name={name} value={html} />
+      <input type="hidden" name={name} value={html.replace(/<!--rich-content-insertion:[\s\S]*?-->/g, "")} />
       <input ref={imageInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={(event) => { const file = event.currentTarget.files?.[0]; if (file) void upload(file, "image"); }} />
       <input ref={fileInputRef} type="file" accept={ACCEPTED_FILE_TYPES} className="hidden" onChange={(event) => { const file = event.currentTarget.files?.[0]; if (file) void upload(file, "file"); }} />
       <div className="flex flex-wrap items-center gap-1 rounded-t-lg border border-[#3A302B] bg-[#1D1916] p-2">
