@@ -52,10 +52,10 @@ export function generateMetadata(): Metadata {
     },
     icons: {
       icon: [
-        { url: "/images/tria_logo-white.png", media: "(prefers-color-scheme: dark)" },
-        { url: "/images/tria_logo.png", media: "(prefers-color-scheme: light)" },
+        { url: "/favicon.ico", sizes: "any" },
+        { url: "/favicon.png", type: "image/png", sizes: "512x512" },
       ],
-      apple: "/images/tria_logo.png",
+      apple: "/apple-icon.png",
     },
     other: { "theme-color": "#1c1613" },
   };
