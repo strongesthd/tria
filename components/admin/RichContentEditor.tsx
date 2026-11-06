@@ -72,44 +72,55 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
     syncRichValue();
   }
 
-  function insertHtml(value: string) {
+  function insertHtml(value: string): boolean {
     setError("");
     if (sourceMode) {
       const source = sourceRef.current;
-      if (!source) {
-        setHtml((current) => `${current}${value}`);
-        return;
-      }
+      if (!source) return false;
       const { start, end } = sourceSelectionRef.current ?? {
         start: source.selectionStart,
         end: source.selectionEnd,
       };
       sourceSelectionRef.current = null;
       const next = `${html.slice(0, start)}${value}${html.slice(end)}`;
+      if (next === html) return false;
       setHtml(next);
       requestAnimationFrame(() => {
         source.focus();
         source.setSelectionRange(start + value.length, start + value.length);
       });
-      return;
+      return true;
     }
 
     const editor = editorRef.current;
-    if (!editor) return;
+    if (!editor) return false;
+    const previousHtml = editor.innerHTML;
     editor.focus();
     const selection = window.getSelection();
     const savedRange = insertionRangeRef.current;
     insertionRangeRef.current = null;
-    if (selection && savedRange && editor.contains(savedRange.commonAncestorContainer)) {
-      selection.removeAllRanges();
-      selection.addRange(savedRange);
-      document.execCommand("insertHTML", false, value);
-    } else if (selection?.rangeCount && editor.contains(selection.anchorNode)) {
-      document.execCommand("insertHTML", false, value);
-    } else {
-      editor.insertAdjacentHTML("beforeend", value);
+    const range = savedRange && editor.contains(savedRange.commonAncestorContainer)
+      ? savedRange
+      : selection?.rangeCount && editor.contains(selection.anchorNode)
+        ? selection.getRangeAt(0)
+        : null;
+    const insertionRange = range ?? document.createRange();
+    if (!range) {
+      insertionRange.selectNodeContents(editor);
+      insertionRange.collapse(false);
     }
+
+    insertionRange.deleteContents();
+    const fragment = insertionRange.createContextualFragment(value);
+    const lastInsertedNode = fragment.lastChild;
+    if (!lastInsertedNode) return false;
+    insertionRange.insertNode(fragment);
+    insertionRange.setStartAfter(lastInsertedNode);
+    insertionRange.collapse(true);
+    selection?.removeAllRanges();
+    selection?.addRange(insertionRange);
     syncRichValue();
+    return editor.innerHTML !== previousHtml;
   }
 
   function openFilePicker(kind: "image" | "file") {
@@ -159,10 +170,14 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
       if (!response.ok || !payload.url) throw new Error(payload.error || "Không thể tải tệp lên.");
       if (kind === "image") {
         const escapedName = (payload.filename || file.name).replace(/[&<>"']/g, "");
-        insertHtml(`<p><img src="${payload.url}" alt="${escapedName}"></p>`);
+        if (!insertHtml(`<p><img src="${payload.url}" alt="${escapedName}"></p>`)) {
+          throw new Error("Ảnh đã tải lên nhưng không chèn được vào nội dung. Hãy thử lại.");
+        }
       } else {
         const label = (payload.filename || file.name).replace(/[&<>"']/g, "");
-        insertHtml(`<p><a href="${payload.url}" target="_blank" rel="noopener noreferrer">${label}</a></p>`);
+        if (!insertHtml(`<p><a href="${payload.url}" target="_blank" rel="noopener noreferrer">${label}</a></p>`)) {
+          throw new Error("Tệp đã tải lên nhưng không chèn được vào nội dung. Hãy thử lại.");
+        }
       }
       setUploadStatus(kind === "image" ? "Đã tải ảnh lên và chèn vào nội dung." : "Đã tải tệp lên và chèn vào nội dung.");
     } catch (cause) {
