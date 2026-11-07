@@ -91,6 +91,7 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
   const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);
   const [hasSelectedImage, setHasSelectedImage] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
+  const hiddenInputRef = useRef<HTMLInputElement>(null);
   const selectedImageRef = useRef<HTMLImageElement | null>(null);
   const sourceRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -100,13 +101,17 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
   const imageContextRef = useRef("");
   const cancelFilePickerRef = useRef<() => void>(() => {});
 
-  function syncRichValue() {
+  function syncRichValue(updateEditorState = false) {
     if (editorRef.current) {
       const cleanEditor = editorRef.current.cloneNode(true) as HTMLDivElement;
       cleanEditor.querySelectorAll("[data-rich-editor-selected-image]").forEach((image) => {
         image.removeAttribute("data-rich-editor-selected-image");
       });
-      setHtml(cleanEditor.innerHTML);
+      const cleanHtml = cleanEditor.innerHTML;
+      if (hiddenInputRef.current) {
+        hiddenInputRef.current.value = cleanHtml.replace(/<!--rich-content-insertion:[\s\S]*?-->/g, "");
+      }
+      if (updateEditorState) setHtml(cleanHtml);
     }
     if (selectedImageRef.current && !editorRef.current?.contains(selectedImageRef.current)) {
       selectedImageRef.current = null;
@@ -189,6 +194,9 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
       const next = `${html.slice(0, start)}${value}${html.slice(end)}`;
       if (next === html) return false;
       setHtml(next);
+      if (hiddenInputRef.current) {
+        hiddenInputRef.current.value = next.replace(/<!--rich-content-insertion:[\s\S]*?-->/g, "");
+      }
       requestAnimationFrame(() => {
         source.focus();
         source.setSelectionRange(start + value.length, start + value.length);
@@ -435,7 +443,12 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
   return (
     <div className="grid gap-2">
       <span className="font-semibold">{label}</span>
-      <input type="hidden" name={name} value={html.replace(/<!--rich-content-insertion:[\s\S]*?-->/g, "")} />
+      <input
+        ref={hiddenInputRef}
+        type="hidden"
+        name={name}
+        defaultValue={html.replace(/<!--rich-content-insertion:[\s\S]*?-->/g, "")}
+      />
       <input ref={imageInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={(event) => { const file = event.currentTarget.files?.[0]; if (file) void prepareImage(file); }} />
       <input ref={fileInputRef} type="file" accept={ACCEPTED_FILE_TYPES} className="hidden" onChange={(event) => { const file = event.currentTarget.files?.[0]; if (file) void upload(file, "file"); }} />
       <div className="flex flex-wrap items-center gap-1 rounded-t-lg border border-[#3A302B] bg-[#1D1916] p-2">
@@ -477,7 +490,7 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
           <RotateCw className="h-4 w-4" />
         </button>
         <button type="button" aria-pressed={sourceMode} title="Chỉnh sửa HTML" disabled={Boolean(pendingImage) || uploading} className={`${toolbarButtonClass} ${sourceMode ? "border-[#D97706] text-[#D97706]" : ""}`} onMouseDown={preventToolbarFocus} onClick={() => {
-          if (!sourceMode) syncRichValue();
+          if (!sourceMode) syncRichValue(true);
           setSourceMode((current) => !current);
         }}>
           <Code2 className="h-4 w-4" />
@@ -564,7 +577,12 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
           ref={sourceRef}
           aria-label="Mã HTML nội dung"
           value={html}
-          onChange={(event) => setHtml(event.target.value)}
+          onChange={(event) => {
+            setHtml(event.target.value);
+            if (hiddenInputRef.current) {
+              hiddenInputRef.current.value = event.target.value.replace(/<!--rich-content-insertion:[\s\S]*?-->/g, "");
+            }
+          }}
           disabled={Boolean(pendingImage) || uploading}
           rows={16}
           className={`${editorClass} resize-y font-mono text-xs`}
@@ -579,7 +597,7 @@ export default function RichContentEditor({ name, label = "Nội dung", initialC
           contentEditable={!uploading && !pendingImage}
           suppressContentEditableWarning
           dangerouslySetInnerHTML={{ __html: html }}
-          onInput={syncRichValue}
+          onInput={() => syncRichValue()}
           onClick={(event) => {
             const target = event.target;
             selectImage(target instanceof HTMLImageElement ? target : null);
